@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.37.10] - 2026-05-08
+
+### Fix: Router-only methods now fail clearly instead of silently
+
+- **Sidecar 501 guard**: Calling a router-only method (e.g.
+  `fetchMarketMatches`, `fetchEventMatches`, `compareMarketPrices`,
+  `fetchArbitrage`) on a regular exchange like `polymarket` now returns
+  HTTP 501 with a message telling you to use `exchange: "router"`.
+  Previously it threw a generic 500 `"Method X not implemented."` with
+  no hint about what to do instead.
+
+- **OpenAPI exchange scoping**: The sidecar OpenAPI spec now restricts
+  the `exchange` enum to `["router"]` on all 8 router-only operations.
+  The MCP tool generator reads this spec, so MCP tools will no longer
+  accept invalid exchanges for cross-venue methods. The `{exchange}`
+  path template is preserved for sidecar routing; only the enum is
+  scoped.
+
+- **SDK Router method name fix**: `Router.fetchMarketMatches` in
+  `pmxtjs` was internally dispatching to the deprecated sidecar method
+  name `fetchMatches` instead of `fetchMarketMatches`. Since
+  `fetchMatches` has no entry in `method-verbs.json`, every call
+  incurred a wasted 405 GET probe before falling back to POST. Fixed
+  to use the canonical name.
+
 ## [2.37.9] - 2026-05-07
 
 ### Feat: Limitless HMAC authentication and smart wallet support

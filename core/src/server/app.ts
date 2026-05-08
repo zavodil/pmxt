@@ -296,6 +296,20 @@ export function createApp(options: CreateAppOptions = {}): Express {
         return;
       }
 
+      if (
+        exchange.has &&
+        methodName in exchange.has &&
+        exchange.has[methodName as keyof typeof exchange.has] === false
+      ) {
+        res.status(501).json({
+          success: false,
+          error:
+            `Method '${methodName}' is not supported by '${exchangeName}'. ` +
+            `Use exchange: "router" for cross-venue methods.`,
+        });
+        return;
+      }
+
       const result = await exchange[methodName](...args);
       res.json({ success: true, data: result });
     } catch (error: any) {

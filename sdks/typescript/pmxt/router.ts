@@ -170,7 +170,7 @@ export class Router extends Exchange {
         if (params.includePrices) query.includePrices = true;
 
         try {
-            const json = await this.sidecarReadRequest('fetchMatches', query, [query]);
+            const json = await this.sidecarReadRequest('fetchMarketMatches', query, [query]);
             const data = this.handleResponse(json);
             if (!data) return [];
             return (data as any[]).map(parseMatchResult);

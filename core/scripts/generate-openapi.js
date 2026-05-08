@@ -746,7 +746,7 @@ function buildCapabilityMap() {
  *
  * Returns a NEW spec object — the input is never mutated.
  */
-function scopeExchangeParams(spec, capMap) {
+function scopeExchangeParams(spec, capMap, { collapsePaths = true } = {}) {
     if (!capMap) return spec;
 
     const constructors = spec['x-sdk-constructors'] || {};
@@ -807,14 +807,18 @@ function scopeExchangeParams(spec, capMap) {
             };
         }
 
-        // When every operation under this path is Router-only, replace
-        // the {exchange} template with "router" so the docs show the
-        // real URL (e.g. /api/router/fetchMarketMatches).  We only
-        // collapse for Router because those endpoints are architecturally
-        // permanent.  Other single-exchange methods (e.g. unwatchOrderBook
-        // on Polymarket today) will gain more venues over time, so
-        // collapsing them would break docs.json references.
-        if (pathKey.includes('{exchange}')) {
+        // When collapsePaths is enabled and every operation under this
+        // path is Router-only, replace the {exchange} template with
+        // "router" so the docs show the real URL (e.g.
+        // /api/router/fetchMarketMatches).  We only collapse for Router
+        // because those endpoints are architecturally permanent.  Other
+        // single-exchange methods (e.g. unwatchOrderBook on Polymarket
+        // today) will gain more venues over time, so collapsing them
+        // would break docs.json references.
+        //
+        // The sidecar spec sets collapsePaths=false: the server routes
+        // on {exchange} as a path parameter, so the template must stay.
+        if (collapsePaths && pathKey.includes('{exchange}')) {
             const ops = Object.values(newMethods).filter(
                 (o) => typeof o === 'object' && o.operationId
             );
@@ -2079,7 +2083,18 @@ function main() {
   const exchanges = parseExchanges(appTsContent);
   spec['x-sdk-constructors'] = buildSdkConstructors(exchanges);
 
-  const yamlStr = yaml.dump(spec, {
+  // Scope exchange params per-operation for the sidecar spec so that
+  // router-only operations (fetchMarketMatches, fetchArbitrage, etc.)
+  // restrict the exchange enum to ["router"] instead of listing every
+  // venue. The MCP tool generator reads this YAML and uses the enum to
+  // constrain valid exchange values, so scoping here prevents MCP tools
+  // from accepting unsupported exchanges.
+  // collapsePaths=false keeps the {exchange} path template intact — the
+  // sidecar server routes on it as a parameter.
+  const capMap = buildCapabilityMap();
+  const sidecarSpec = scopeExchangeParams(spec, capMap, { collapsePaths: false });
+
+  const yamlStr = yaml.dump(sidecarSpec, {
     indent: 2,
     lineWidth: 120,
     noRefs: true,
