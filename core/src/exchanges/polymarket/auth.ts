@@ -13,6 +13,7 @@ const POLYGON_CHAIN_ID = 137;
 const SIG_TYPE_EOA = 0;
 const SIG_TYPE_POLY_PROXY = 1;
 const SIG_TYPE_GNOSIS_SAFE = 2;
+const SIG_TYPE_POLY_1271 = 3;  // Deposit wallet (ERC-1271, recommended for new API users)
 
 /**
  * Manages Polymarket authentication and CLOB client initialization.
@@ -181,6 +182,10 @@ export class PolymarketAuth {
             case 'gnosissafe':
             case 'safe':
                 return SIG_TYPE_GNOSIS_SAFE;
+            case 'poly1271':
+            case '1271':
+            case 'depositwallet':
+                return SIG_TYPE_POLY_1271;
             default:
                 const parsed = parseInt(normalized);
                 return isNaN(parsed) ? SIG_TYPE_EOA : parsed;

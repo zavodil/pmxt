@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.37.14] - 2026-05-08
+
+### Feat: Polymarket deposit wallet support (signatureType 3)
+
+- **CLOB client upgrade**: `@polymarket/clob-client-v2` upgraded from
+  1.0.2 to 1.0.5, adding support for `POLY_1271` (signatureType 3)
+  deposit wallet order signing with ERC-7739 wrapped ERC-1271 signatures.
+
+- **New signature type**: Added `SIG_TYPE_POLY_1271 = 3` to
+  `PolymarketAuth`. Accepted via `signatureType: 3`,
+  `signatureType: "deposit_wallet"`, or `signatureType: "poly_1271"`.
+
+- Deposit wallet accounts (the default for new Polymarket users) can
+  now place orders via the standard CLOB API. Previously only EOA (0),
+  Poly Proxy (1), and Gnosis Safe (2) were supported.
+
+### Migration
+
+No breaking changes. Pass `signatureType: 3` (or `"deposit_wallet"`)
+and `funderAddress: "0xYourDepositWallet"` in credentials. Existing
+signature types are unaffected.
+
 ## [2.37.13] - 2026-05-08
 
 ### Fix: Complete baseUrl wiring across all exchanges
