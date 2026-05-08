@@ -5,6 +5,7 @@ import { OrderBook, Trade } from '../../types';
 // on each polling interval, matching the CCXT Pro async pattern.
 
 const DEFAULT_POLL_INTERVAL = 5000; // 5 seconds
+const MAX_CONSECUTIVE_FAILURES = 5;
 
 export type FetchOrderBookFn = (id: string) => Promise<OrderBook>;
 
@@ -15,8 +16,12 @@ export class MyriadWebSocket {
     private orderBookTimers: Map<string, ReturnType<typeof setInterval>> = new Map();
     private tradeTimers: Map<string, ReturnType<typeof setInterval>> = new Map();
     private orderBookResolvers: Map<string, ((value: OrderBook) => void)[]> = new Map();
+    private orderBookRejecters: Map<string, ((reason: unknown) => void)[]> = new Map();
     private tradeResolvers: Map<string, ((value: Trade[]) => void)[]> = new Map();
+    private tradeRejecters: Map<string, ((reason: unknown) => void)[]> = new Map();
     private lastTradeTimestamp: Map<string, number> = new Map();
+    private orderBookFailureCount: Map<string, number> = new Map();
+    private tradeFailureCount: Map<string, number> = new Map();
     private closed = false;
 
     constructor(
@@ -32,11 +37,13 @@ export class MyriadWebSocket {
     async watchOrderBook(outcomeId: string): Promise<OrderBook> {
         if (this.closed) throw new Error('WebSocket connection is closed');
 
-        return new Promise<OrderBook>((resolve) => {
+        return new Promise<OrderBook>((resolve, reject) => {
             if (!this.orderBookResolvers.has(outcomeId)) {
                 this.orderBookResolvers.set(outcomeId, []);
+                this.orderBookRejecters.set(outcomeId, []);
             }
             this.orderBookResolvers.get(outcomeId)!.push(resolve);
+            this.orderBookRejecters.get(outcomeId)!.push(reject);
 
             if (!this.orderBookTimers.has(outcomeId)) {
                 this.startOrderBookPolling(outcomeId);
@@ -47,11 +54,13 @@ export class MyriadWebSocket {
     async watchTrades(outcomeId: string): Promise<Trade[]> {
         if (this.closed) throw new Error('WebSocket connection is closed');
 
-        return new Promise<Trade[]>((resolve) => {
+        return new Promise<Trade[]>((resolve, reject) => {
             if (!this.tradeResolvers.has(outcomeId)) {
                 this.tradeResolvers.set(outcomeId, []);
+                this.tradeRejecters.set(outcomeId, []);
             }
             this.tradeResolvers.get(outcomeId)!.push(resolve);
+            this.tradeRejecters.get(outcomeId)!.push(reject);
 
             if (!this.tradeTimers.has(outcomeId)) {
                 this.startTradePolling(outcomeId);
@@ -72,20 +81,40 @@ export class MyriadWebSocket {
         this.orderBookTimers.clear();
         this.tradeTimers.clear();
         this.orderBookResolvers.clear();
+        this.orderBookRejecters.clear();
         this.tradeResolvers.clear();
+        this.tradeRejecters.clear();
     }
 
     private startOrderBookPolling(id: string): void {
         const poll = async () => {
             try {
                 const book = await this.fetchOrderBook(id);
+                this.orderBookFailureCount.set(id, 0);
                 const resolvers = this.orderBookResolvers.get(id) || [];
                 this.orderBookResolvers.set(id, []);
+                this.orderBookRejecters.set(id, []);
                 for (const resolve of resolvers) {
                     resolve(book);
                 }
-            } catch {
-                // Silently retry on next interval
+            } catch (error: unknown) {
+                const failures = (this.orderBookFailureCount.get(id) || 0) + 1;
+                this.orderBookFailureCount.set(id, failures);
+                console.warn(`[Myriad] watchOrderBook poll failed for outcomeId=${id} (consecutive failures: ${failures}):`, error);
+
+                if (failures >= MAX_CONSECUTIVE_FAILURES) {
+                    const timer = this.orderBookTimers.get(id);
+                    if (timer) clearInterval(timer);
+                    this.orderBookTimers.delete(id);
+                    this.orderBookFailureCount.delete(id);
+
+                    const rejecters = this.orderBookRejecters.get(id) || [];
+                    this.orderBookResolvers.set(id, []);
+                    this.orderBookRejecters.set(id, []);
+                    for (const reject of rejecters) {
+                        reject(error);
+                    }
+                }
             }
         };
 
@@ -133,13 +162,31 @@ export class MyriadWebSocket {
                     this.lastTradeTimestamp.set(id, maxTs + 1);
                 }
 
+                this.tradeFailureCount.set(id, 0);
                 const resolvers = this.tradeResolvers.get(id) || [];
                 this.tradeResolvers.set(id, []);
+                this.tradeRejecters.set(id, []);
                 for (const resolve of resolvers) {
                     resolve(trades);
                 }
-            } catch {
-                // Silently retry on next interval
+            } catch (error: unknown) {
+                const failures = (this.tradeFailureCount.get(id) || 0) + 1;
+                this.tradeFailureCount.set(id, failures);
+                console.warn(`[Myriad] watchTrades poll failed for outcomeId=${id} (consecutive failures: ${failures}):`, error);
+
+                if (failures >= MAX_CONSECUTIVE_FAILURES) {
+                    const timer = this.tradeTimers.get(id);
+                    if (timer) clearInterval(timer);
+                    this.tradeTimers.delete(id);
+                    this.tradeFailureCount.delete(id);
+
+                    const rejecters = this.tradeRejecters.get(id) || [];
+                    this.tradeResolvers.set(id, []);
+                    this.tradeRejecters.set(id, []);
+                    for (const reject of rejecters) {
+                        reject(error);
+                    }
+                }
             }
         };
 

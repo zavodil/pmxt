@@ -11,6 +11,8 @@ import { MetaculusExchange } from "../exchanges/metaculus";
 import { SmarketsExchange } from "../exchanges/smarkets";
 import { PolymarketUSExchange } from "../exchanges/polymarket_us";
 import { HyperliquidExchange } from "../exchanges/hyperliquid";
+import { GeminiTitanExchange } from "../exchanges/gemini-titan";
+import { MockExchange } from "../exchanges/mock";
 import { Router } from "../router";
 
 export function createExchange(
@@ -118,6 +120,15 @@ export function createExchange(
         privateKey:
           credentials?.privateKey || process.env.HYPERLIQUID_PRIVATE_KEY,
       });
+    case "gemini-titan":
+      return new GeminiTitanExchange({
+        apiKey:
+          credentials?.apiKey || process.env.GEMINI_API_KEY,
+        apiSecret:
+          credentials?.apiSecret || process.env.GEMINI_API_SECRET,
+      });
+    case "mock":
+      return new MockExchange();
     case "router":
       return new Router({
         apiKey: bearerToken!,

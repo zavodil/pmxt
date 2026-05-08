@@ -341,10 +341,7 @@ export class LimitlessExchange extends PredictionMarketExchange {
 
         try {
             if (!marketId) {
-                console.warn(
-                    'Limitless: fetchOpenOrders requires marketId (slug) to be efficient. Returning [].'
-                );
-                return [];
+                throw new Error('Limitless: fetchOpenOrders requires marketId (slug).');
             }
 
             const orders = await client.getOrders(marketId, ['LIVE']);
@@ -370,8 +367,7 @@ export class LimitlessExchange extends PredictionMarketExchange {
     async fetchClosedOrders(params?: OrderHistoryParams): Promise<Order[]> {
         const client = this.ensureClient();
         if (!params?.marketId) {
-            console.warn('Limitless: fetchClosedOrders requires marketId (slug). Returning [].');
-            return [];
+            throw new Error('Limitless: fetchClosedOrders requires marketId (slug).');
         }
         const orders = await client.getOrders(params.marketId, ['MATCHED']);
         return orders.map((o: any) => ({
@@ -392,8 +388,7 @@ export class LimitlessExchange extends PredictionMarketExchange {
     async fetchAllOrders(params?: OrderHistoryParams): Promise<Order[]> {
         const client = this.ensureClient();
         if (!params?.marketId) {
-            console.warn('Limitless: fetchAllOrders requires marketId (slug). Returning [].');
-            return [];
+            throw new Error('Limitless: fetchAllOrders requires marketId (slug).');
         }
         const orders = await client.getOrders(params.marketId, ['LIVE', 'MATCHED']);
         return orders.map((o: any) => ({

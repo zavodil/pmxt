@@ -79,7 +79,12 @@ export class Router extends PredictionMarketExchange {
             offset: params?.offset,
             closed: params?.status === 'closed' || params?.status === 'inactive',
         });
-        return response ?? [];
+        if (!Array.isArray(response)) {
+            throw new Error(
+                `fetchMarketsImpl: expected array from searchMarkets but received ${typeof response}`,
+            );
+        }
+        return response;
     }
 
     protected async fetchEventsImpl(params?: EventFetchParams): Promise<UnifiedEvent[]> {
@@ -89,7 +94,12 @@ export class Router extends PredictionMarketExchange {
             limit: params?.limit,
             offset: params?.offset,
         });
-        return response ?? [];
+        if (!Array.isArray(response)) {
+            throw new Error(
+                `fetchEventsImpl: expected array from searchEvents but received ${typeof response}`,
+            );
+        }
+        return response;
     }
 
     // -----------------------------------------------------------------------
@@ -112,7 +122,7 @@ export class Router extends PredictionMarketExchange {
             relation: 'identity',
         });
 
-        const fetchPromises: Promise<OrderBook | null>[] = [];
+        const fetchPromises: Promise<{ book: OrderBook | null; venue: string; error: unknown }>[] = [];
         const matchedVenues = new Set(
             matches.map((m) => m.market.sourceExchange).filter(Boolean),
         );
@@ -127,7 +137,10 @@ export class Router extends PredictionMarketExchange {
             if (!outcome) continue;
 
             fetchPromises.push(
-                exchange.fetchOrderBook(outcome.outcomeId, resolvedSide).catch(() => null),
+                exchange
+                    .fetchOrderBook(outcome.outcomeId, resolvedSide)
+                    .then((book) => ({ book, venue: venueName, error: null }))
+                    .catch((error: unknown) => ({ book: null, venue: venueName, error })),
             );
         }
 
@@ -135,19 +148,29 @@ export class Router extends PredictionMarketExchange {
         for (const [name, exchange] of Object.entries(this.exchanges)) {
             if (matchedVenues.has(name)) continue;
             fetchPromises.push(
-                exchange.fetchOrderBook(outcomeId, resolvedSide).catch(() => null),
+                exchange
+                    .fetchOrderBook(outcomeId, resolvedSide)
+                    .then((book) => ({ book, venue: name, error: null }))
+                    .catch((error: unknown) => ({ book: null, venue: name, error })),
             );
         }
 
-        const books = (await Promise.all(fetchPromises)).filter(
-            (b): b is OrderBook => b !== null,
-        );
+        const results = await Promise.all(fetchPromises);
+        const books = results.filter((r): r is { book: OrderBook; venue: string; error: null } => r.book !== null);
+        const failures = results.filter((r) => r.book === null && r.error !== null);
 
-        if (books.length === 0) {
-            return { bids: [], asks: [], timestamp: Date.now() };
+        if (books.length === 0 && failures.length > 0) {
+            const reasons = failures
+                .map((f) => `${f.venue}: ${f.error instanceof Error ? f.error.message : String(f.error)}`)
+                .join('; ');
+            throw new Error(`fetchOrderBook failed on all exchanges for outcomeId "${outcomeId}": ${reasons}`);
         }
 
-        return mergeOrderBooks(books);
+        if (books.length === 0) {
+            throw new Error(`fetchOrderBook: no exchange returned an orderbook for outcomeId "${outcomeId}"`);
+        }
+
+        return mergeOrderBooks(books.map((r) => r.book));
     }
 
     // -----------------------------------------------------------------------
@@ -329,9 +352,16 @@ export class Router extends PredictionMarketExchange {
         // Try the dedicated bulk endpoint first (single DB query).
         try {
             return await this.fetchArbitrageBulk(params);
-        } catch {
-            // Dedicated endpoint not available — fall back to N+1 approach.
-            return this.fetchArbitrageFallback(params);
+        } catch (error: unknown) {
+            // Only fall back when the bulk endpoint is genuinely not available (404/501).
+            // All other errors (network failures, 5xx, parsing errors) propagate so
+            // callers are not silently given stale N+1 data.
+            const status = (error as any)?.status ?? (error as any)?.response?.status;
+            if (status === 404 || status === 501) {
+                console.warn('[pmxt] Router: bulk arbitrage endpoint unavailable, falling back to N+1 approach');
+                return this.fetchArbitrageFallback(params);
+            }
+            throw error;
         }
     }
 
@@ -350,17 +380,26 @@ export class Router extends PredictionMarketExchange {
         // getArbitrage already unwraps .data — res is the opportunities array.
         const items: any[] = Array.isArray(res) ? res : (res?.data ?? []);
 
-        return items.map((r: any) => ({
-            marketA: r.marketA,
-            marketB: r.marketB,
-            spread: r.spread ?? 0,
-            buyVenue: r.buyVenue ?? '',
-            sellVenue: r.sellVenue ?? '',
-            buyPrice: r.buyPrice ?? 0,
-            sellPrice: r.sellPrice ?? 0,
-            relation: r.relation,
-            confidence: r.confidence,
-        }));
+        return items.map((r: any) => {
+            if (r.spread == null || r.buyPrice == null || r.sellPrice == null) {
+                throw new Error(
+                    `fetchArbitrageBulk: arbitrage record is missing required price fields ` +
+                    `(spread=${r.spread}, buyPrice=${r.buyPrice}, sellPrice=${r.sellPrice}) ` +
+                    `for markets ${r.marketA?.marketId ?? '?'} / ${r.marketB?.marketId ?? '?'}`,
+                );
+            }
+            return {
+                marketA: r.marketA,
+                marketB: r.marketB,
+                spread: r.spread,
+                buyVenue: r.buyVenue ?? '',
+                sellVenue: r.sellVenue ?? '',
+                buyPrice: r.buyPrice,
+                sellPrice: r.sellPrice,
+                relation: r.relation,
+                confidence: r.confidence,
+            };
+        });
     }
 
     /**

@@ -91,22 +91,32 @@ export class BaoziFetcher implements IExchangeFetcher<BaoziRawMarket, BaoziRawMa
 
             const markets: BaoziRawMarket[] = [];
 
+            let booleanSkipped = 0;
             for (const account of booleanAccounts) {
                 try {
                     const parsed = parseMarket(account.account.data);
                     markets.push({ pubkey: account.pubkey.toString(), parsed } as BaoziRawBooleanMarket);
-                } catch {
-                    // Skip malformed accounts
+                } catch (parseError: unknown) {
+                    booleanSkipped++;
+                    console.warn(`[Baozi] fetchRawMarkets: failed to parse boolean market account pubkey=${account.pubkey.toString()}:`, parseError);
                 }
             }
+            if (booleanSkipped > 0) {
+                console.warn(`[Baozi] fetchRawMarkets: skipped ${booleanSkipped} malformed boolean market account(s) out of ${booleanAccounts.length}`);
+            }
 
+            let raceSkipped = 0;
             for (const account of raceAccounts) {
                 try {
                     const parsed = parseRaceMarket(account.account.data);
                     markets.push({ pubkey: account.pubkey.toString(), parsed } as BaoziRawRaceMarket);
-                } catch {
-                    // Skip malformed accounts
+                } catch (parseError: unknown) {
+                    raceSkipped++;
+                    console.warn(`[Baozi] fetchRawMarkets: failed to parse race market account pubkey=${account.pubkey.toString()}:`, parseError);
                 }
+            }
+            if (raceSkipped > 0) {
+                console.warn(`[Baozi] fetchRawMarkets: skipped ${raceSkipped} malformed race market account(s) out of ${raceAccounts.length}`);
             }
 
             marketsCache.set(markets);
@@ -178,23 +188,33 @@ export class BaoziFetcher implements IExchangeFetcher<BaoziRawMarket, BaoziRawMa
             ]);
 
             const booleanPositions: BaoziRawBooleanPosition[] = [];
+            let boolPosSkipped = 0;
             for (const account of booleanAccounts) {
                 try {
                     const parsed = parseUserPosition(account.account.data);
                     booleanPositions.push({ pubkey: account.pubkey.toString(), parsed });
-                } catch {
-                    // Skip malformed
+                } catch (parseError: unknown) {
+                    boolPosSkipped++;
+                    console.warn(`[Baozi] fetchRawUserPositions: failed to parse boolean position account pubkey=${account.pubkey.toString()}:`, parseError);
                 }
+            }
+            if (boolPosSkipped > 0) {
+                console.warn(`[Baozi] fetchRawUserPositions: skipped ${boolPosSkipped} malformed boolean position account(s) out of ${booleanAccounts.length}`);
             }
 
             const racePositions: BaoziRawRacePosition[] = [];
+            let racePosSkipped = 0;
             for (const account of raceAccounts) {
                 try {
                     const parsed = parseRacePosition(account.account.data);
                     racePositions.push({ pubkey: account.pubkey.toString(), parsed });
-                } catch {
-                    // Skip malformed
+                } catch (parseError: unknown) {
+                    racePosSkipped++;
+                    console.warn(`[Baozi] fetchRawUserPositions: failed to parse race position account pubkey=${account.pubkey.toString()}:`, parseError);
                 }
+            }
+            if (racePosSkipped > 0) {
+                console.warn(`[Baozi] fetchRawUserPositions: skipped ${racePosSkipped} malformed race position account(s) out of ${raceAccounts.length}`);
             }
 
             return { booleanPositions, racePositions };

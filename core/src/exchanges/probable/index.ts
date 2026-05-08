@@ -359,14 +359,15 @@ export class ProbableExchange extends PredictionMarketExchange {
     }
 
     async fetchOpenOrders(marketId?: string): Promise<Order[]> {
+        if (!marketId) {
+            throw new Error('[Probable] fetchOpenOrders requires a marketId: this exchange does not support fetching all orders across all markets');
+        }
         try {
             const auth = this.ensureAuth();
             const client = auth.getClobClient();
 
             const params: any = {};
-            if (marketId) {
-                params.eventId = marketId;
-            }
+            params.eventId = marketId;
 
             const orders = await client.getOpenOrders(params);
             const orderList = Array.isArray(orders) ? orders : (orders as any)?.data || [];
@@ -422,8 +423,9 @@ export class ProbableExchange extends PredictionMarketExchange {
                 });
 
                 total = parseFloat(formatUnits(balance as bigint, 18));
-            } catch (chainError: any) {
-                // On-chain check failed, return 0
+            } catch (chainError: unknown) {
+                console.warn('[Probable] fetchBalance: on-chain USDT balance fetch failed:', chainError);
+                throw chainError;
             }
 
             // Calculate locked from open BUY orders
@@ -435,8 +437,9 @@ export class ProbableExchange extends PredictionMarketExchange {
                         locked += order.remaining * order.price;
                     }
                 }
-            } catch {
-                // If we can't fetch orders, locked stays 0
+            } catch (ordersError: unknown) {
+                console.warn('[Probable] fetchBalance: failed to fetch open orders for locked balance calculation:', ordersError);
+                throw ordersError;
             }
 
             return [{

@@ -427,7 +427,11 @@ export class PolymarketExchange extends PredictionMarketExchange {
                     if (onChain > 0) {
                         total = onChain;
                     }
-                } catch {
+                } catch (err: unknown) {
+                    console.warn(
+                        '[polymarket] on-chain balance lookup failed; using CLOB balance only',
+                        { error: err instanceof Error ? err.message : String(err) },
+                    );
                 }
             }
 

@@ -233,7 +233,7 @@ function intentToSide(intent: OrderIntent): 'buy' | 'sell' {
         case 'ORDER_INTENT_SELL_SHORT':
             return 'sell';
         default:
-            return 'buy';
+            throw new Error(`[polymarket_us] unknown order intent: ${String(intent)}`);
     }
 }
 
@@ -507,6 +507,10 @@ export class PolymarketUSNormalizer {
             timestamp: parseTimeToMs(trade.createTime),
             price: fromAmount(trade.price),
             amount: parseFloat(trade.qty || '0'),
+            // The Polymarket US activity trade object (Trade$1) does not carry
+            // an intent/side field — only price, qty, and state are provided.
+            // Side cannot be derived from activity data; consumers must cross-reference
+            // with their own order history if side is required.
             side: 'unknown',
             outcomeId: undefined,
         };

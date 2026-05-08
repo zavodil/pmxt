@@ -295,7 +295,12 @@ export function createWebSocketHandler(
       // Close all exchange instances
       for (const [, exchange] of state.exchanges) {
         if (typeof (exchange as any).close === "function") {
-          (exchange as any).close().catch(() => {});
+          (exchange as any).close().catch((err: unknown) => {
+            console.warn(
+              '[ws-handler] exchange close() failed',
+              { error: err instanceof Error ? err.message : String(err) },
+            );
+          });
         }
       }
       state.exchanges.clear();
@@ -383,8 +388,19 @@ function handleSubscribe(
     id,
     ws,
     abortController.signal,
-  ).catch(() => {
-    // Stream ended -- clean up
+  ).catch((err: unknown) => {
+    // Unexpected stream rejection (programming error — exchange errors are
+    // caught and reported to the client inside streamSingle/streamBatch).
+    console.warn(
+      '[ws-handler] stream ended with unexpected error',
+      {
+        exchange: exchangeName,
+        method,
+        id,
+        error: err instanceof Error ? err.message : String(err),
+      },
+    );
+    sendError(ws, id, err instanceof Error ? err.message : 'Streaming error');
     state.subscriptions.delete(key);
   });
 }

@@ -2,6 +2,53 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.39.2] - 2026-05-08
+
+### Test suite rewrite and silent failure elimination
+
+Complete rewrite of the test suite and elimination of all bare catch blocks across the codebase.
+
+#### Test suite (rewrite from scratch)
+
+Deleted ~170 test files (17,200 lines) that were vacuously passing, silently skipping, or testing nothing. Replaced with 637 tests across 10 files that run in ~5 seconds:
+
+- **Pipeline contract test** — starts a real Express server with MockExchange, verifies every field on UnifiedMarket/UnifiedEvent/MarketOutcome survives the full path from exchange through server serialization to SDK converter.
+- **Schema drift test** — parses types.ts, TS SDK models, and Python SDK models via regex; fails with the exact field name if any SDK diverges from the source of truth.
+- **Normalizer fixture tests** — frozen realistic API response fixtures for all 11 exchanges (Polymarket, Kalshi, Limitless, Smarkets, Myriad, Probable, Opinion, Polymarket US, Hyperliquid, Baozi, Metaculus). Tests that every normalizer produces correct UnifiedMarket fields from venue-specific raw data.
+- **Order lifecycle tests** — balance math, immediate/resting fills, partial fills, cancellation, position tracking, weighted average entry price, reset, determinism, insufficient balance.
+- **Error propagation tests** — unknown exchange/method, health check, GET/POST routing, write-method-via-GET rejection.
+- **GET/POST parity tests** — verifies GET and POST requests to the same endpoint return identical results.
+- **Python SDK converter tests** — every converter function, every field on every model, distinct sentinel values to catch field transpositions.
+- **Python SDK integration tests** — starts real Node sidecar, makes HTTP calls through Python, asserts responses are properly typed dataclass instances with all fields.
+
+#### MockExchange
+
+Added `MockExchange` — a fully offline, deterministic exchange for testing and development. Seeded PRNG produces identical data across runs. Supports fetchMarkets, fetchEvents, fetchOrderBook, fetchOHLCV, fetchTrades, fetchBalance, createOrder, cancelOrder, fetchPositions, and full order lifecycle with resting limit mode. Registered in the exchange factory as `"mock"`.
+
+#### Silent failure elimination (20 bare catches fixed)
+
+Every bare `catch {}` and `.catch(() => null)` in the codebase has been replaced with either error propagation or explicit logging:
+
+- **Router**: `fetchOrderBook` throws on total failure instead of returning phantom empty orderbook; `fetchArbitrageBulk` only catches 404/501 (rethrows all other errors); missing arbitrage price fields throw instead of defaulting to 0; `fetchMarketsImpl`/`fetchEventsImpl` validate array responses.
+- **Myriad WebSocket**: polling errors logged with outcomeId; after 5 consecutive failures, rejects pending promises instead of hanging forever.
+- **Baozi**: market account fetch failure re-throws instead of returning wrong prices; malformed on-chain accounts logged with pubkey and skip count.
+- **Probable**: balance RPC failure re-throws; locked balance failure re-throws; missing marketId throws instead of returning empty array.
+- **Polymarket**: signature discovery failure logged (default preserved for network resilience); on-chain balance failure logged.
+- **Polymarket US**: unknown order intent throws instead of defaulting to `'buy'`.
+- **Smarkets**: volume batch failure logged with batch IDs.
+- **Kalshi**: series tag failure logged with ticker.
+- **Metaculus**: slug-to-event only catches 404; rethrows all other errors.
+- **Limitless**: missing marketId throws instead of returning empty.
+- **WebSocket handler**: stream errors send error frame to client before cleanup; exchange close failures logged.
+
+#### Python SDK fix
+
+Added missing `event_id` field to Python `UnifiedMarket` dataclass — was silently dropped by `_auto_convert` for every market response.
+
+### Migration
+
+No breaking API changes. Error behavior is stricter: methods that previously returned empty/default data on failure now throw or log warnings. If your code was relying on silent empty responses from failed fetches, you may need to add error handling.
+
 ## [2.39.1] - 2026-05-08
 
 ### Feat: Polymarket authenticated user channel WebSocket

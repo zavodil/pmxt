@@ -511,8 +511,15 @@ export class SmarketsFetcher implements IExchangeFetcher<SmarketsRawEventWithMar
                         market_ids: batch,
                     });
                     return (data.volumes || []) as SmarketsRawVolume[];
-                } catch {
-                    // Volumes are non-critical; return empty on failure
+                } catch (err: unknown) {
+                    // Volumes are non-critical; return empty on failure but log it.
+                    console.warn(
+                        '[smarkets] volume fetch failed for batch',
+                        {
+                            marketIds: batch,
+                            error: err instanceof Error ? err.message : String(err),
+                        },
+                    );
                     return [] as SmarketsRawVolume[];
                 }
             })

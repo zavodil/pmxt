@@ -233,8 +233,14 @@ export class PolymarketAuth {
                 if (signatureType === undefined && discoverySucceeded) {
                     signatureType = discovered.signatureType;
                 }
-            } catch {
-                // Discovery failure — fall through to default below.
+            } catch (err: unknown) {
+                // Discovery failure — fall through to default (Gnosis Safe) below.
+                // A network/HTTP error here does not block trading; we just lose
+                // the ability to auto-detect signatureType.
+                console.warn(
+                    '[polymarket] signature-type discovery failed; defaulting to Gnosis Safe',
+                    { error: err instanceof Error ? err.message : String(err) },
+                );
             }
         }
 

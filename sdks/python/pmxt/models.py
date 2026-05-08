@@ -110,6 +110,9 @@ class UnifiedMarket:
     source_exchange: Optional[str] = None
     """The exchange/venue this market comes from (e.g. 'polymarket', 'kalshi'). Populated by the Router."""
 
+    event_id: Optional[str] = None
+    """ID of the parent event this market belongs to."""
+
     yes: Optional[MarketOutcome] = None
     """Convenience access to the Yes outcome for binary markets."""
 

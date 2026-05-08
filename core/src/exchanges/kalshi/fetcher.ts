@@ -350,8 +350,15 @@ export class KalshiFetcher implements IExchangeFetcher<KalshiRawEvent, KalshiRaw
                 if (series?.tags?.length > 0 && (!event.tags || event.tags.length === 0)) {
                     event.tags = series.tags;
                 }
-            } catch {
-                // Non-critical
+            } catch (err: unknown) {
+                // Non-critical — tags are enrichment only.
+                console.warn(
+                    '[kalshi] series tag fetch failed',
+                    {
+                        series_ticker: event.series_ticker,
+                        error: err instanceof Error ? err.message : String(err),
+                    },
+                );
             }
         }
 

@@ -164,8 +164,9 @@ export class BaoziExchange extends PredictionMarketExchange {
                             const unified = this.normalizer.normalizeMarket(rawMarket);
                             if (unified) marketLookup.set(marketPdaStr, unified);
                         }
-                    } catch {
-                        // Use defaults if market fetch fails
+                    } catch (error: unknown) {
+                        console.warn(`[Baozi] fetchPositions: failed to fetch boolean market account for PDA=${marketPdaStr}:`, error);
+                        throw error;
                     }
                 }
             }
@@ -181,8 +182,9 @@ export class BaoziExchange extends PredictionMarketExchange {
                             const unified = this.normalizer.normalizeMarket(rawMarket);
                             if (unified) marketLookup.set(racePdaStr, unified);
                         }
-                    } catch {
-                        // Use defaults if market fetch fails
+                    } catch (error: unknown) {
+                        console.warn(`[Baozi] fetchPositions: failed to fetch race market account for PDA=${racePdaStr}:`, error);
+                        throw error;
                     }
                 }
             }

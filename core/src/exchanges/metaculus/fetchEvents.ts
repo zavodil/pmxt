@@ -146,8 +146,13 @@ async function fetchEventBySlug(
                 },
             ];
         }
-    } catch {
-        // fall through
+    } catch (err: unknown) {
+        // A 404 means this slug is not a known tournament — fall through to
+        // the next lookup strategy. Any other error (network, auth, etc.)
+        // is a real failure and must propagate.
+        if (!(err instanceof Error) || !('status' in err) || (err as any).status !== 404) {
+            throw err;
+        }
     }
 
     // Finally try slug match against post.slug / post.url_title
