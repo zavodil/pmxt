@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.40.1] - 2026-05-08
+
+### Fixed
+
+- **Limitless**: Map `status` field in `mapMarketToUnified()` — Limitless API returns `status: 'FUNDED'` and `expired: boolean` but these were never mapped to the unified `status` field, causing all Limitless markets to be stored with `NULL` status and excluded from cross-venue identity matching in the SOR.
+
 ## [2.40.0] - 2026-05-08
 
 ### Added
