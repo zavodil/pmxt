@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.38.0] - 2026-05-08
+
+### Feat: Hyperliquid prediction market (HIP-4 Outcome Markets)
+
+Added Hyperliquid as the 12th supported exchange. Hyperliquid's HIP-4
+outcome markets are binary contracts that trade on the same HyperCore
+matching engine as their perps and spot, settling in USDH.
+
+**Read-only (no credentials required):**
+- `fetchMarkets` / `fetchEvents` -- discovers outcomes via `outcomeMeta`
+- `fetchOrderBook` -- L2 book via `#coin` notation
+- `fetchOHLCV` -- candle snapshots (1m through 1M intervals)
+- `fetchTrades` -- recent trades
+
+**User data (wallet address required):**
+- `fetchBalance` / `fetchPositions` / `fetchOpenOrders` / `fetchMyTrades`
+
+**Trading (private key required):**
+- `buildOrder` / `submitOrder` / `createOrder` / `cancelOrder`
+- Full EIP-712 phantom agent signing (msgpack + keccak256 action hash)
+- Outcome market orders use `grouping: "na"` per HIP-4 spec
+
+**Environment variables:**
+- `HYPERLIQUID_WALLET_ADDRESS` -- wallet address for read-only user data
+- `HYPERLIQUID_PRIVATE_KEY` -- EVM private key for trading (EIP-712)
+
+**New dependency:** `msgpackr` for Hyperliquid action hash serialization.
+
+### Files
+
+- `core/src/exchanges/hyperliquid/` -- 7 files (config, utils, errors,
+  fetcher, normalizer, auth, index)
+- `core/src/server/exchange-factory.ts` -- added `case "hyperliquid"`
+- `core/src/index.ts` -- added exports
+
 ## [2.37.14] - 2026-05-08
 
 ### Feat: Polymarket deposit wallet support (signatureType 3)

@@ -14,6 +14,7 @@ export * from './exchanges/opinion';
 export * from './exchanges/metaculus';
 export * from './exchanges/smarkets';
 export * from './exchanges/polymarket_us';
+export * from './exchanges/hyperliquid';
 export * from './router';
 export * from './server/app';
 export * from './server/utils/port-manager';
@@ -30,6 +31,7 @@ import { OpinionExchange } from './exchanges/opinion';
 import { MetaculusExchange } from './exchanges/metaculus';
 import { SmarketsExchange } from './exchanges/smarkets';
 import { PolymarketUSExchange } from './exchanges/polymarket_us';
+import { HyperliquidExchange } from './exchanges/hyperliquid';
 import { Router } from './router';
 
 const pmxt = {
@@ -44,6 +46,7 @@ const pmxt = {
     Metaculus: MetaculusExchange,
     Smarkets: SmarketsExchange,
     PolymarketUS: PolymarketUSExchange,
+    Hyperliquid: HyperliquidExchange,
     Router,
 };
 
@@ -58,5 +61,6 @@ export const Opinion = OpinionExchange;
 export const Metaculus = MetaculusExchange;
 export const Smarkets = SmarketsExchange;
 export const PolymarketUS = PolymarketUSExchange;
+export const Hyperliquid = HyperliquidExchange;
 
 export default pmxt;

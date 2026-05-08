@@ -10,6 +10,7 @@ import { OpinionExchange } from "../exchanges/opinion";
 import { MetaculusExchange } from "../exchanges/metaculus";
 import { SmarketsExchange } from "../exchanges/smarkets";
 import { PolymarketUSExchange } from "../exchanges/polymarket_us";
+import { HyperliquidExchange } from "../exchanges/hyperliquid";
 import { Router } from "../router";
 
 export function createExchange(
@@ -109,6 +110,13 @@ export function createExchange(
         apiKey: credentials?.apiKey || process.env.POLYMARKET_US_KEY_ID,
         privateKey:
           credentials?.privateKey || process.env.POLYMARKET_US_SECRET_KEY,
+      });
+    case "hyperliquid":
+      return new HyperliquidExchange({
+        apiKey:
+          credentials?.apiKey || process.env.HYPERLIQUID_WALLET_ADDRESS,
+        privateKey:
+          credentials?.privateKey || process.env.HYPERLIQUID_PRIVATE_KEY,
       });
     case "router":
       return new Router({
