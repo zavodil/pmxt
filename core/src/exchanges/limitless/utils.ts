@@ -36,6 +36,12 @@ export function mapMarketToUnified(market: any): UnifiedMarket | null {
         });
     }
 
+    // Limitless returns status='FUNDED' for active markets and expired=true
+    // when the market has ended. Map to the same canonical values Polymarket uses.
+    let status: string | undefined;
+    if (market.expired === true) status = 'closed';
+    else if (market.status === 'FUNDED') status = 'active';
+
     const um = {
         id: market.slug,
         marketId: market.slug,
@@ -52,7 +58,8 @@ export function mapMarketToUnified(market: any): UnifiedMarket | null {
         url: `https://limitless.exchange/markets/${market.slug}`,
         image: market.logo || `https://limitless.exchange/api/og?slug=${market.slug}`,
         category: market.categories?.[0],
-        tags: market.tags || []
+        tags: market.tags || [],
+        status,
     } as UnifiedMarket;
 
     addBinaryOutcomes(um);
