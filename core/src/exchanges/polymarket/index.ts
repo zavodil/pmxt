@@ -248,6 +248,32 @@ export class PolymarketExchange extends PredictionMarketExchange {
 
             const side = built.params.side.toUpperCase() === 'BUY' ? Side.BUY : Side.SELL;
             const price = built.params.price || (side === Side.BUY ? 0.99 : 0.01);
+
+            // Extract actual fill data from the CLOB OrderResponse.
+            // response.status: 'MATCHED' | 'CONFIRMED' = immediately filled,
+            //                  'LIVE' = resting on the book (filled: 0 is correct).
+            // takingAmount / makingAmount are string representations of raw USDC amounts (6 decimals).
+            const USDC_DECIMALS = 6;
+            const responseStatus = (response.status || '').toUpperCase();
+            const isImmediatelyFilled = responseStatus === 'MATCHED' || responseStatus === 'CONFIRMED';
+            let filled = 0;
+            if (isImmediatelyFilled) {
+                const takingRaw = typeof response.takingAmount === 'string'
+                    ? parseFloat(response.takingAmount)
+                    : (response.takingAmount ?? 0);
+                const makingRaw = typeof response.makingAmount === 'string'
+                    ? parseFloat(response.makingAmount)
+                    : (response.makingAmount ?? 0);
+                // For BUY: makingAmount is USDC spent, takingAmount is shares received.
+                // For SELL: makingAmount is shares sold, takingAmount is USDC received.
+                // `filled` should reflect the share size that executed.
+                filled = side === Side.BUY
+                    ? takingRaw / Math.pow(10, USDC_DECIMALS)
+                    : makingRaw / Math.pow(10, USDC_DECIMALS);
+            }
+            const remaining = Math.max(0, built.params.amount - filled);
+            const orderStatus = filled >= built.params.amount ? 'filled' : 'open';
+
             return {
                 id: response.orderID,
                 marketId: built.params.marketId,
@@ -256,9 +282,9 @@ export class PolymarketExchange extends PredictionMarketExchange {
                 type: built.params.type,
                 price,
                 amount: built.params.amount,
-                status: 'open',
-                filled: 0,
-                remaining: built.params.amount,
+                status: orderStatus,
+                filled,
+                remaining,
                 fee: built.params.fee,
                 timestamp: Date.now(),
             };

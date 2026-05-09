@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.40.4] - 2026-05-09
+
+### Fixed
+
+- **Limitless**: `createOrder` now extracts actual fill data from `makerMatches[].matchedSize` instead of echoing back requested amounts. Reports real post-fee filled shares and `feeRateBps`.
+- **Polymarket**: `createOrder` now uses `takingAmount`/`makingAmount` from the CLOB `OrderResponse` instead of echoing back requested amounts. Correctly reports filled shares for immediately matched orders.
+- **Order type**: Added optional `filledShares` and `feeRateBps` fields to the `Order` interface for venues that report post-fee fill data.
+
 ## [2.40.3] - 2026-05-09
 
 ### Fixed

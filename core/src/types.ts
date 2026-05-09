@@ -189,12 +189,16 @@ export interface Order {
     amount: number;  // Size in contracts/shares
     /** Lifecycle status of the order. */
     status: 'pending' | 'open' | 'filled' | 'cancelled' | 'rejected';
-    filled: number;  // Amount filled
+    filled: number;  // Amount filled (USDC cost for buys, shares for sells)
+    /** Amount filled in shares/contracts (if different from USDC-denominated `filled`). */
+    filledShares?: number;
     remaining: number;  // Amount remaining
     /** Unix timestamp in milliseconds when the order was created. */
     timestamp: number;
     /** Fee paid for this order, if known. */
     fee?: number;
+    /** Fee rate in basis points applied to this order (e.g. 100 = 1%). */
+    feeRateBps?: number;
 }
 
 export interface Position {

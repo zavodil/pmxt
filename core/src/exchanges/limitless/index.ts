@@ -287,20 +287,39 @@ export class LimitlessExchange extends PredictionMarketExchange {
                 onBehalfOf: params.onBehalfOf,
             });
 
-            // Map response to Order object
-            // The SDK returns OrderResponse with order.id
+            // Map response to Order object.
+            // The SDK returns OrderResponse: { order: CreatedOrder, makerMatches?: OrderMatch[] }
+            // For GTC orders that rest on the book, makerMatches is empty.
+            // For FOK/FAK orders (or GTC with immediate partial matches), makerMatches contains fills.
+            // Each OrderMatch.matchedSize is in USDC raw units (6 decimals).
+            const USDC_DECIMALS = 6;
+            const raw = response as any;
+            const matches: any[] = raw.makerMatches ?? raw.order?.makerMatches ?? [];
+            const filledRaw = matches.reduce((sum: number, m: any) => {
+                const size = typeof m.matchedSize === 'string'
+                    ? parseFloat(m.matchedSize)
+                    : (m.matchedSize ?? 0);
+                return sum + size;
+            }, 0);
+            const filled = filledRaw / Math.pow(10, USDC_DECIMALS);
+            const remaining = Math.max(0, params.amount - filled);
+            const orderFeeRateBps = raw.order?.feeRateBps
+                ?? raw.feeRateBps
+                ?? undefined;
+
             return {
-                id: response.order.id || 'unknown',
+                id: raw.order?.id || raw.id || 'unknown',
                 marketId: params.marketId,
                 outcomeId: params.outcomeId,
                 side: params.side,
                 type: params.type,
                 price: params.price,
                 amount: params.amount,
-                status: 'open',
-                filled: 0,
-                remaining: params.amount,
+                status: filled >= params.amount ? 'filled' : 'open',
+                filled,
+                remaining,
                 timestamp: Date.now(),
+                ...(orderFeeRateBps != null ? { feeRateBps: orderFeeRateBps } : {}),
             };
         } catch (error: any) {
             throw limitlessErrorMapper.mapError(error);
