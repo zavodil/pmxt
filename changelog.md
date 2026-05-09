@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.40.2] - 2026-05-08
+
+### Fixed
+
+- **Myriad**: Map `status` field in `normalizeMarket()` — Myriad API returns `state: 'open'|'closed'|'resolved'` but it was never mapped to the unified `status` field, causing all Myriad markets to be stored with `NULL` status. Uses the existing `mapMarketState()` helper.
+
 ## [2.40.1] - 2026-05-08
 
 ### Fixed

@@ -4,6 +4,7 @@ import { IExchangeNormalizer } from '../interfaces';
 import { addBinaryOutcomes } from '../../utils/market-utils';
 import { MyriadRawMarket, MyriadRawQuestion, MyriadRawTradeEvent, MyriadRawPortfolioItem } from './fetcher';
 import { resolveMyriadPrice } from './price';
+import { mapMarketState } from './utils';
 
 function selectTimeframe(interval: CandleInterval): string {
     switch (interval) {
@@ -34,6 +35,8 @@ export class MyriadNormalizer implements IExchangeNormalizer<MyriadRawMarket, My
             priceChange24h: o.priceChange24h != null ? Number(o.priceChange24h) : undefined,
         }));
 
+        const status = typeof raw.state === 'string' ? mapMarketState(raw.state) : undefined;
+
         const um = {
             marketId: `${raw.networkId}:${raw.id}`,
             eventId: raw.questionId ? String(raw.questionId) : undefined,
@@ -47,6 +50,7 @@ export class MyriadNormalizer implements IExchangeNormalizer<MyriadRawMarket, My
             url: `https://myriad.markets/markets/${raw.slug || raw.id}`,
             image: raw.imageUrl,
             tags: raw.topics || [],
+            status,
         } as UnifiedMarket;
 
         addBinaryOutcomes(um);
