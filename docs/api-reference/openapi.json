@@ -3,7 +3,7 @@
   "info": {
     "title": "PMXT Hosted API",
     "description": "One API for every prediction market. Cross-venue search in under 10ms, a single unified schema, and the complete venue surface from reads to trades.",
-    "version": "2.40.3"
+    "version": "2.40.4"
   },
   "servers": [
     {
@@ -9261,7 +9261,11 @@
           },
           "filled": {
             "type": "number",
-            "description": "Amount filled"
+            "description": "Amount filled (USDC cost for buys, shares for sells)"
+          },
+          "filledShares": {
+            "type": "number",
+            "description": "Amount filled in shares/contracts (if different from USDC-denominated `filled`)."
           },
           "remaining": {
             "type": "number",
@@ -9274,6 +9278,10 @@
           "fee": {
             "type": "number",
             "description": "Fee paid for this order, if known."
+          },
+          "feeRateBps": {
+            "type": "number",
+            "description": "Fee rate in basis points applied to this order (e.g. 100 = 1%)."
           }
         },
         "required": [
