@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.40.5] - 2026-05-09
+
+### Fixed
+
+- **Myriad**: `fetchOrderBook` for synthetic "Not X" outcomes in multi-outcome AMM markets was returning the price of `outcomes[0]` (the first outcome in the raw API response) instead of the correct NO-side price. For example, "Not Bellingham" in the Ballon d'Or market returned Mbappé's price (11.47c) instead of the correct complement (98.97c), causing pair costs to display as 11.77c instead of ~100c.
+- **Myriad**: `normalizeOrderBook` now sums all other outcomes' prices from the AMM pool state when the outcomeId is negative (synthetic NO), producing the correct NO-side price.
+- **Myriad**: `fetchOrderBook` now uses the real CLOB orderbook endpoint (`GET /markets/:id/orderbook`) for orderbook-model markets. Returns full bid/ask depth with multiple price levels instead of a single emulated level. Falls back to AMM spot price emulation for markets where the endpoint is unavailable.
+
 ## [2.40.4] - 2026-05-09
 
 ### Fixed
