@@ -369,7 +369,7 @@ class Exchange(ABC):
                         return error_detail.get("message", str(e))
                     elif isinstance(error_detail, str):
                         return error_detail
-            except:
+            except (json.JSONDecodeError, KeyError, TypeError, ValueError):
                 pass
         return str(e)
 
@@ -620,8 +620,8 @@ class Exchange(ABC):
                 response.read()
                 data_json = json.loads(response.data)
                 self._has_cache = self._handle_response(data_json)
-            except Exception:
-                self._has_cache = {}
+            except Exception as e:
+                raise PmxtError(f"Failed to fetch exchange capabilities: {e}") from e
         return self._has_cache
 
     # Low-Level API Access
@@ -1687,12 +1687,14 @@ class Exchange(ABC):
                 return None
 
             host = self._resolve_sidecar_host()
-            server_info = self._server_manager.get_server_info()
-            access_token = (
-                server_info.get("accessToken") if server_info else None
-            )
-
-            client = SidecarWsClient(host, access_token=access_token)
+            if self.is_hosted:
+                client = SidecarWsClient(host, api_key=self.pmxt_api_key)
+            else:
+                server_info = self._server_manager.get_server_info()
+                access_token = (
+                    server_info.get("accessToken") if server_info else None
+                )
+                client = SidecarWsClient(host, access_token=access_token)
             try:
                 # Trigger connection to validate the endpoint exists
                 with client._lock:
@@ -1726,8 +1728,8 @@ class Exchange(ABC):
                 args=args,
                 credentials=self._get_credentials_dict(),
             )
-        except Exception:
-            # WS failed -- fall back to HTTP
+        except (ConnectionError, OSError):
+            # Transport-level failure -- fall back to HTTP
             return None
 
     def watch_order_book(self, outcome_id: Union[str, "MarketOutcome"] = _UNSET, limit: Optional[int] = None, **_compat_kwargs) -> OrderBook:

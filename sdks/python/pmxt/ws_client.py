@@ -36,9 +36,10 @@ class SidecarWsClient:
     may invoke subscribe/receive from any thread.
     """
 
-    def __init__(self, host: str, access_token: Optional[str] = None):
+    def __init__(self, host: str, access_token: Optional[str] = None, api_key: Optional[str] = None):
         self._host = host
         self._access_token = access_token
+        self._api_key = api_key
         self._ws: Any = None
         self._lock = threading.Lock()
         self._reader_thread: Optional[threading.Thread] = None
@@ -79,7 +80,9 @@ class SidecarWsClient:
             host_part = host_part[len("http://"):]
 
         url = f"{scheme}://{host_part}/ws"
-        if self._access_token:
+        if self._api_key:
+            url = f"{url}?apiKey={self._api_key}"
+        elif self._access_token:
             url = f"{url}?token={self._access_token}"
 
         ws = websocket.WebSocket()
@@ -95,17 +98,29 @@ class SidecarWsClient:
 
     def _read_loop(self) -> None:
         """Background thread: read frames and dispatch to subscribers."""
+        disconnect_error: Optional[str] = None
         while not self._closed:
             try:
                 raw = self._ws.recv()
                 if not raw:
+                    disconnect_error = "WebSocket connection closed by server"
                     break
                 msg = json.loads(raw)
                 self._dispatch(msg)
-            except Exception:
-                # Connection dropped -- mark closed so next call reconnects
-                self._closed = True
+            except Exception as e:
+                disconnect_error = f"WebSocket connection lost: {e}"
                 break
+
+        self._closed = True
+        # Wake all pending subscribers so they fail fast instead of timing out
+        error_msg = disconnect_error or "WebSocket connection closed"
+        with self._lock:
+            for request_id, sub in list(self._subscriptions.items()):
+                if not sub.event.is_set():
+                    self._data_store[request_id] = {
+                        "_error": {"message": error_msg}
+                    }
+                    sub.event.set()
 
     def _dispatch(self, msg: Dict[str, Any]) -> None:
         """Route an incoming server message to the matching subscription."""
@@ -273,8 +288,9 @@ class SidecarWsClient:
         if self._ws:
             try:
                 self._ws.close()
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning("WebSocket close error: %s", e)
             self._ws = None
 
     @property
