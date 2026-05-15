@@ -3781,11 +3781,33 @@ const result = await exchange.fetchBalance({ address: "0xabc..." });
 
 ## Realtime
 
-### Watch Order Book
+### Watch Order Book (WebSocket)
 
 `POST /api/{exchange}/watchOrderBook`
 
 Watch order book updates in real-time via WebSocket. Returns a promise that resolves with the next order book update. Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+
+**Transport:** WebSocket
+
+| Environment | URL |
+|---|---|
+| Local sidecar | `ws://localhost:3847/ws` |
+| Hosted API | `wss://api.pmxt.dev/ws?apiKey=YOUR_KEY` |
+
+**Subscribe:**
+```json
+{ "id": "req-1", "action": "subscribe", "method": "watchOrderBook", "args": [...] }
+```
+
+**Server response:**
+```json
+{ "event": "data", "id": "req-1", "method": "watchOrderBook", "symbol": "...", "data": { ... } }
+```
+
+**Unsubscribe:**
+```json
+{ "id": "req-1", "action": "unsubscribe" }
+```
 
 **Response:** `{ success: true, data: ... }`
 
@@ -3812,11 +3834,33 @@ const result = await exchange.watchOrderBook({ id: "12345" });
 ```
 
 
-### Watch Order Books
+### Watch Order Books (WebSocket)
 
 `POST /api/{exchange}/watchOrderBooks`
 
 Watch multiple order books simultaneously via WebSocket. Returns a promise that resolves with a record of order book snapshots keyed by ID. Exchanges with native batch support (e.g. Kalshi) send a single subscribe message for all tickers; others fall back to individual watchOrderBook calls.
+
+**Transport:** WebSocket
+
+| Environment | URL |
+|---|---|
+| Local sidecar | `ws://localhost:3847/ws` |
+| Hosted API | `wss://api.pmxt.dev/ws?apiKey=YOUR_KEY` |
+
+**Subscribe:**
+```json
+{ "id": "req-1", "action": "subscribe", "method": "watchOrderBooks", "args": [...] }
+```
+
+**Server response:**
+```json
+{ "event": "data", "id": "req-1", "method": "watchOrderBooks", "symbol": "...", "data": { ... } }
+```
+
+**Unsubscribe:**
+```json
+{ "id": "req-1", "action": "unsubscribe" }
+```
 
 **Response:** `{ success: true, data: ... }`
 
@@ -3843,11 +3887,33 @@ const result = await exchange.watchOrderBooks();
 ```
 
 
-### Unwatch Order Book
+### Unwatch Order Book (WebSocket)
 
 `POST /api/{exchange}/unwatchOrderBook`
 
 Unsubscribe from a previously watched order book stream.
+
+**Transport:** WebSocket
+
+| Environment | URL |
+|---|---|
+| Local sidecar | `ws://localhost:3847/ws` |
+| Hosted API | `wss://api.pmxt.dev/ws?apiKey=YOUR_KEY` |
+
+**Subscribe:**
+```json
+{ "id": "req-1", "action": "subscribe", "method": "unwatchOrderBook", "args": [...] }
+```
+
+**Server response:**
+```json
+{ "event": "data", "id": "req-1", "method": "unwatchOrderBook", "symbol": "...", "data": { ... } }
+```
+
+**Unsubscribe:**
+```json
+{ "id": "req-1", "action": "unsubscribe" }
+```
 
 **Python:**
 ```python
@@ -3872,11 +3938,33 @@ const result = await exchange.unwatchOrderBook();
 ```
 
 
-### Watch Trades
+### Watch Trades (WebSocket)
 
 `POST /api/{exchange}/watchTrades`
 
 Watch trade executions in real-time via WebSocket. Returns a promise that resolves with the next trade(s). Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+
+**Transport:** WebSocket
+
+| Environment | URL |
+|---|---|
+| Local sidecar | `ws://localhost:3847/ws` |
+| Hosted API | `wss://api.pmxt.dev/ws?apiKey=YOUR_KEY` |
+
+**Subscribe:**
+```json
+{ "id": "req-1", "action": "subscribe", "method": "watchTrades", "args": [...] }
+```
+
+**Server response:**
+```json
+{ "event": "data", "id": "req-1", "method": "watchTrades", "symbol": "...", "data": { ... } }
+```
+
+**Unsubscribe:**
+```json
+{ "id": "req-1", "action": "unsubscribe" }
+```
 
 **Response:** `{ success: true, data: Trade[] }`
 
@@ -3903,11 +3991,33 @@ const result = await exchange.watchTrades({ id: "12345" });
 ```
 
 
-### Watch Address
+### Watch Address (WebSocket)
 
 `POST /api/{exchange}/watchAddress`
 
 Stream activity for a public wallet address Returns a promise that resolves with the next activity snapshot whenever a change is detected. Call repeatedly in a loop to stream updates (CCXT Pro pattern).
+
+**Transport:** WebSocket
+
+| Environment | URL |
+|---|---|
+| Local sidecar | `ws://localhost:3847/ws` |
+| Hosted API | `wss://api.pmxt.dev/ws?apiKey=YOUR_KEY` |
+
+**Subscribe:**
+```json
+{ "id": "req-1", "action": "subscribe", "method": "watchAddress", "args": [...] }
+```
+
+**Server response:**
+```json
+{ "event": "data", "id": "req-1", "method": "watchAddress", "symbol": "...", "data": { ... } }
+```
+
+**Unsubscribe:**
+```json
+{ "id": "req-1", "action": "unsubscribe" }
+```
 
 **Response:** `{ success: true, data: ... }`
 
@@ -3934,11 +4044,33 @@ const result = await exchange.watchAddress({ address: "0xabc..." });
 ```
 
 
-### Unwatch Address
+### Unwatch Address (WebSocket)
 
 `POST /api/{exchange}/unwatchAddress`
 
 Stop watching a previously registered wallet address and release its resource updates.
+
+**Transport:** WebSocket
+
+| Environment | URL |
+|---|---|
+| Local sidecar | `ws://localhost:3847/ws` |
+| Hosted API | `wss://api.pmxt.dev/ws?apiKey=YOUR_KEY` |
+
+**Subscribe:**
+```json
+{ "id": "req-1", "action": "subscribe", "method": "unwatchAddress", "args": [...] }
+```
+
+**Server response:**
+```json
+{ "event": "data", "id": "req-1", "method": "unwatchAddress", "symbol": "...", "data": { ... } }
+```
+
+**Unsubscribe:**
+```json
+{ "id": "req-1", "action": "unsubscribe" }
+```
 
 **Python:**
 ```python
