@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.41.3] - 2026-05-15
+
+### Fixed
+
+- **Polymarket: market orders now use FOK** instead of fake GTC limit orders with fallback prices. `createOrder({ type: 'market' })` now calls the CLOB's native `createMarketOrder()` and posts with `FOK` (fill-or-kill), matching how all other exchanges handle market orders.
+- **Polymarket: fill amounts no longer divided by 1e6**. The CLOB response's `makingAmount`/`takingAmount` are already human-readable values, not raw 6-decimal units. Dividing by 1e6 was turning 12-share fills into 0.000012 dust. This was the root cause of all dust fills on Polymarket.
+
+### Added
+
+- **SDK (TypeScript + Python): non-custodial SOR trading**. `createOrder()` on the SOR exchange now does build/sign/submit internally. The SDK calls `buildOrder` (SOR plans fills), signs locally with the user's private key, then calls `submitOrder` (SOR records fills). No signer webhook needed. Private key never leaves the SDK.
+
+## [2.41.2] - 2026-05-15
+
+### Fixed
+
+- **Docs**: Watch methods are now documented as WebSocket endpoints on a dedicated page, not as misleading HTTP POST endpoints. Removed watch methods from the OpenAPI spec entirely — they belong to the WebSocket protocol, not REST.
+
 ## [2.41.1] - 2026-05-15
 
 ### Added

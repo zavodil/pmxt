@@ -208,21 +208,24 @@ export class PolymarketExchange extends PredictionMarketExchange {
             const client = await auth.getClobClient();
 
             const side = params.side.toUpperCase() === 'BUY' ? Side.BUY : Side.SELL;
-            const price = params.price || (side === Side.BUY ? 0.99 : 0.01);
             const tickSize = params.tickSize ? params.tickSize.toString() : undefined;
-
-            const orderArgs: any = {
-                tokenID: params.outcomeId,
-                price,
-                side,
-                size: params.amount,
-            };
-
             const options: any = {};
             if (tickSize) options.tickSize = tickSize;
             if (params.negRisk !== undefined) options.negRisk = params.negRisk;
 
-            const signedOrder = await client.createOrder(orderArgs, options);
+            let signedOrder;
+
+            if (params.type === 'market' || !params.price) {
+                signedOrder = await client.createMarketOrder(
+                    { tokenID: params.outcomeId, amount: params.amount, side },
+                    options,
+                );
+            } else {
+                signedOrder = await client.createOrder(
+                    { tokenID: params.outcomeId, price: params.price, side, size: params.amount },
+                    options,
+                );
+            }
 
             return {
                 exchange: this.name,
@@ -240,39 +243,34 @@ export class PolymarketExchange extends PredictionMarketExchange {
             const auth = this.ensureAuth();
             const client = await auth.getClobClient();
 
-            const response = await client.postOrder(built.raw as SignedOrder);
+            const isMarket = built.params.type === 'market' || !built.params.price;
+            const response = isMarket
+                ? await client.postOrder(built.raw as SignedOrder, 'FOK' as any)
+                : await client.postOrder(built.raw as SignedOrder);
 
             if (!response || !response.success) {
                 throw new Error(`${response?.errorMsg || 'Order submission failed'} (Response: ${JSON.stringify(response)})`);
             }
 
             const side = built.params.side.toUpperCase() === 'BUY' ? Side.BUY : Side.SELL;
-            const price = built.params.price || (side === Side.BUY ? 0.99 : 0.01);
+            const price = built.params.price || 0;
 
-            // Extract actual fill data from the CLOB OrderResponse.
-            // response.status: 'MATCHED' | 'CONFIRMED' = immediately filled,
-            //                  'LIVE' = resting on the book (filled: 0 is correct).
-            // takingAmount / makingAmount are string representations of raw USDC amounts (6 decimals).
-            const USDC_DECIMALS = 6;
             const responseStatus = (response.status || '').toUpperCase();
             const isImmediatelyFilled = responseStatus === 'MATCHED' || responseStatus === 'CONFIRMED';
             let filled = 0;
             if (isImmediatelyFilled) {
-                const takingRaw = typeof response.takingAmount === 'string'
+                const taking = typeof response.takingAmount === 'string'
                     ? parseFloat(response.takingAmount)
                     : (response.takingAmount ?? 0);
-                const makingRaw = typeof response.makingAmount === 'string'
+                const making = typeof response.makingAmount === 'string'
                     ? parseFloat(response.makingAmount)
                     : (response.makingAmount ?? 0);
-                // For BUY: makingAmount is USDC spent, takingAmount is shares received.
-                // For SELL: makingAmount is shares sold, takingAmount is USDC received.
-                // `filled` should reflect the share size that executed.
-                filled = side === Side.BUY
-                    ? takingRaw / Math.pow(10, USDC_DECIMALS)
-                    : makingRaw / Math.pow(10, USDC_DECIMALS);
+                // For BUY: makingAmount = shares filled. For SELL: takingAmount = shares filled.
+                // Values are already human-readable (not raw 6-decimal units).
+                filled = side === Side.BUY ? making : taking;
             }
             const remaining = Math.max(0, built.params.amount - filled);
-            const orderStatus = filled >= built.params.amount ? 'filled' : 'open';
+            const orderStatus = filled >= built.params.amount - 0.001 ? 'filled' : 'open';
 
             return {
                 id: response.orderID,

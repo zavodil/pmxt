@@ -2275,7 +2275,7 @@ class Exchange(ABC):
                     venue_opts["proxy_address"] = account["deposit_wallet"]
                     venue_opts["signature_type"] = account.get("signature_type", 3)
                 venue = venue_cls(**venue_opts)
-                result = venue.create_order(outcome_id=leg["tokenId"], side=leg["side"], amount=leg["shares"], price=leg["price"])
+                result = venue.create_order(market_id=leg.get("venueMarketId"), outcome_id=leg["tokenId"], side=leg["side"], amount=leg["shares"], price=leg["price"])
                 filled = getattr(result, "filled", 0) or 0
                 fills.append({"venue": leg["venue"], "venueOrderId": result.id, "venueMarketId": leg.get("venueMarketId"), "venueOutcomeId": leg.get("venueOutcomeId"), "shares": filled if filled > 0 else leg["shares"], "price": getattr(result, "price", None) or leg["price"], "status": "filled" if filled > 0 else "open"})
             except Exception as e:
@@ -2285,6 +2285,8 @@ class Exchange(ABC):
         if not submit_resp.ok:
             raise PmxtError(f"submitOrder failed: {submit_resp.text}")
         data = submit_resp.json().get("data", submit_resp.json())
+        if data.get("status") == "failed" and data.get("errors"):
+            raise PmxtError(data["errors"][0])
         from .models import Order
         return Order(
             id=data.get("id", order_id), market_id=params.get("marketId", ""),

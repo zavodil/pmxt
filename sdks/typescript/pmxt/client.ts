@@ -1916,7 +1916,11 @@ export abstract class Exchange {
         });
         if (!submitRes.ok) throw new PmxtError(`submitOrder failed: ${await submitRes.text()}`);
         const submitJson = await submitRes.json();
-        return convertOrder(submitJson.data || submitJson);
+        const submitData = submitJson.data || submitJson;
+        if (submitData.status === 'failed' && submitData.errors?.length) {
+            throw new PmxtError(submitData.errors[0]);
+        }
+        return convertOrder(submitData);
     }
 
     /**
