@@ -187,13 +187,32 @@ const ENDPOINT_GROUPS = [
     {
         name: 'Realtime',
         match: (opId) => /^(watch|unwatch)/.test(opId),
+        // WebSocket methods are excluded from the OpenAPI spec (they aren't
+        // HTTP request-response), so this group will never be populated from
+        // spec paths alone.  Discover the hand-written .mdx pages on disk.
+        discoverPages: () => {
+            const apiRefDir = path.join(ROOT, 'docs', 'api-reference');
+            if (!fs.existsSync(apiRefDir)) return [];
+            const pages = [];
+            // Overview page first
+            if (fs.existsSync(path.join(apiRefDir, 'websocket.mdx'))) {
+                pages.push('api-reference/websocket');
+            }
+            // Then individual watch/unwatch method pages in alphabetical order
+            for (const file of fs.readdirSync(apiRefDir).sort()) {
+                if (/^(watch|unwatch)-.*\.mdx$/.test(file)) {
+                    pages.push('api-reference/' + file.replace(/\.mdx$/, ''));
+                }
+            }
+            return pages;
+        },
     },
 ];
 
 // Operations that exist in the OpenAPI spec but should not appear in the docs
 // sidebar (e.g. SDK-only helpers that are exposed as routes but aren't meant
 // to be called directly by API consumers).
-const HIDDEN_OPERATIONS = new Set(['filterMarkets', 'filterEvents', 'fetchHedges', 'fetchArbitrage', 'fetchMatchedPrices', 'compareMarketPrices', 'fetchRelatedMarkets', 'fetchMatchedMarkets']);
+const HIDDEN_OPERATIONS = new Set(['filterMarkets', 'filterEvents', 'fetchHedges', 'fetchArbitrage', 'fetchMatchedPrices', 'compareMarketPrices', 'fetchRelatedMarkets', 'fetchMatchedMarkets', 'testDummyMethod']);
 
 // Convert an operationId to its expected MDX file path (docs-relative,
 // no extension).  fetchEventMatches -> api-reference/fetch-event-matches
@@ -246,8 +265,20 @@ function buildEndpointGroups(spec) {
 
     const groups = [];
     for (const [name, entries] of buckets.entries()) {
-        if (entries.length === 0) continue;
         const groupDef = ENDPOINT_GROUPS.find((g) => g.name === name);
+
+        // For groups with a discoverPages function (e.g. Realtime/WebSocket),
+        // use discovered .mdx pages when the spec yields no entries.
+        if (entries.length === 0) {
+            if (groupDef?.discoverPages) {
+                const discovered = groupDef.discoverPages();
+                if (discovered.length > 0) {
+                    groups.push({ group: name, pages: discovered });
+                }
+            }
+            continue;
+        }
+
         const sorted = groupDef?.order
             ? entries.sort((a, b) => {
                   const idxA = groupDef.order.indexOf(a.opId);

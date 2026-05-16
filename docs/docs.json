@@ -176,11 +176,14 @@
             "openapi": "api-reference/openapi.json"
           },
           {
-            "group": "Other",
+            "group": "Realtime",
             "pages": [
-              "POST /api/{exchange}/testDummyMethod"
-            ],
-            "openapi": "api-reference/openapi.json"
+              "api-reference/websocket",
+              "api-reference/watch-all-order-books",
+              "api-reference/watch-order-book",
+              "api-reference/watch-order-books",
+              "api-reference/watch-trades"
+            ]
           },
           {
             "group": "Enterprise",

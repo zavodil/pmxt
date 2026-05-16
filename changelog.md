@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.41.5] - 2026-05-16
+
+### Fixed
+
+- **Docs**: WebSocket pages (Realtime group) no longer disappear from the docs sidebar after CI regeneration. `generate-mintlify-docs.js` now auto-discovers `watch-*.mdx` and `websocket.mdx` pages on disk instead of relying on the OpenAPI spec (which correctly excludes WebSocket methods).
+- **Docs**: Removed `testDummyMethod` from the public API docs sidebar.
+
 ## [2.41.4] - 2026-05-15
 
 ### Fixed
