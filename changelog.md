@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.41.7] - 2026-05-17
+
+### Fixed
+
+- **Docs**: Updated supported venues list on all WebSocket pages (`watchOrderBook`, `watchOrderBooks`, `watchAllOrderBooks`, `watchTrades`). Now correctly lists `polymarket`, `kalshi`, `limitless`, `opinion`.
+
 ## [2.41.6] - 2026-05-16
 
 ### Fixed
