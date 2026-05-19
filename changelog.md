@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased] - Data Feeds (Binance + ChainLink)
+## [2.42.0] - 2026-05-19
 
 ### Added
 
