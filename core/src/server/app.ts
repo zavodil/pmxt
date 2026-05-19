@@ -4,7 +4,6 @@ import fs from "fs";
 import path from "path";
 import { createWebSocketHandler, CreateWebSocketHandlerOptions } from "./ws-handler";
 import { createExchange } from "./exchange-factory";
-import { createFeedRouter } from "./feed-routes";
 import { ExchangeCredentials } from "../BaseExchange";
 import { BaseError } from "../errors";
 
@@ -363,9 +362,6 @@ export function createApp(options: CreateAppOptions = {}): Express {
       await dispatchMethod(req, res, next, methodName, args, credentials);
     },
   );
-
-  // Data feed routes (Binance, Chainlink — not prediction markets)
-  app.use("/api/feeds", createFeedRouter());
 
   // Error handler
   app.use((error: any, req: Request, res: Response, next: NextFunction) => {

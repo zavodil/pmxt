@@ -12,7 +12,7 @@ All notable changes to this project will be documented in this file.
 - **Server routes** (`/api/feeds/:feed/:method`): REST endpoints for all feed methods, mounted alongside existing exchange routes.
 - **SDK (TypeScript)**: `FeedClient` class (`pmxt/feed-client.ts`) with `loadMarkets`, `fetchTicker`, `fetchTickers`, `fetchOHLCV`, `fetchOracleRound`, `fetchOracleHistory`.
 - **SDK (Python)**: `FeedClient` class (`pmxt/feed_client.py`) with `load_markets`, `fetch_ticker`, `fetch_tickers`, `fetch_ohlcv`, `fetch_oracle_round`, `fetch_oracle_history`.
-- **E2E tests**: 38 tests hitting live Binance relay and ChainLink API — verifies raw API shape, normalizer output, and full feed class integration.
+- **WebSocket streaming**: `watchTicker` for Binance feeds via hosted-pmxt's WS server.
 
 ## [2.41.7] - 2026-05-17
 
