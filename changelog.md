@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.43.3] - 2026-05-22
+
+### Fixed
+
+- **Docs**: Register `FetchOrderBookParams` in `TYPE_REF_MAP` so the OpenAPI generator emits `side`, `since`, `until` as query parameters on the fetchOrderBook endpoint.
+
 ## [2.43.2] - 2026-05-22
 
 ### Fixed

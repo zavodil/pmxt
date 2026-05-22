@@ -937,6 +937,7 @@ const TYPE_REF_MAP = {
   MarketFilterParams: 'MarketFilterParams',
   EventFetchParams: 'EventFetchParams',
   OHLCVParams: 'OHLCVParams',
+  FetchOrderBookParams: 'FetchOrderBookParams',
   HistoryFilterParams: 'HistoryFilterParams',
   TradesParams: 'TradesParams',
   CreateOrderParams: 'CreateOrderParams',
