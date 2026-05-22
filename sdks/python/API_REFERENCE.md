@@ -1811,6 +1811,73 @@ base_url: str #
 ```
 
 ---
+### `FeedTicker`
+
+CCXT-compatible ticker with last trade price and metadata.
+
+```python
+@dataclass
+class FeedTicker:
+symbol: str # Trading pair symbol (e.g. BTC/USD)
+info: Any # Raw provider-specific data
+timestamp: int # Unix timestamp in milliseconds
+datetime: str # 
+high: float # 
+low: float # 
+bid: float # 
+bid_volume: float # 
+ask: float # 
+ask_volume: float # 
+vwap: float # 
+open: float # 
+close: float # 
+last: float # Last trade price
+previous_close: float # 
+change: float # 
+percentage: float # 
+average: float # 
+quote_volume: float # 
+base_volume: float # 
+index_price: float # 
+mark_price: float # 
+```
+
+---
+### `FeedMarket`
+
+CCXT-compatible market descriptor for a data feed.
+
+```python
+@dataclass
+class FeedMarket:
+id: str # 
+symbol: str # 
+base: str # 
+quote: str # 
+active: bool # 
+type: str # 
+info: Any # Provider-specific metadata
+```
+
+---
+### `FeedOracleRound`
+
+Chainlink oracle price round.
+
+```python
+@dataclass
+class FeedOracleRound:
+feed: str # Price feed pair (e.g. BTC/USD)
+round_id: str # 
+answer: float # Oracle price
+started_at: int # 
+updated_at: int # 
+answered_inround: str # 
+decimals: int # 
+description: str # 
+```
+
+---
 
 ## Filter Parameters
 

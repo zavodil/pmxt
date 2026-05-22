@@ -1812,6 +1812,73 @@ baseUrl: string; //
 ```
 
 ---
+### `FeedTicker`
+
+CCXT-compatible ticker with last trade price and metadata.
+
+```typescript
+interface FeedTicker {
+symbol: string; // Trading pair symbol (e.g. BTC/USD)
+info: any; // Raw provider-specific data
+timestamp: number; // Unix timestamp in milliseconds
+datetime: string; // 
+high: number; // 
+low: number; // 
+bid: number; // 
+bidVolume: number; // 
+ask: number; // 
+askVolume: number; // 
+vwap: number; // 
+open: number; // 
+close: number; // 
+last: number; // Last trade price
+previousClose: number; // 
+change: number; // 
+percentage: number; // 
+average: number; // 
+quoteVolume: number; // 
+baseVolume: number; // 
+indexPrice: number; // 
+markPrice: number; // 
+}
+```
+
+---
+### `FeedMarket`
+
+CCXT-compatible market descriptor for a data feed.
+
+```typescript
+interface FeedMarket {
+id: string; // 
+symbol: string; // 
+base: string; // 
+quote: string; // 
+active: boolean; // 
+type: string; // 
+info: any; // Provider-specific metadata
+}
+```
+
+---
+### `FeedOracleRound`
+
+Chainlink oracle price round.
+
+```typescript
+interface FeedOracleRound {
+feed: string; // Price feed pair (e.g. BTC/USD)
+roundId: string; // 
+answer: number; // Oracle price
+startedAt: number; // 
+updatedAt: number; // 
+answeredInRound: string; // 
+decimals: number; // 
+description: string; // 
+}
+```
+
+---
 
 ## Filter Parameters
 
