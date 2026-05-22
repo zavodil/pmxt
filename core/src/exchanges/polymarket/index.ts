@@ -35,6 +35,7 @@ import { polymarketClobSpec } from './api-clob';
 import { polymarketDataSpec } from './api-data';
 import { polymarketGammaSpec } from './api-gamma';
 import { PolymarketAuth } from './auth';
+import { logger } from '../../utils/logger';
 import { polymarketErrorMapper } from './errors';
 import { PolymarketFetcher } from './fetcher';
 import { PolymarketNormalizer } from './normalizer';
@@ -185,10 +186,7 @@ export class PolymarketExchange extends PredictionMarketExchange {
         validateIdFormat(outcomeId, 'Trades');
         validateOutcomeId(outcomeId, 'Trades');
         if ('resolution' in params && params.resolution !== undefined) {
-            console.warn(
-                '[pmxt] Warning: The "resolution" parameter is deprecated for fetchTrades() and will be ignored. ' +
-                'It will be removed in v3.0.0. Please remove it from your code.',
-            );
+            logger.warn('The "resolution" parameter is deprecated for fetchTrades() and will be ignored. It will be removed in v3.0.0.');
         }
         const rawTrades = await this.fetcher.fetchRawTrades(outcomeId, params);
         const mappedTrades = rawTrades.map((raw: any, i: number) => this.normalizer.normalizeTrade(raw, i));
@@ -454,8 +452,10 @@ export class PolymarketExchange extends PredictionMarketExchange {
                     }
                 }
                 // If balRes was an error envelope, fall through to on-chain.
-            } catch (clobError) {
-                // Network/transport error — fall through to on-chain.
+            } catch (clobError: unknown) {
+                logger.warn('CLOB balance request failed, falling through to on-chain', {
+                    error: clobError instanceof Error ? clobError.message : String(clobError),
+                });
             }
 
             // On-Chain Fallback/Check (Robustness)
@@ -470,10 +470,9 @@ export class PolymarketExchange extends PredictionMarketExchange {
                         total = onChain;
                     }
                 } catch (err: unknown) {
-                    console.warn(
-                        '[polymarket] on-chain balance lookup failed; using CLOB balance only',
-                        { error: err instanceof Error ? err.message : String(err) },
-                    );
+                    logger.warn('On-chain balance lookup failed; using CLOB balance only', {
+                        error: err instanceof Error ? err.message : String(err),
+                    });
                 }
             }
 

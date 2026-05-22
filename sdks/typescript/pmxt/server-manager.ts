@@ -193,9 +193,11 @@ export class ServerManager {
             if (existsSync(binPath)) {
                 launcherPath = binPath;
             }
-        } catch (error) {
-            // If resolution fails, fall back to PATH
-            // This could happen in dev environments where pmxt-core is globally installed
+        } catch (error: unknown) {
+            if (process.env.PMXT_LOG_LEVEL === 'debug') {
+                const msg = error instanceof Error ? error.message : String(error);
+                process.stderr.write(`[pmxt] Binary path resolution failed, falling back to PATH: ${msg}\n`);
+            }
         }
 
         // Try to start the server using pmxt-ensure-server

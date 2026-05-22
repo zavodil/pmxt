@@ -6,6 +6,7 @@ import { createWebSocketHandler, CreateWebSocketHandlerOptions } from "./ws-hand
 import { createExchange } from "./exchange-factory";
 import { ExchangeCredentials } from "../BaseExchange";
 import { BaseError } from "../errors";
+import { logger } from "../utils/logger";
 
 // ---------------------------------------------------------------------------
 // Method metadata for the GET dispatcher.
@@ -45,10 +46,7 @@ function loadMethodVerbs(): Record<string, MethodVerb> {
     const raw = fs.readFileSync(file, "utf8");
     return JSON.parse(raw);
   }
-  console.warn(
-    "[pmxt-core] method-verbs.json not found — GET /api/:exchange/:method disabled. " +
-      "POST continues to work. Rebuild pmxt-core to regenerate.",
-  );
+  logger.warn("method-verbs.json not found — GET /api/:exchange/:method disabled. POST continues to work. Rebuild pmxt-core to regenerate.");
   return {};
 }
 
@@ -365,10 +363,7 @@ export function createApp(options: CreateAppOptions = {}): Express {
 
   // Error handler
   app.use((error: any, req: Request, res: Response, next: NextFunction) => {
-    console.error("API Error:", error);
-    if (error.stack) {
-      console.error(error.stack);
-    }
+    logger.error('API Error', { message: error.message, stack: error.stack });
 
     // Handle BaseError instances with full context
     if (error instanceof BaseError) {

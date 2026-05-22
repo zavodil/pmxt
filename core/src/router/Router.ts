@@ -5,6 +5,7 @@ import {
     type EventFetchParams,
 } from '../BaseExchange';
 import type { UnifiedMarket, UnifiedEvent, OrderBook, OrderLevel, MarketOutcome } from '../types';
+import { logger } from '../utils/logger';
 import { PmxtApiClient } from './client';
 import type {
     RouterOptions,
@@ -222,7 +223,7 @@ export class Router extends PredictionMarketExchange {
 
     /** @deprecated Use {@link fetchMarketMatches} instead. */
     async fetchMatches(params: FetchMatchesParams): Promise<MatchResult[]> {
-        console.warn('[pmxt] fetchMatches is deprecated, use fetchMarketMatches instead');
+        logger.warn('fetchMatches is deprecated, use fetchMarketMatches instead');
         return this.fetchMarketMatches(params);
     }
 
@@ -304,7 +305,7 @@ export class Router extends PredictionMarketExchange {
 
     /** @deprecated Use {@link fetchRelatedMarkets} instead. */
     async fetchHedges(params: FetchMarketMatchesParams): Promise<PriceComparison[]> {
-        console.warn('[pmxt] fetchHedges is deprecated, use fetchRelatedMarkets instead');
+        logger.warn('fetchHedges is deprecated, use fetchRelatedMarkets instead');
         return this.fetchRelatedMarkets(params);
     }
 
@@ -343,13 +344,13 @@ export class Router extends PredictionMarketExchange {
 
     /** @deprecated Use {@link fetchMatchedMarkets} instead. */
     async fetchMatchedPrices(params?: FetchMatchedPricesParams): Promise<MatchedPricePair[]> {
-        console.warn('[pmxt] fetchMatchedPrices is deprecated, use fetchMatchedMarkets instead');
+        logger.warn('fetchMatchedPrices is deprecated, use fetchMatchedMarkets instead');
         return this.fetchMatchedMarkets(params);
     }
 
     /** @deprecated Use {@link fetchMatchedMarkets} instead. */
     async fetchArbitrage(params?: FetchArbitrageParams): Promise<ArbitrageOpportunity[]> {
-        console.warn('[pmxt] fetchArbitrage is deprecated, use fetchMatchedPrices instead');
+        logger.warn('fetchArbitrage is deprecated, use fetchMatchedPrices instead');
         return this.fetchArbitrageInternal(params);
     }
 
@@ -363,7 +364,7 @@ export class Router extends PredictionMarketExchange {
             // callers are not silently given stale N+1 data.
             const status = (error as any)?.status ?? (error as any)?.response?.status;
             if (status === 404 || status === 501) {
-                console.warn('[pmxt] Router: bulk arbitrage endpoint unavailable, falling back to N+1 approach');
+                logger.warn('Router: bulk arbitrage endpoint unavailable, falling back to N+1 approach');
                 return this.fetchArbitrageFallback(params);
             }
             throw error;

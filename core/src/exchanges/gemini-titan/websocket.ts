@@ -1,5 +1,6 @@
 import WebSocket from 'ws';
 import { OrderBook, Trade, OrderLevel } from '../../types';
+import { logger } from '../../utils/logger';
 import { DEFAULT_WATCH_TIMEOUT_MS, withWatchTimeout } from '../../utils/watch-timeout';
 import { GeminiAuth } from './auth';
 
@@ -122,7 +123,7 @@ export class GeminiWebSocket {
 
         this.reconnectTimer = setTimeout(() => {
             this.connect().catch((err: unknown) => {
-                console.warn(`[gemini-titan] reconnect failed: ${err instanceof Error ? err.message : String(err)}`);
+                logger.warn(`[gemini-titan] reconnect failed: ${err instanceof Error ? err.message : String(err)}`);
             });
         }, this.config.reconnectIntervalMs ?? 5000);
     }
@@ -263,7 +264,7 @@ export class GeminiWebSocket {
 
         if (!this.isConnected) {
             this.connect().catch((err: unknown) => {
-                console.warn(`[gemini-titan] connect failed during watchOrderBook('${symbol}'): ${err instanceof Error ? err.message : String(err)}`);
+                logger.warn(`[gemini-titan] connect failed during watchOrderBook('${symbol}'): ${err instanceof Error ? err.message : String(err)}`);
             });
         } else {
             this.sendSubscribe([`${symbol}@depth20`]);
@@ -292,7 +293,7 @@ export class GeminiWebSocket {
 
         if (!this.isConnected) {
             this.connect().catch((err: unknown) => {
-                console.warn(`[gemini-titan] connect failed during watchTrades('${symbol}'): ${err instanceof Error ? err.message : String(err)}`);
+                logger.warn(`[gemini-titan] connect failed during watchTrades('${symbol}'): ${err instanceof Error ? err.message : String(err)}`);
             });
         } else {
             this.sendSubscribe([`${symbol}@trade`]);

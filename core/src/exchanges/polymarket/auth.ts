@@ -6,6 +6,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { polygon } from 'viem/chains';
 import axios from 'axios';
 import { ExchangeCredentials } from '../../BaseExchange';
+import { logger } from '../../utils/logger';
 import { polymarketErrorMapper } from './errors';
 
 const DEFAULT_POLYMARKET_HOST = process.env.POLYMARKET_CLOB_URL || 'https://clob.polymarket.com';
@@ -110,8 +111,7 @@ export class PolymarketAuth {
                 throw new Error("Derived credentials are incomplete/empty");
             }
         } catch (deriveError: any) {
-            console.log('[PolymarketAuth] Derivation failed:', deriveError.message || deriveError);
-            console.log('[PolymarketAuth] Attempting to create new API key...');
+            logger.info('API key derivation failed, creating new key', { error: deriveError.message || String(deriveError) });
             try {
                 creds = await l1Client.createApiKey();
             } catch (createError: any) {
@@ -120,7 +120,7 @@ export class PolymarketAuth {
         }
 
         if (!creds || !creds.key || !creds.secret || !creds.passphrase) {
-            console.error('[PolymarketAuth] Incomplete credentials:', { hasKey: !!creds?.key, hasSecret: !!creds?.secret, hasPassphrase: !!creds?.passphrase });
+            logger.error('Incomplete credentials after derivation', { hasKey: !!creds?.key, hasSecret: !!creds?.secret, hasPassphrase: !!creds?.passphrase });
             throw new Error('Authentication failed: Derived credentials are incomplete.');
         }
 
@@ -164,8 +164,8 @@ export class PolymarketAuth {
                     signatureType: this.discoveredSignatureType as number
                 };
             }
-        } catch (error: any) {
-            // console.warn(`[PolymarketAuth] Could not auto-discover proxy for ${address}:`, error instanceof Error ? error.message : error);
+        } catch (error: unknown) {
+            logger.warn(`Proxy auto-discovery failed for ${address}`, { error: error instanceof Error ? error.message : String(error) });
         }
 
         // Fallback to EOA if discovery fails
@@ -243,10 +243,9 @@ export class PolymarketAuth {
                 // Discovery failure — fall through to default (Gnosis Safe) below.
                 // A network/HTTP error here does not block trading; we just lose
                 // the ability to auto-detect signatureType.
-                console.warn(
-                    '[polymarket] signature-type discovery failed; defaulting to Gnosis Safe',
-                    { error: err instanceof Error ? err.message : String(err) },
-                );
+                logger.warn('Signature-type discovery failed; defaulting to Gnosis Safe', {
+                    error: err instanceof Error ? err.message : String(err),
+                });
             }
         }
 

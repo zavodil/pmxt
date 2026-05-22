@@ -7,6 +7,7 @@
  */
 
 import { SubscribedAddressSnapshot, SubscriptionOption } from '../../subscriber/base';
+import { logger } from '../../utils/logger';
 import {
     buildPolymarketActivity,
     GoldSkySubscriber,
@@ -224,7 +225,7 @@ export class PolymarketWebSocket {
         this.userWs = new WebSocket(url);
 
         this.userWs.on('open', () => {
-            console.log('[polymarket-ws] user channel connected');
+            logger.debug('[polymarket-ws] user channel connected');
             this.sendUserSubscription(creds);
 
             // Ping every 10 seconds to keep the connection alive.
@@ -242,8 +243,8 @@ export class PolymarketWebSocket {
                 const arr = Array.isArray(events) ? events : [events];
                 for (const event of arr) {
                     for (const cb of this.userCallbacks) {
-                        try { cb(event); } catch (e) {
-                            console.error('[polymarket-ws] user callback error:', e);
+                        try { cb(event); } catch (e: unknown) {
+                            logger.error('[polymarket-ws] user callback error', { error: e instanceof Error ? e.message : String(e) });
                         }
                     }
                 }
@@ -253,12 +254,12 @@ export class PolymarketWebSocket {
         });
 
         this.userWs.on('close', () => {
-            console.warn('[polymarket-ws] user channel disconnected, reconnecting in 5s');
+            logger.warn('[polymarket-ws] user channel disconnected, reconnecting in 5s');
             this.scheduleUserReconnect(creds);
         });
 
         this.userWs.on('error', (err: Error) => {
-            console.error('[polymarket-ws] user channel error:', err.message);
+            logger.error('[polymarket-ws] user channel error', { error: err.message });
         });
     }
 
@@ -282,7 +283,7 @@ export class PolymarketWebSocket {
             this.userReconnectTimer = null;
             if (this.userCallbacks.length > 0) {
                 try { await this.connectUserChannel(creds); } catch (e: any) {
-                    console.error('[polymarket-ws] reconnect failed:', e.message);
+                    logger.error('[polymarket-ws] reconnect failed', { error: e.message });
                     this.scheduleUserReconnect(creds);
                 }
             }
@@ -341,11 +342,15 @@ export class PolymarketWebSocket {
                         else if (type === 'price_change') this.handlePriceChange(msg);
                         else if (type === 'last_trade_price') this.handleTrade(msg);
                     }
-                } catch {}
+                } catch (e: unknown) {
+                    logger.error('[polymarket-ws] market message handler error', {
+                        error: e instanceof Error ? e.message : String(e),
+                    });
+                }
             });
 
             this.ws.on('error', (err: Error) => {
-                console.error('Polymarket WebSocket error:', err.message);
+                logger.error('[polymarket-ws] WebSocket error', { error: err.message });
                 reject(err);
             });
 
