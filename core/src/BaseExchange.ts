@@ -166,6 +166,19 @@ export interface MyTradesParams {
     cursor?: string;     // for Kalshi cursor pagination
 }
 
+export interface FetchOrderBookParams {
+    /** Outcome side: 'yes' or 'no'. Required for exchanges like Limitless
+     *  where the API returns a single orderbook per market. */
+    side?: 'yes' | 'no';
+    /** Unix timestamp (ms) — fetch a historical snapshot at or before this
+     *  time, or the start of a range when combined with `until` (hosted API only). */
+    since?: number;
+    /** Unix timestamp (ms) — end of a historical range. When combined with
+     *  `since`, returns an array of reconstructed L2 OrderBook snapshots
+     *  between `since` and `until` (hosted API only). */
+    until?: number;
+}
+
 export interface OrderHistoryParams {
     marketId?: string;   // required for Limitless (slug)
     /** Only return records after this date */
@@ -856,7 +869,7 @@ export abstract class PredictionMarketExchange {
      * @returns Order book with bids and asks. Returns OrderBook[] when
      *   both `since` and `until` are provided.
      */
-    async fetchOrderBook(outcomeId: string, limit?: number, params?: Record<string, any>): Promise<OrderBook> {
+    async fetchOrderBook(outcomeId: string, limit?: number, params?: FetchOrderBookParams): Promise<OrderBook> {
         throw new Error("Method fetchOrderBook not implemented.");
     }
 

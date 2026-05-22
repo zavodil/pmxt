@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.43.2] - 2026-05-22
+
+### Fixed
+
+- **Docs**: `fetchOrderBook` params (`side`, `since`, `until`) now appear in auto-generated API docs. Replaced `Record<string, any>` with typed `FetchOrderBookParams` interface so the OpenAPI generator can enumerate the properties.
+
 ## [2.43.1] - 2026-05-22
 
 ### Fixed

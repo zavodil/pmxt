@@ -22,6 +22,7 @@ import {
     EventFilterCriteria,
     EventFilterFunction,
     ExecutionPriceResult,
+    FetchOrderBookParams,
     MarketFetchParams,
     MarketFilterCriteria,
     MarketFilterFunction,
@@ -766,7 +767,7 @@ export abstract class Exchange {
         }
     }
 
-    async fetchOrderBook(outcomeId: string | MarketOutcome, limit?: number, params?: Record<string, any>): Promise<OrderBook | OrderBook[]> {
+    async fetchOrderBook(outcomeId: string | MarketOutcome, limit?: number, params?: FetchOrderBookParams): Promise<OrderBook | OrderBook[]> {
         await this.initPromise;
         try {
             const args: any[] = [];

@@ -523,6 +523,18 @@ export interface TradesParams {
 }
 
 /**
+ * Parameters for fetchOrderBook historical queries.
+ */
+export interface FetchOrderBookParams {
+    /** Outcome side: 'yes' or 'no' (for exchanges like Limitless) */
+    side?: 'yes' | 'no';
+    /** Unix timestamp (ms) — historical snapshot at or before this time */
+    since?: number;
+    /** Unix timestamp (ms) — end of range. With `since`, returns OrderBook[] */
+    until?: number;
+}
+
+/**
  * Parameters for fetching the authenticated user's trade history.
  */
 export interface MyTradesParams {
