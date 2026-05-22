@@ -62,6 +62,7 @@ _SNAKE_TO_CAMEL = {
     'price_change_24h': 'priceChange24h',
     'unrealized_pnl': 'unrealizedPnL',
     'realized_pnl': 'realizedPnL',
+    'dt': 'datetime',
 }
 
 
@@ -851,16 +852,18 @@ class Exchange(ABC):
         except ApiException as e:
             raise self._parse_api_exception(e) from None
 
-    def fetch_order_book(self, outcome_id: Union[str, "MarketOutcome"] = _UNSET, limit: Optional[float] = None, params: Optional[dict] = None, **kwargs) -> OrderBook:
+    def fetch_order_book(self, outcome_id: Union[str, "MarketOutcome"] = _UNSET, limit: Optional[float] = None, params: Optional[dict] = None, **kwargs) -> Union[OrderBook, List[OrderBook]]:
         try:
             args = []
             if kwargs:
                 params = {**(params or {}), **kwargs}
-            outcome_id = _compat_id(outcome_id, _compat_kwargs)
+            outcome_id = _compat_id(outcome_id, kwargs)
             args.append(_resolve_outcome_id(outcome_id))
             if limit is not None:
                 args.append(limit)
             if params is not None:
+                if limit is None:
+                    args.append(None)
                 args.append(params)
             body: dict = {"args": args}
             creds = self._get_credentials_dict()
@@ -874,6 +877,8 @@ class Exchange(ABC):
             )
             response.read()
             data = self._handle_response(json.loads(response.data))
+            if isinstance(data, list):
+                return [_convert_order_book(d) for d in data]
             return _convert_order_book(data)
         except ApiException as e:
             raise self._parse_api_exception(e) from None
