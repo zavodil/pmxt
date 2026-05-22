@@ -851,13 +851,17 @@ class Exchange(ABC):
         except ApiException as e:
             raise self._parse_api_exception(e) from None
 
-    def fetch_order_book(self, outcome_id: Union[str, "MarketOutcome"] = _UNSET, side: Optional[Any] = None, **_compat_kwargs) -> OrderBook:
+    def fetch_order_book(self, outcome_id: Union[str, "MarketOutcome"] = _UNSET, limit: Optional[float] = None, params: Optional[dict] = None, **kwargs) -> OrderBook:
         try:
             args = []
+            if kwargs:
+                params = {**(params or {}), **kwargs}
             outcome_id = _compat_id(outcome_id, _compat_kwargs)
             args.append(_resolve_outcome_id(outcome_id))
-            if side is not None:
-                args.append(side)
+            if limit is not None:
+                args.append(limit)
+            if params is not None:
+                args.append(params)
             body: dict = {"args": args}
             creds = self._get_credentials_dict()
             if creds:
