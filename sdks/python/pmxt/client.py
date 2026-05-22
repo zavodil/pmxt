@@ -874,10 +874,10 @@ class Exchange(ABC):
         except ApiException as e:
             raise self._parse_api_exception(e) from None
 
-    def fetch_order_books(self, ids: List[str]) -> Dict[str, OrderBook]:
+    def fetch_order_books(self, outcome_ids: List[Union[str, "MarketOutcome"]]) -> Dict[str, OrderBook]:
         try:
             args = []
-            args.append(ids)
+            args.append([_resolve_outcome_id(x) for x in outcome_ids])
             body: dict = {"args": args}
             creds = self._get_credentials_dict()
             if creds:
