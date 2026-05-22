@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.43.4] - 2026-05-22
+
+### Fixed
+
+- **Docs**: Add `FetchOrderBookParams` to `GENERATED_SCHEMA_ORDER` so the AST parser builds the schema from the interface. `TYPE_REF_MAP` alone was not enough — the generator also needs the schema order entry to enumerate properties as query params.
+
 ## [2.43.3] - 2026-05-22
 
 ### Fixed

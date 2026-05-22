@@ -1703,6 +1703,7 @@ const GENERATED_SCHEMA_ORDER = [
   'EventFetchParams',
   'HistoryFilterParams',
   'OHLCVParams',
+  'FetchOrderBookParams',
   'TradesParams',
   'CreateOrderParams',
   'BuiltOrder',

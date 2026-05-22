@@ -3,7 +3,7 @@
   "info": {
     "title": "PMXT Hosted API",
     "description": "One API for every prediction market. Cross-venue search in under 10ms, a single unified schema, and the complete venue surface from reads to trades.",
-    "version": "2.43.3"
+    "version": "2.17.1"
   },
   "servers": [
     {
@@ -264,7 +264,27 @@
         "operationId": "fetchMarkets",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ExchangeParam"
+            "in": "path",
+            "name": "exchange",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "polymarket",
+                "kalshi",
+                "kalshi-demo",
+                "limitless",
+                "probable",
+                "baozi",
+                "myriad",
+                "opinion",
+                "metaculus",
+                "smarkets",
+                "polymarket_us",
+                "router"
+              ]
+            },
+            "required": true,
+            "description": "The prediction market exchange to target."
           },
           {
             "in": "query",
@@ -481,21 +501,6 @@
           },
           {
             "lang": "python",
-            "label": "Hyperliquid",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Hyperliquid(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets(\n    limit=10,\n    offset=0,\n    sort=\"volume\",\n    status=\"active\",\n    search_in=\"title\",\n    query=\"election\",\n    slug=\"BTC-USD\",\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    event_id=\"12345\",\n    page=1,\n    similarity_threshold=1,\n)"
-          },
-          {
-            "lang": "python",
-            "label": "GeminiTitan",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.GeminiTitan(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets(\n    limit=10,\n    offset=0,\n    sort=\"volume\",\n    status=\"active\",\n    search_in=\"title\",\n    query=\"election\",\n    slug=\"BTC-USD\",\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    event_id=\"12345\",\n    page=1,\n    similarity_threshold=1,\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Mock",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Mock(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets(\n    limit=10,\n    offset=0,\n    sort=\"volume\",\n    status=\"active\",\n    search_in=\"title\",\n    query=\"election\",\n    slug=\"BTC-USD\",\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    event_id=\"12345\",\n    page=1,\n    similarity_threshold=1,\n)"
-          },
-          {
-            "lang": "python",
             "label": "Router",
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Router(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_markets(\n    limit=10,\n    offset=0,\n    sort=\"volume\",\n    status=\"active\",\n    search_in=\"title\",\n    query=\"election\",\n    slug=\"BTC-USD\",\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    event_id=\"12345\",\n    page=1,\n    similarity_threshold=1,\n)"
           },
@@ -553,21 +558,6 @@
             "lang": "javascript",
             "label": "PolymarketUs",
             "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarkets({\n  limit: 10,\n  offset: 0,\n  sort: \"volume\",\n  status: \"active\",\n  searchIn: \"title\",\n  query: \"election\",\n  slug: \"BTC-USD\",\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  eventId: \"12345\",\n  page: 1,\n  similarityThreshold: 1,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Hyperliquid",
-            "source": "import { Hyperliquid } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Hyperliquid({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarkets({\n  limit: 10,\n  offset: 0,\n  sort: \"volume\",\n  status: \"active\",\n  searchIn: \"title\",\n  query: \"election\",\n  slug: \"BTC-USD\",\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  eventId: \"12345\",\n  page: 1,\n  similarityThreshold: 1,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "GeminiTitan",
-            "source": "import { GeminiTitan } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new GeminiTitan({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarkets({\n  limit: 10,\n  offset: 0,\n  sort: \"volume\",\n  status: \"active\",\n  searchIn: \"title\",\n  query: \"election\",\n  slug: \"BTC-USD\",\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  eventId: \"12345\",\n  page: 1,\n  similarityThreshold: 1,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Mock",
-            "source": "import { Mock } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Mock({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMarkets({\n  limit: 10,\n  offset: 0,\n  sort: \"volume\",\n  status: \"active\",\n  searchIn: \"title\",\n  query: \"election\",\n  slug: \"BTC-USD\",\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  eventId: \"12345\",\n  page: 1,\n  similarityThreshold: 1,\n});"
           },
           {
             "lang": "javascript",
@@ -1015,7 +1005,27 @@
         "operationId": "fetchEvents",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ExchangeParam"
+            "in": "path",
+            "name": "exchange",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "polymarket",
+                "kalshi",
+                "kalshi-demo",
+                "limitless",
+                "probable",
+                "baozi",
+                "myriad",
+                "opinion",
+                "metaculus",
+                "smarkets",
+                "polymarket_us",
+                "router"
+              ]
+            },
+            "required": true,
+            "description": "The prediction market exchange to target."
           },
           {
             "in": "query",
@@ -1230,21 +1240,6 @@
           },
           {
             "lang": "python",
-            "label": "Hyperliquid",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Hyperliquid(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events(\n    query=\"election\",\n    limit=10,\n    offset=0,\n    sort=\"volume\",\n    status=\"active\",\n    search_in=\"title\",\n    event_id=\"12345\",\n    slug=\"BTC-USD\",\n    filter=\"value\",\n    category=\"value\",\n    tags=[],\n)"
-          },
-          {
-            "lang": "python",
-            "label": "GeminiTitan",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.GeminiTitan(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events(\n    query=\"election\",\n    limit=10,\n    offset=0,\n    sort=\"volume\",\n    status=\"active\",\n    search_in=\"title\",\n    event_id=\"12345\",\n    slug=\"BTC-USD\",\n    filter=\"value\",\n    category=\"value\",\n    tags=[],\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Mock",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Mock(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events(\n    query=\"election\",\n    limit=10,\n    offset=0,\n    sort=\"volume\",\n    status=\"active\",\n    search_in=\"title\",\n    event_id=\"12345\",\n    slug=\"BTC-USD\",\n    filter=\"value\",\n    category=\"value\",\n    tags=[],\n)"
-          },
-          {
-            "lang": "python",
             "label": "Router",
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Router(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_events(\n    query=\"election\",\n    limit=10,\n    offset=0,\n    sort=\"volume\",\n    status=\"active\",\n    search_in=\"title\",\n    event_id=\"12345\",\n    slug=\"BTC-USD\",\n    filter=\"value\",\n    category=\"value\",\n    tags=[],\n)"
           },
@@ -1302,21 +1297,6 @@
             "lang": "javascript",
             "label": "PolymarketUs",
             "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEvents({\n  query: \"election\",\n  limit: 10,\n  offset: 0,\n  sort: \"volume\",\n  status: \"active\",\n  searchIn: \"title\",\n  eventId: \"12345\",\n  slug: \"BTC-USD\",\n  filter: \"value\",\n  category: \"value\",\n  tags: [],\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Hyperliquid",
-            "source": "import { Hyperliquid } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Hyperliquid({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEvents({\n  query: \"election\",\n  limit: 10,\n  offset: 0,\n  sort: \"volume\",\n  status: \"active\",\n  searchIn: \"title\",\n  eventId: \"12345\",\n  slug: \"BTC-USD\",\n  filter: \"value\",\n  category: \"value\",\n  tags: [],\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "GeminiTitan",
-            "source": "import { GeminiTitan } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new GeminiTitan({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEvents({\n  query: \"election\",\n  limit: 10,\n  offset: 0,\n  sort: \"volume\",\n  status: \"active\",\n  searchIn: \"title\",\n  eventId: \"12345\",\n  slug: \"BTC-USD\",\n  filter: \"value\",\n  category: \"value\",\n  tags: [],\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Mock",
-            "source": "import { Mock } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Mock({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchEvents({\n  query: \"election\",\n  limit: 10,\n  offset: 0,\n  sort: \"volume\",\n  status: \"active\",\n  searchIn: \"title\",\n  eventId: \"12345\",\n  slug: \"BTC-USD\",\n  filter: \"value\",\n  category: \"value\",\n  tags: [],\n});"
           },
           {
             "lang": "javascript",
@@ -1962,7 +1942,23 @@
         "operationId": "fetchOHLCV",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ExchangeParam"
+            "in": "path",
+            "name": "exchange",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "polymarket",
+                "kalshi",
+                "kalshi-demo",
+                "limitless",
+                "probable",
+                "baozi",
+                "myriad",
+                "opinion"
+              ]
+            },
+            "required": true,
+            "description": "The prediction market exchange to target."
           },
           {
             "in": "query",
@@ -2082,41 +2078,6 @@
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Opinion(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_ohlcv(\n    outcome_id=\"67890\",\n    resolution=\"1h\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
           },
           {
-            "lang": "python",
-            "label": "Metaculus",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Metaculus(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_ohlcv(\n    outcome_id=\"67890\",\n    resolution=\"1h\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Smarkets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Smarkets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_ohlcv(\n    outcome_id=\"67890\",\n    resolution=\"1h\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
-          },
-          {
-            "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_ohlcv(\n    outcome_id=\"67890\",\n    resolution=\"1h\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Hyperliquid",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Hyperliquid(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_ohlcv(\n    outcome_id=\"67890\",\n    resolution=\"1h\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
-          },
-          {
-            "lang": "python",
-            "label": "GeminiTitan",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.GeminiTitan(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_ohlcv(\n    outcome_id=\"67890\",\n    resolution=\"1h\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Mock",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Mock(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_ohlcv(\n    outcome_id=\"67890\",\n    resolution=\"1h\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Router",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Router(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_ohlcv(\n    outcome_id=\"67890\",\n    resolution=\"1h\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
-          },
-          {
             "lang": "javascript",
             "label": "Polymarket",
             "source": "import { Polymarket } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Polymarket({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOHLCV({\n  outcomeId: \"67890\",\n  resolution: \"1h\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
@@ -2155,41 +2116,6 @@
             "lang": "javascript",
             "label": "Opinion",
             "source": "import { Opinion } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Opinion({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOHLCV({\n  outcomeId: \"67890\",\n  resolution: \"1h\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Metaculus",
-            "source": "import { Metaculus } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Metaculus({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOHLCV({\n  outcomeId: \"67890\",\n  resolution: \"1h\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Smarkets",
-            "source": "import { Smarkets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Smarkets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOHLCV({\n  outcomeId: \"67890\",\n  resolution: \"1h\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOHLCV({\n  outcomeId: \"67890\",\n  resolution: \"1h\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Hyperliquid",
-            "source": "import { Hyperliquid } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Hyperliquid({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOHLCV({\n  outcomeId: \"67890\",\n  resolution: \"1h\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "GeminiTitan",
-            "source": "import { GeminiTitan } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new GeminiTitan({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOHLCV({\n  outcomeId: \"67890\",\n  resolution: \"1h\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Mock",
-            "source": "import { Mock } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Mock({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOHLCV({\n  outcomeId: \"67890\",\n  resolution: \"1h\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Router",
-            "source": "import { Router } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Router({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOHLCV({\n  outcomeId: \"67890\",\n  resolution: \"1h\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
           }
         ]
       }
@@ -2200,7 +2126,26 @@
         "operationId": "fetchOrderBook",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ExchangeParam"
+            "in": "path",
+            "name": "exchange",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "polymarket",
+                "kalshi",
+                "kalshi-demo",
+                "limitless",
+                "probable",
+                "baozi",
+                "myriad",
+                "opinion",
+                "smarkets",
+                "polymarket_us",
+                "router"
+              ]
+            },
+            "required": true,
+            "description": "The prediction market exchange to target."
           },
           {
             "in": "query",
@@ -2217,6 +2162,37 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "in": "query",
+            "name": "side",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "yes",
+                "no"
+              ]
+            },
+            "description": "Outcome side: 'yes' or 'no'. Required for exchanges like Limitless where the API returns a single orderbook per market."
+          },
+          {
+            "in": "query",
+            "name": "since",
+            "required": false,
+            "schema": {
+              "type": "number"
+            },
+            "description": "Unix timestamp (ms) — fetch a historical snapshot at or before this time, or the start of a range when combined with `until` (hosted API only)."
+          },
+          {
+            "in": "query",
+            "name": "until",
+            "required": false,
+            "schema": {
+              "type": "number"
+            },
+            "description": "Unix timestamp (ms) — end of a historical range. When combined with `since`, returns an array of reconstructed L2 OrderBook snapshots between `since` and `until` (hosted API only)."
           }
         ],
         "responses": {
@@ -2249,152 +2225,112 @@
           {
             "lang": "python",
             "label": "Polymarket",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Polymarket(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(outcome_id=\"67890\", limit=10)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Polymarket(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(\n    outcome_id=\"67890\",\n    limit=10,\n    side=\"buy\",\n    since=1,\n    until=1,\n)"
           },
           {
             "lang": "python",
             "label": "Limitless",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Limitless(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(outcome_id=\"67890\", limit=10)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Limitless(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(\n    outcome_id=\"67890\",\n    limit=10,\n    side=\"buy\",\n    since=1,\n    until=1,\n)"
           },
           {
             "lang": "python",
             "label": "Kalshi",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Kalshi(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(outcome_id=\"67890\", limit=10)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Kalshi(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(\n    outcome_id=\"67890\",\n    limit=10,\n    side=\"buy\",\n    since=1,\n    until=1,\n)"
           },
           {
             "lang": "python",
             "label": "KalshiDemo",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.KalshiDemo(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(outcome_id=\"67890\", limit=10)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.KalshiDemo(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(\n    outcome_id=\"67890\",\n    limit=10,\n    side=\"buy\",\n    since=1,\n    until=1,\n)"
           },
           {
             "lang": "python",
             "label": "Probable",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Probable(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(outcome_id=\"67890\", limit=10)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Probable(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(\n    outcome_id=\"67890\",\n    limit=10,\n    side=\"buy\",\n    since=1,\n    until=1,\n)"
           },
           {
             "lang": "python",
             "label": "Baozi",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Baozi(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(outcome_id=\"67890\", limit=10)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Baozi(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(\n    outcome_id=\"67890\",\n    limit=10,\n    side=\"buy\",\n    since=1,\n    until=1,\n)"
           },
           {
             "lang": "python",
             "label": "Myriad",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Myriad(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(outcome_id=\"67890\", limit=10)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Myriad(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(\n    outcome_id=\"67890\",\n    limit=10,\n    side=\"buy\",\n    since=1,\n    until=1,\n)"
           },
           {
             "lang": "python",
             "label": "Opinion",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Opinion(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(outcome_id=\"67890\", limit=10)"
-          },
-          {
-            "lang": "python",
-            "label": "Metaculus",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Metaculus(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(outcome_id=\"67890\", limit=10)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Opinion(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(\n    outcome_id=\"67890\",\n    limit=10,\n    side=\"buy\",\n    since=1,\n    until=1,\n)"
           },
           {
             "lang": "python",
             "label": "Smarkets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Smarkets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(outcome_id=\"67890\", limit=10)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Smarkets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(\n    outcome_id=\"67890\",\n    limit=10,\n    side=\"buy\",\n    since=1,\n    until=1,\n)"
           },
           {
             "lang": "python",
             "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(outcome_id=\"67890\", limit=10)"
-          },
-          {
-            "lang": "python",
-            "label": "Hyperliquid",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Hyperliquid(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(outcome_id=\"67890\", limit=10)"
-          },
-          {
-            "lang": "python",
-            "label": "GeminiTitan",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.GeminiTitan(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(outcome_id=\"67890\", limit=10)"
-          },
-          {
-            "lang": "python",
-            "label": "Mock",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Mock(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(outcome_id=\"67890\", limit=10)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(\n    outcome_id=\"67890\",\n    limit=10,\n    side=\"buy\",\n    since=1,\n    until=1,\n)"
           },
           {
             "lang": "python",
             "label": "Router",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Router(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(outcome_id=\"67890\", limit=10)"
+            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Router(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_book(\n    outcome_id=\"67890\",\n    limit=10,\n    side=\"buy\",\n    since=1,\n    until=1,\n)"
           },
           {
             "lang": "javascript",
             "label": "Polymarket",
-            "source": "import { Polymarket } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Polymarket({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({ outcomeId: \"67890\", limit: 10 });"
+            "source": "import { Polymarket } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Polymarket({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({\n  outcomeId: \"67890\",\n  limit: 10,\n  side: \"buy\",\n  since: 1,\n  until: 1,\n});"
           },
           {
             "lang": "javascript",
             "label": "Limitless",
-            "source": "import { Limitless } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Limitless({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({ outcomeId: \"67890\", limit: 10 });"
+            "source": "import { Limitless } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Limitless({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({\n  outcomeId: \"67890\",\n  limit: 10,\n  side: \"buy\",\n  since: 1,\n  until: 1,\n});"
           },
           {
             "lang": "javascript",
             "label": "Kalshi",
-            "source": "import { Kalshi } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Kalshi({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({ outcomeId: \"67890\", limit: 10 });"
+            "source": "import { Kalshi } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Kalshi({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({\n  outcomeId: \"67890\",\n  limit: 10,\n  side: \"buy\",\n  since: 1,\n  until: 1,\n});"
           },
           {
             "lang": "javascript",
             "label": "KalshiDemo",
-            "source": "import { KalshiDemo } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new KalshiDemo({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({ outcomeId: \"67890\", limit: 10 });"
+            "source": "import { KalshiDemo } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new KalshiDemo({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({\n  outcomeId: \"67890\",\n  limit: 10,\n  side: \"buy\",\n  since: 1,\n  until: 1,\n});"
           },
           {
             "lang": "javascript",
             "label": "Probable",
-            "source": "import { Probable } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Probable({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({ outcomeId: \"67890\", limit: 10 });"
+            "source": "import { Probable } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Probable({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({\n  outcomeId: \"67890\",\n  limit: 10,\n  side: \"buy\",\n  since: 1,\n  until: 1,\n});"
           },
           {
             "lang": "javascript",
             "label": "Baozi",
-            "source": "import { Baozi } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Baozi({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({ outcomeId: \"67890\", limit: 10 });"
+            "source": "import { Baozi } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Baozi({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({\n  outcomeId: \"67890\",\n  limit: 10,\n  side: \"buy\",\n  since: 1,\n  until: 1,\n});"
           },
           {
             "lang": "javascript",
             "label": "Myriad",
-            "source": "import { Myriad } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Myriad({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({ outcomeId: \"67890\", limit: 10 });"
+            "source": "import { Myriad } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Myriad({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({\n  outcomeId: \"67890\",\n  limit: 10,\n  side: \"buy\",\n  since: 1,\n  until: 1,\n});"
           },
           {
             "lang": "javascript",
             "label": "Opinion",
-            "source": "import { Opinion } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Opinion({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({ outcomeId: \"67890\", limit: 10 });"
-          },
-          {
-            "lang": "javascript",
-            "label": "Metaculus",
-            "source": "import { Metaculus } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Metaculus({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({ outcomeId: \"67890\", limit: 10 });"
+            "source": "import { Opinion } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Opinion({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({\n  outcomeId: \"67890\",\n  limit: 10,\n  side: \"buy\",\n  since: 1,\n  until: 1,\n});"
           },
           {
             "lang": "javascript",
             "label": "Smarkets",
-            "source": "import { Smarkets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Smarkets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({ outcomeId: \"67890\", limit: 10 });"
+            "source": "import { Smarkets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Smarkets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({\n  outcomeId: \"67890\",\n  limit: 10,\n  side: \"buy\",\n  since: 1,\n  until: 1,\n});"
           },
           {
             "lang": "javascript",
             "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({ outcomeId: \"67890\", limit: 10 });"
-          },
-          {
-            "lang": "javascript",
-            "label": "Hyperliquid",
-            "source": "import { Hyperliquid } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Hyperliquid({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({ outcomeId: \"67890\", limit: 10 });"
-          },
-          {
-            "lang": "javascript",
-            "label": "GeminiTitan",
-            "source": "import { GeminiTitan } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new GeminiTitan({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({ outcomeId: \"67890\", limit: 10 });"
-          },
-          {
-            "lang": "javascript",
-            "label": "Mock",
-            "source": "import { Mock } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Mock({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({ outcomeId: \"67890\", limit: 10 });"
+            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({\n  outcomeId: \"67890\",\n  limit: 10,\n  side: \"buy\",\n  since: 1,\n  until: 1,\n});"
           },
           {
             "lang": "javascript",
             "label": "Router",
-            "source": "import { Router } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Router({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({ outcomeId: \"67890\", limit: 10 });"
+            "source": "import { Router } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Router({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBook({\n  outcomeId: \"67890\",\n  limit: 10,\n  side: \"buy\",\n  since: 1,\n  until: 1,\n});"
           }
         ]
       }
@@ -2405,7 +2341,18 @@
         "operationId": "fetchOrderBooks",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ExchangeParam"
+            "in": "path",
+            "name": "exchange",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "polymarket",
+                "kalshi",
+                "kalshi-demo"
+              ]
+            },
+            "required": true,
+            "description": "The prediction market exchange to target."
           }
         ],
         "requestBody": {
@@ -2474,11 +2421,6 @@
           },
           {
             "lang": "python",
-            "label": "Limitless",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Limitless(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_books()"
-          },
-          {
-            "lang": "python",
             "label": "Kalshi",
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Kalshi(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_books()"
           },
@@ -2488,69 +2430,9 @@
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.KalshiDemo(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_books()"
           },
           {
-            "lang": "python",
-            "label": "Probable",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Probable(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_books()"
-          },
-          {
-            "lang": "python",
-            "label": "Baozi",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Baozi(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_books()"
-          },
-          {
-            "lang": "python",
-            "label": "Myriad",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Myriad(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_books()"
-          },
-          {
-            "lang": "python",
-            "label": "Opinion",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Opinion(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_books()"
-          },
-          {
-            "lang": "python",
-            "label": "Metaculus",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Metaculus(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_books()"
-          },
-          {
-            "lang": "python",
-            "label": "Smarkets",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Smarkets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_books()"
-          },
-          {
-            "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_books()"
-          },
-          {
-            "lang": "python",
-            "label": "Hyperliquid",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Hyperliquid(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_books()"
-          },
-          {
-            "lang": "python",
-            "label": "GeminiTitan",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.GeminiTitan(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_books()"
-          },
-          {
-            "lang": "python",
-            "label": "Mock",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Mock(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_books()"
-          },
-          {
-            "lang": "python",
-            "label": "Router",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Router(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order_books()"
-          },
-          {
             "lang": "javascript",
             "label": "Polymarket",
             "source": "import { Polymarket } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Polymarket({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBooks();"
-          },
-          {
-            "lang": "javascript",
-            "label": "Limitless",
-            "source": "import { Limitless } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Limitless({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBooks();"
           },
           {
             "lang": "javascript",
@@ -2561,61 +2443,6 @@
             "lang": "javascript",
             "label": "KalshiDemo",
             "source": "import { KalshiDemo } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new KalshiDemo({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBooks();"
-          },
-          {
-            "lang": "javascript",
-            "label": "Probable",
-            "source": "import { Probable } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Probable({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBooks();"
-          },
-          {
-            "lang": "javascript",
-            "label": "Baozi",
-            "source": "import { Baozi } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Baozi({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBooks();"
-          },
-          {
-            "lang": "javascript",
-            "label": "Myriad",
-            "source": "import { Myriad } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Myriad({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBooks();"
-          },
-          {
-            "lang": "javascript",
-            "label": "Opinion",
-            "source": "import { Opinion } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Opinion({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBooks();"
-          },
-          {
-            "lang": "javascript",
-            "label": "Metaculus",
-            "source": "import { Metaculus } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Metaculus({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBooks();"
-          },
-          {
-            "lang": "javascript",
-            "label": "Smarkets",
-            "source": "import { Smarkets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Smarkets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBooks();"
-          },
-          {
-            "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBooks();"
-          },
-          {
-            "lang": "javascript",
-            "label": "Hyperliquid",
-            "source": "import { Hyperliquid } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Hyperliquid({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBooks();"
-          },
-          {
-            "lang": "javascript",
-            "label": "GeminiTitan",
-            "source": "import { GeminiTitan } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new GeminiTitan({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBooks();"
-          },
-          {
-            "lang": "javascript",
-            "label": "Mock",
-            "source": "import { Mock } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Mock({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBooks();"
-          },
-          {
-            "lang": "javascript",
-            "label": "Router",
-            "source": "import { Router } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Router({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrderBooks();"
           }
         ]
       }
@@ -2626,7 +2453,23 @@
         "operationId": "fetchTrades",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ExchangeParam"
+            "in": "path",
+            "name": "exchange",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "polymarket",
+                "kalshi",
+                "kalshi-demo",
+                "limitless",
+                "probable",
+                "baozi",
+                "myriad",
+                "smarkets"
+              ]
+            },
+            "required": true,
+            "description": "The prediction market exchange to target."
           },
           {
             "in": "query",
@@ -2733,43 +2576,8 @@
           },
           {
             "lang": "python",
-            "label": "Opinion",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Opinion(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_trades(\n    outcome_id=\"67890\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Metaculus",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Metaculus(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_trades(\n    outcome_id=\"67890\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
-          },
-          {
-            "lang": "python",
             "label": "Smarkets",
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Smarkets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_trades(\n    outcome_id=\"67890\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
-          },
-          {
-            "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_trades(\n    outcome_id=\"67890\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Hyperliquid",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Hyperliquid(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_trades(\n    outcome_id=\"67890\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
-          },
-          {
-            "lang": "python",
-            "label": "GeminiTitan",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.GeminiTitan(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_trades(\n    outcome_id=\"67890\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Mock",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Mock(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_trades(\n    outcome_id=\"67890\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Router",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Router(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_trades(\n    outcome_id=\"67890\",\n    start=\"value\",\n    end=\"value\",\n    limit=10,\n)"
           },
           {
             "lang": "javascript",
@@ -2808,43 +2616,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Opinion",
-            "source": "import { Opinion } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Opinion({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchTrades({\n  outcomeId: \"67890\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Metaculus",
-            "source": "import { Metaculus } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Metaculus({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchTrades({\n  outcomeId: \"67890\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
-          },
-          {
-            "lang": "javascript",
             "label": "Smarkets",
             "source": "import { Smarkets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Smarkets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchTrades({\n  outcomeId: \"67890\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchTrades({\n  outcomeId: \"67890\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Hyperliquid",
-            "source": "import { Hyperliquid } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Hyperliquid({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchTrades({\n  outcomeId: \"67890\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "GeminiTitan",
-            "source": "import { GeminiTitan } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new GeminiTitan({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchTrades({\n  outcomeId: \"67890\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Mock",
-            "source": "import { Mock } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Mock({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchTrades({\n  outcomeId: \"67890\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Router",
-            "source": "import { Router } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Router({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchTrades({\n  outcomeId: \"67890\",\n  start: \"value\",\n  end: \"value\",\n  limit: 10,\n});"
           }
         ]
       }
@@ -2855,7 +2628,26 @@
         "operationId": "createOrder",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ExchangeParam"
+            "in": "path",
+            "name": "exchange",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "polymarket",
+                "kalshi",
+                "kalshi-demo",
+                "limitless",
+                "probable",
+                "baozi",
+                "myriad",
+                "opinion",
+                "metaculus",
+                "smarkets",
+                "polymarket_us"
+              ]
+            },
+            "required": true,
+            "description": "The prediction market exchange to target."
           }
         ],
         "requestBody": {
@@ -2974,26 +2766,6 @@
             "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.PolymarketUs(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.create_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n    fee=1,\n    tick_size=1,\n    neg_risk=True,\n    on_behalf_of=1,\n)"
           },
           {
-            "lang": "python",
-            "label": "Hyperliquid",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Hyperliquid(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.create_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n    fee=1,\n    tick_size=1,\n    neg_risk=True,\n    on_behalf_of=1,\n)"
-          },
-          {
-            "lang": "python",
-            "label": "GeminiTitan",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.GeminiTitan(\n    api_key=\"YOUR_API_KEY\",\n    api_secret=\"YOUR_API_SECRET\",\n)\nresult = exchange.create_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n    fee=1,\n    tick_size=1,\n    neg_risk=True,\n    on_behalf_of=1,\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Mock",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Mock()\nresult = exchange.create_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n    fee=1,\n    tick_size=1,\n    neg_risk=True,\n    on_behalf_of=1,\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Router",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Router()\nresult = exchange.create_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n    fee=1,\n    tick_size=1,\n    neg_risk=True,\n    on_behalf_of=1,\n)"
-          },
-          {
             "lang": "javascript",
             "label": "Polymarket",
             "source": "import { Polymarket } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Polymarket({\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n  passphrase: \"YOUR_PASSPHRASE\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n  proxyAddress: \"YOUR_PROXY_ADDRESS\",\n  signatureType: \"gnosis-safe\",\n});\nconst result = await exchange.createOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n  fee: 1,\n  tickSize: 1,\n  negRisk: true,\n  onBehalfOf: 1,\n});"
@@ -3047,26 +2819,6 @@
             "lang": "javascript",
             "label": "PolymarketUs",
             "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new PolymarketUs({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.createOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n  fee: 1,\n  tickSize: 1,\n  negRisk: true,\n  onBehalfOf: 1,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Hyperliquid",
-            "source": "import { Hyperliquid } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Hyperliquid({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.createOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n  fee: 1,\n  tickSize: 1,\n  negRisk: true,\n  onBehalfOf: 1,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "GeminiTitan",
-            "source": "import { GeminiTitan } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new GeminiTitan({\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n});\nconst result = await exchange.createOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n  fee: 1,\n  tickSize: 1,\n  negRisk: true,\n  onBehalfOf: 1,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Mock",
-            "source": "import { Mock } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Mock();\nconst result = await exchange.createOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n  fee: 1,\n  tickSize: 1,\n  negRisk: true,\n  onBehalfOf: 1,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Router",
-            "source": "import { Router } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Router();\nconst result = await exchange.createOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n  fee: 1,\n  tickSize: 1,\n  negRisk: true,\n  onBehalfOf: 1,\n});"
           }
         ]
       }
@@ -3077,7 +2829,21 @@
         "operationId": "buildOrder",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ExchangeParam"
+            "in": "path",
+            "name": "exchange",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "polymarket",
+                "kalshi",
+                "kalshi-demo",
+                "opinion",
+                "smarkets",
+                "polymarket_us"
+              ]
+            },
+            "required": true,
+            "description": "The prediction market exchange to target."
           }
         ],
         "requestBody": {
@@ -3147,11 +2913,6 @@
           },
           {
             "lang": "python",
-            "label": "Limitless",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Limitless(\n    api_key=\"YOUR_API_KEY\",\n    api_secret=\"YOUR_API_SECRET\",\n    passphrase=\"YOUR_PASSPHRASE\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.build_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n    fee=1,\n    tick_size=1,\n    neg_risk=True,\n    on_behalf_of=1,\n)"
-          },
-          {
-            "lang": "python",
             "label": "Kalshi",
             "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Kalshi(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.build_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n    fee=1,\n    tick_size=1,\n    neg_risk=True,\n    on_behalf_of=1,\n)"
           },
@@ -3162,28 +2923,8 @@
           },
           {
             "lang": "python",
-            "label": "Probable",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Probable(\n    api_key=\"YOUR_API_KEY\",\n    api_secret=\"YOUR_API_SECRET\",\n    passphrase=\"YOUR_PASSPHRASE\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.build_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n    fee=1,\n    tick_size=1,\n    neg_risk=True,\n    on_behalf_of=1,\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Baozi",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Baozi(\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.build_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n    fee=1,\n    tick_size=1,\n    neg_risk=True,\n    on_behalf_of=1,\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Myriad",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Myriad(\n    api_key=\"YOUR_API_KEY\",\n    wallet_address=\"YOUR_WALLET_ADDRESS\",\n)\nresult = exchange.build_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n    fee=1,\n    tick_size=1,\n    neg_risk=True,\n    on_behalf_of=1,\n)"
-          },
-          {
-            "lang": "python",
             "label": "Opinion",
             "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Opinion(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n    proxy_address=\"YOUR_PROXY_ADDRESS\",\n)\nresult = exchange.build_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n    fee=1,\n    tick_size=1,\n    neg_risk=True,\n    on_behalf_of=1,\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Metaculus",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Metaculus(\n    api_token=\"YOUR_API_TOKEN\",\n)\nresult = exchange.build_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n    fee=1,\n    tick_size=1,\n    neg_risk=True,\n    on_behalf_of=1,\n)"
           },
           {
             "lang": "python",
@@ -3196,34 +2937,9 @@
             "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.PolymarketUs(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.build_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n    fee=1,\n    tick_size=1,\n    neg_risk=True,\n    on_behalf_of=1,\n)"
           },
           {
-            "lang": "python",
-            "label": "Hyperliquid",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Hyperliquid(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.build_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n    fee=1,\n    tick_size=1,\n    neg_risk=True,\n    on_behalf_of=1,\n)"
-          },
-          {
-            "lang": "python",
-            "label": "GeminiTitan",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.GeminiTitan(\n    api_key=\"YOUR_API_KEY\",\n    api_secret=\"YOUR_API_SECRET\",\n)\nresult = exchange.build_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n    fee=1,\n    tick_size=1,\n    neg_risk=True,\n    on_behalf_of=1,\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Mock",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Mock()\nresult = exchange.build_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n    fee=1,\n    tick_size=1,\n    neg_risk=True,\n    on_behalf_of=1,\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Router",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Router()\nresult = exchange.build_order(\n    market_id=\"12345\",\n    outcome_id=\"67890\",\n    side=\"buy\",\n    type=\"limit\",\n    amount=10,\n    price=0.55,\n    fee=1,\n    tick_size=1,\n    neg_risk=True,\n    on_behalf_of=1,\n)"
-          },
-          {
             "lang": "javascript",
             "label": "Polymarket",
             "source": "import { Polymarket } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Polymarket({\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n  passphrase: \"YOUR_PASSPHRASE\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n  proxyAddress: \"YOUR_PROXY_ADDRESS\",\n  signatureType: \"gnosis-safe\",\n});\nconst result = await exchange.buildOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n  fee: 1,\n  tickSize: 1,\n  negRisk: true,\n  onBehalfOf: 1,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Limitless",
-            "source": "import { Limitless } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Limitless({\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n  passphrase: \"YOUR_PASSPHRASE\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.buildOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n  fee: 1,\n  tickSize: 1,\n  negRisk: true,\n  onBehalfOf: 1,\n});"
           },
           {
             "lang": "javascript",
@@ -3237,28 +2953,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Probable",
-            "source": "import { Probable } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Probable({\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n  passphrase: \"YOUR_PASSPHRASE\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.buildOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n  fee: 1,\n  tickSize: 1,\n  negRisk: true,\n  onBehalfOf: 1,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Baozi",
-            "source": "import { Baozi } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Baozi({\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.buildOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n  fee: 1,\n  tickSize: 1,\n  negRisk: true,\n  onBehalfOf: 1,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Myriad",
-            "source": "import { Myriad } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Myriad({\n  apiKey: \"YOUR_API_KEY\",\n  walletAddress: \"YOUR_WALLET_ADDRESS\",\n});\nconst result = await exchange.buildOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n  fee: 1,\n  tickSize: 1,\n  negRisk: true,\n  onBehalfOf: 1,\n});"
-          },
-          {
-            "lang": "javascript",
             "label": "Opinion",
             "source": "import { Opinion } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Opinion({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n  proxyAddress: \"YOUR_PROXY_ADDRESS\",\n});\nconst result = await exchange.buildOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n  fee: 1,\n  tickSize: 1,\n  negRisk: true,\n  onBehalfOf: 1,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Metaculus",
-            "source": "import { Metaculus } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Metaculus({\n  apiToken: \"YOUR_API_TOKEN\",\n});\nconst result = await exchange.buildOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n  fee: 1,\n  tickSize: 1,\n  negRisk: true,\n  onBehalfOf: 1,\n});"
           },
           {
             "lang": "javascript",
@@ -3269,26 +2965,6 @@
             "lang": "javascript",
             "label": "PolymarketUs",
             "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new PolymarketUs({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.buildOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n  fee: 1,\n  tickSize: 1,\n  negRisk: true,\n  onBehalfOf: 1,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Hyperliquid",
-            "source": "import { Hyperliquid } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Hyperliquid({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.buildOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n  fee: 1,\n  tickSize: 1,\n  negRisk: true,\n  onBehalfOf: 1,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "GeminiTitan",
-            "source": "import { GeminiTitan } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new GeminiTitan({\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n});\nconst result = await exchange.buildOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n  fee: 1,\n  tickSize: 1,\n  negRisk: true,\n  onBehalfOf: 1,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Mock",
-            "source": "import { Mock } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Mock();\nconst result = await exchange.buildOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n  fee: 1,\n  tickSize: 1,\n  negRisk: true,\n  onBehalfOf: 1,\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Router",
-            "source": "import { Router } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Router();\nconst result = await exchange.buildOrder({\n  marketId: \"12345\",\n  outcomeId: \"67890\",\n  side: \"buy\",\n  type: \"limit\",\n  amount: 10,\n  price: 0.55,\n  fee: 1,\n  tickSize: 1,\n  negRisk: true,\n  onBehalfOf: 1,\n});"
           }
         ]
       }
@@ -3299,7 +2975,21 @@
         "operationId": "submitOrder",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ExchangeParam"
+            "in": "path",
+            "name": "exchange",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "polymarket",
+                "kalshi",
+                "kalshi-demo",
+                "opinion",
+                "smarkets",
+                "polymarket_us"
+              ]
+            },
+            "required": true,
+            "description": "The prediction market exchange to target."
           }
         ],
         "requestBody": {
@@ -3369,11 +3059,6 @@
           },
           {
             "lang": "python",
-            "label": "Limitless",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Limitless(\n    api_key=\"YOUR_API_KEY\",\n    api_secret=\"YOUR_API_SECRET\",\n    passphrase=\"YOUR_PASSPHRASE\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
-          },
-          {
-            "lang": "python",
             "label": "Kalshi",
             "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Kalshi(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
           },
@@ -3384,28 +3069,8 @@
           },
           {
             "lang": "python",
-            "label": "Probable",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Probable(\n    api_key=\"YOUR_API_KEY\",\n    api_secret=\"YOUR_API_SECRET\",\n    passphrase=\"YOUR_PASSPHRASE\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
-          },
-          {
-            "lang": "python",
-            "label": "Baozi",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Baozi(\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
-          },
-          {
-            "lang": "python",
-            "label": "Myriad",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Myriad(\n    api_key=\"YOUR_API_KEY\",\n    wallet_address=\"YOUR_WALLET_ADDRESS\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
-          },
-          {
-            "lang": "python",
             "label": "Opinion",
             "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Opinion(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n    proxy_address=\"YOUR_PROXY_ADDRESS\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
-          },
-          {
-            "lang": "python",
-            "label": "Metaculus",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Metaculus(\n    api_token=\"YOUR_API_TOKEN\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
           },
           {
             "lang": "python",
@@ -3418,34 +3083,9 @@
             "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.PolymarketUs(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
           },
           {
-            "lang": "python",
-            "label": "Hyperliquid",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Hyperliquid(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
-          },
-          {
-            "lang": "python",
-            "label": "GeminiTitan",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.GeminiTitan(\n    api_key=\"YOUR_API_KEY\",\n    api_secret=\"YOUR_API_SECRET\",\n)\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
-          },
-          {
-            "lang": "python",
-            "label": "Mock",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Mock()\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
-          },
-          {
-            "lang": "python",
-            "label": "Router",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Router()\nbuilt = exchange.build_order(market_id=\"12345\", side=\"buy\", type=\"limit\", amount=10, price=0.55)\nresult = exchange.submit_order(built)"
-          },
-          {
             "lang": "javascript",
             "label": "Polymarket",
             "source": "import { Polymarket } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Polymarket({\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n  passphrase: \"YOUR_PASSPHRASE\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n  proxyAddress: \"YOUR_PROXY_ADDRESS\",\n  signatureType: \"gnosis-safe\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
-          },
-          {
-            "lang": "javascript",
-            "label": "Limitless",
-            "source": "import { Limitless } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Limitless({\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n  passphrase: \"YOUR_PASSPHRASE\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
           },
           {
             "lang": "javascript",
@@ -3459,28 +3099,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Probable",
-            "source": "import { Probable } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Probable({\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n  passphrase: \"YOUR_PASSPHRASE\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
-          },
-          {
-            "lang": "javascript",
-            "label": "Baozi",
-            "source": "import { Baozi } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Baozi({\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
-          },
-          {
-            "lang": "javascript",
-            "label": "Myriad",
-            "source": "import { Myriad } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Myriad({\n  apiKey: \"YOUR_API_KEY\",\n  walletAddress: \"YOUR_WALLET_ADDRESS\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
-          },
-          {
-            "lang": "javascript",
             "label": "Opinion",
             "source": "import { Opinion } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Opinion({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n  proxyAddress: \"YOUR_PROXY_ADDRESS\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
-          },
-          {
-            "lang": "javascript",
-            "label": "Metaculus",
-            "source": "import { Metaculus } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Metaculus({\n  apiToken: \"YOUR_API_TOKEN\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
           },
           {
             "lang": "javascript",
@@ -3491,26 +3111,6 @@
             "lang": "javascript",
             "label": "PolymarketUs",
             "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new PolymarketUs({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
-          },
-          {
-            "lang": "javascript",
-            "label": "Hyperliquid",
-            "source": "import { Hyperliquid } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Hyperliquid({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
-          },
-          {
-            "lang": "javascript",
-            "label": "GeminiTitan",
-            "source": "import { GeminiTitan } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new GeminiTitan({\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n});\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
-          },
-          {
-            "lang": "javascript",
-            "label": "Mock",
-            "source": "import { Mock } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Mock();\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
-          },
-          {
-            "lang": "javascript",
-            "label": "Router",
-            "source": "import { Router } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Router();\nconst built = await exchange.buildOrder({ marketId: \"12345\", side: \"buy\", type: \"limit\", amount: 10, price: 0.55 });\nconst result = await exchange.submitOrder(built);"
           }
         ]
       }
@@ -3521,7 +3121,24 @@
         "operationId": "cancelOrder",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ExchangeParam"
+            "in": "path",
+            "name": "exchange",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "polymarket",
+                "kalshi",
+                "kalshi-demo",
+                "limitless",
+                "probable",
+                "opinion",
+                "metaculus",
+                "smarkets",
+                "polymarket_us"
+              ]
+            },
+            "required": true,
+            "description": "The prediction market exchange to target."
           }
         ],
         "requestBody": {
@@ -3611,16 +3228,6 @@
           },
           {
             "lang": "python",
-            "label": "Baozi",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Baozi(\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.cancel_order(order_id=\"ord-001\")"
-          },
-          {
-            "lang": "python",
-            "label": "Myriad",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Myriad(\n    api_key=\"YOUR_API_KEY\",\n    wallet_address=\"YOUR_WALLET_ADDRESS\",\n)\nresult = exchange.cancel_order(order_id=\"ord-001\")"
-          },
-          {
-            "lang": "python",
             "label": "Opinion",
             "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Opinion(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n    proxy_address=\"YOUR_PROXY_ADDRESS\",\n)\nresult = exchange.cancel_order(order_id=\"ord-001\")"
           },
@@ -3638,26 +3245,6 @@
             "lang": "python",
             "label": "PolymarketUs",
             "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.PolymarketUs(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.cancel_order(order_id=\"ord-001\")"
-          },
-          {
-            "lang": "python",
-            "label": "Hyperliquid",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Hyperliquid(\n    api_key=\"YOUR_API_KEY\",\n    private_key=\"YOUR_PRIVATE_KEY\",\n)\nresult = exchange.cancel_order(order_id=\"ord-001\")"
-          },
-          {
-            "lang": "python",
-            "label": "GeminiTitan",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.GeminiTitan(\n    api_key=\"YOUR_API_KEY\",\n    api_secret=\"YOUR_API_SECRET\",\n)\nresult = exchange.cancel_order(order_id=\"ord-001\")"
-          },
-          {
-            "lang": "python",
-            "label": "Mock",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Mock()\nresult = exchange.cancel_order(order_id=\"ord-001\")"
-          },
-          {
-            "lang": "python",
-            "label": "Router",
-            "source": "import pmxt\n\n# Runs locally — never proxied through PMXT servers\nexchange = pmxt.Router()\nresult = exchange.cancel_order(order_id=\"ord-001\")"
           },
           {
             "lang": "javascript",
@@ -3686,16 +3273,6 @@
           },
           {
             "lang": "javascript",
-            "label": "Baozi",
-            "source": "import { Baozi } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Baozi({\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.cancelOrder({ orderId: \"ord-001\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "Myriad",
-            "source": "import { Myriad } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Myriad({\n  apiKey: \"YOUR_API_KEY\",\n  walletAddress: \"YOUR_WALLET_ADDRESS\",\n});\nconst result = await exchange.cancelOrder({ orderId: \"ord-001\" });"
-          },
-          {
-            "lang": "javascript",
             "label": "Opinion",
             "source": "import { Opinion } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Opinion({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n  proxyAddress: \"YOUR_PROXY_ADDRESS\",\n});\nconst result = await exchange.cancelOrder({ orderId: \"ord-001\" });"
           },
@@ -3713,26 +3290,6 @@
             "lang": "javascript",
             "label": "PolymarketUs",
             "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new PolymarketUs({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.cancelOrder({ orderId: \"ord-001\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "Hyperliquid",
-            "source": "import { Hyperliquid } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Hyperliquid({\n  apiKey: \"YOUR_API_KEY\",\n  privateKey: \"YOUR_PRIVATE_KEY\",\n});\nconst result = await exchange.cancelOrder({ orderId: \"ord-001\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "GeminiTitan",
-            "source": "import { GeminiTitan } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new GeminiTitan({\n  apiKey: \"YOUR_API_KEY\",\n  apiSecret: \"YOUR_API_SECRET\",\n});\nconst result = await exchange.cancelOrder({ orderId: \"ord-001\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "Mock",
-            "source": "import { Mock } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Mock();\nconst result = await exchange.cancelOrder({ orderId: \"ord-001\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "Router",
-            "source": "import { Router } from \"pmxtjs\";\n\n// Runs locally — never proxied through PMXT servers\nconst exchange = new Router();\nconst result = await exchange.cancelOrder({ orderId: \"ord-001\" });"
           }
         ]
       }
@@ -3743,7 +3300,23 @@
         "operationId": "fetchOrder",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ExchangeParam"
+            "in": "path",
+            "name": "exchange",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "polymarket",
+                "kalshi",
+                "kalshi-demo",
+                "probable",
+                "baozi",
+                "opinion",
+                "smarkets",
+                "polymarket_us"
+              ]
+            },
+            "required": true,
+            "description": "The prediction market exchange to target."
           },
           {
             "in": "query",
@@ -3788,11 +3361,6 @@
           },
           {
             "lang": "python",
-            "label": "Limitless",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Limitless(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order(order_id=\"ord-001\")"
-          },
-          {
-            "lang": "python",
             "label": "Kalshi",
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Kalshi(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order(order_id=\"ord-001\")"
           },
@@ -3813,18 +3381,8 @@
           },
           {
             "lang": "python",
-            "label": "Myriad",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Myriad(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order(order_id=\"ord-001\")"
-          },
-          {
-            "lang": "python",
             "label": "Opinion",
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Opinion(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order(order_id=\"ord-001\")"
-          },
-          {
-            "lang": "python",
-            "label": "Metaculus",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Metaculus(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order(order_id=\"ord-001\")"
           },
           {
             "lang": "python",
@@ -3837,34 +3395,9 @@
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order(order_id=\"ord-001\")"
           },
           {
-            "lang": "python",
-            "label": "Hyperliquid",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Hyperliquid(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order(order_id=\"ord-001\")"
-          },
-          {
-            "lang": "python",
-            "label": "GeminiTitan",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.GeminiTitan(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order(order_id=\"ord-001\")"
-          },
-          {
-            "lang": "python",
-            "label": "Mock",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Mock(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order(order_id=\"ord-001\")"
-          },
-          {
-            "lang": "python",
-            "label": "Router",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Router(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_order(order_id=\"ord-001\")"
-          },
-          {
             "lang": "javascript",
             "label": "Polymarket",
             "source": "import { Polymarket } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Polymarket({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrder({ orderId: \"ord-001\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "Limitless",
-            "source": "import { Limitless } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Limitless({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrder({ orderId: \"ord-001\" });"
           },
           {
             "lang": "javascript",
@@ -3888,18 +3421,8 @@
           },
           {
             "lang": "javascript",
-            "label": "Myriad",
-            "source": "import { Myriad } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Myriad({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrder({ orderId: \"ord-001\" });"
-          },
-          {
-            "lang": "javascript",
             "label": "Opinion",
             "source": "import { Opinion } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Opinion({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrder({ orderId: \"ord-001\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "Metaculus",
-            "source": "import { Metaculus } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Metaculus({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrder({ orderId: \"ord-001\" });"
           },
           {
             "lang": "javascript",
@@ -3910,26 +3433,6 @@
             "lang": "javascript",
             "label": "PolymarketUs",
             "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrder({ orderId: \"ord-001\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "Hyperliquid",
-            "source": "import { Hyperliquid } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Hyperliquid({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrder({ orderId: \"ord-001\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "GeminiTitan",
-            "source": "import { GeminiTitan } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new GeminiTitan({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrder({ orderId: \"ord-001\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "Mock",
-            "source": "import { Mock } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Mock({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrder({ orderId: \"ord-001\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "Router",
-            "source": "import { Router } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Router({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOrder({ orderId: \"ord-001\" });"
           }
         ]
       }
@@ -3940,7 +3443,25 @@
         "operationId": "fetchOpenOrders",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ExchangeParam"
+            "in": "path",
+            "name": "exchange",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "polymarket",
+                "kalshi",
+                "kalshi-demo",
+                "limitless",
+                "probable",
+                "baozi",
+                "myriad",
+                "opinion",
+                "smarkets",
+                "polymarket_us"
+              ]
+            },
+            "required": true,
+            "description": "The prediction market exchange to target."
           },
           {
             "in": "query",
@@ -4023,11 +3544,6 @@
           },
           {
             "lang": "python",
-            "label": "Metaculus",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Metaculus(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_open_orders(market_id=\"12345\")"
-          },
-          {
-            "lang": "python",
             "label": "Smarkets",
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Smarkets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_open_orders(market_id=\"12345\")"
           },
@@ -4035,26 +3551,6 @@
             "lang": "python",
             "label": "PolymarketUs",
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_open_orders(market_id=\"12345\")"
-          },
-          {
-            "lang": "python",
-            "label": "Hyperliquid",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Hyperliquid(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_open_orders(market_id=\"12345\")"
-          },
-          {
-            "lang": "python",
-            "label": "GeminiTitan",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.GeminiTitan(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_open_orders(market_id=\"12345\")"
-          },
-          {
-            "lang": "python",
-            "label": "Mock",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Mock(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_open_orders(market_id=\"12345\")"
-          },
-          {
-            "lang": "python",
-            "label": "Router",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Router(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_open_orders(market_id=\"12345\")"
           },
           {
             "lang": "javascript",
@@ -4098,11 +3594,6 @@
           },
           {
             "lang": "javascript",
-            "label": "Metaculus",
-            "source": "import { Metaculus } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Metaculus({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOpenOrders({ marketId: \"12345\" });"
-          },
-          {
-            "lang": "javascript",
             "label": "Smarkets",
             "source": "import { Smarkets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Smarkets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOpenOrders({ marketId: \"12345\" });"
           },
@@ -4110,26 +3601,6 @@
             "lang": "javascript",
             "label": "PolymarketUs",
             "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOpenOrders({ marketId: \"12345\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "Hyperliquid",
-            "source": "import { Hyperliquid } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Hyperliquid({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOpenOrders({ marketId: \"12345\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "GeminiTitan",
-            "source": "import { GeminiTitan } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new GeminiTitan({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOpenOrders({ marketId: \"12345\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "Mock",
-            "source": "import { Mock } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Mock({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOpenOrders({ marketId: \"12345\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "Router",
-            "source": "import { Router } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Router({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchOpenOrders({ marketId: \"12345\" });"
           }
         ]
       }
@@ -4140,7 +3611,24 @@
         "operationId": "fetchMyTrades",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ExchangeParam"
+            "in": "path",
+            "name": "exchange",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "polymarket",
+                "kalshi",
+                "kalshi-demo",
+                "limitless",
+                "probable",
+                "myriad",
+                "opinion",
+                "smarkets",
+                "polymarket_us"
+              ]
+            },
+            "required": true,
+            "description": "The prediction market exchange to target."
           },
           {
             "in": "query",
@@ -4255,11 +3743,6 @@
           },
           {
             "lang": "python",
-            "label": "Baozi",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Baozi(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_my_trades(\n    outcome_id=\"67890\",\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
             "label": "Myriad",
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Myriad(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_my_trades(\n    outcome_id=\"67890\",\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
           },
@@ -4270,11 +3753,6 @@
           },
           {
             "lang": "python",
-            "label": "Metaculus",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Metaculus(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_my_trades(\n    outcome_id=\"67890\",\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
             "label": "Smarkets",
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Smarkets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_my_trades(\n    outcome_id=\"67890\",\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
           },
@@ -4282,26 +3760,6 @@
             "lang": "python",
             "label": "PolymarketUs",
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_my_trades(\n    outcome_id=\"67890\",\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Hyperliquid",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Hyperliquid(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_my_trades(\n    outcome_id=\"67890\",\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
-            "label": "GeminiTitan",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.GeminiTitan(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_my_trades(\n    outcome_id=\"67890\",\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Mock",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Mock(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_my_trades(\n    outcome_id=\"67890\",\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Router",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Router(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_my_trades(\n    outcome_id=\"67890\",\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
           },
           {
             "lang": "javascript",
@@ -4330,11 +3788,6 @@
           },
           {
             "lang": "javascript",
-            "label": "Baozi",
-            "source": "import { Baozi } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Baozi({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMyTrades({\n  outcomeId: \"67890\",\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
             "label": "Myriad",
             "source": "import { Myriad } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Myriad({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMyTrades({\n  outcomeId: \"67890\",\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
           },
@@ -4345,11 +3798,6 @@
           },
           {
             "lang": "javascript",
-            "label": "Metaculus",
-            "source": "import { Metaculus } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Metaculus({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMyTrades({\n  outcomeId: \"67890\",\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
             "label": "Smarkets",
             "source": "import { Smarkets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Smarkets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMyTrades({\n  outcomeId: \"67890\",\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
           },
@@ -4357,26 +3805,6 @@
             "lang": "javascript",
             "label": "PolymarketUs",
             "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMyTrades({\n  outcomeId: \"67890\",\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Hyperliquid",
-            "source": "import { Hyperliquid } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Hyperliquid({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMyTrades({\n  outcomeId: \"67890\",\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "GeminiTitan",
-            "source": "import { GeminiTitan } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new GeminiTitan({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMyTrades({\n  outcomeId: \"67890\",\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Mock",
-            "source": "import { Mock } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Mock({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMyTrades({\n  outcomeId: \"67890\",\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Router",
-            "source": "import { Router } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Router({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchMyTrades({\n  outcomeId: \"67890\",\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
           }
         ]
       }
@@ -4387,7 +3815,20 @@
         "operationId": "fetchClosedOrders",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ExchangeParam"
+            "in": "path",
+            "name": "exchange",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "kalshi",
+                "kalshi-demo",
+                "limitless",
+                "opinion",
+                "smarkets"
+              ]
+            },
+            "required": true,
+            "description": "The prediction market exchange to target."
           },
           {
             "in": "query",
@@ -4468,11 +3909,6 @@
         "x-codeSamples": [
           {
             "lang": "python",
-            "label": "Polymarket",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Polymarket(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_closed_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
             "label": "Limitless",
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Limitless(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_closed_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
           },
@@ -4488,63 +3924,13 @@
           },
           {
             "lang": "python",
-            "label": "Probable",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Probable(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_closed_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Baozi",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Baozi(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_closed_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Myriad",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Myriad(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_closed_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
             "label": "Opinion",
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Opinion(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_closed_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
           },
           {
             "lang": "python",
-            "label": "Metaculus",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Metaculus(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_closed_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
             "label": "Smarkets",
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Smarkets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_closed_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_closed_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Hyperliquid",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Hyperliquid(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_closed_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
-            "label": "GeminiTitan",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.GeminiTitan(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_closed_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Mock",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Mock(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_closed_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Router",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Router(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_closed_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "javascript",
-            "label": "Polymarket",
-            "source": "import { Polymarket } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Polymarket({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchClosedOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
           },
           {
             "lang": "javascript",
@@ -4563,58 +3949,13 @@
           },
           {
             "lang": "javascript",
-            "label": "Probable",
-            "source": "import { Probable } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Probable({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchClosedOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Baozi",
-            "source": "import { Baozi } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Baozi({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchClosedOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Myriad",
-            "source": "import { Myriad } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Myriad({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchClosedOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
             "label": "Opinion",
             "source": "import { Opinion } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Opinion({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchClosedOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
           },
           {
             "lang": "javascript",
-            "label": "Metaculus",
-            "source": "import { Metaculus } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Metaculus({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchClosedOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
             "label": "Smarkets",
             "source": "import { Smarkets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Smarkets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchClosedOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchClosedOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Hyperliquid",
-            "source": "import { Hyperliquid } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Hyperliquid({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchClosedOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "GeminiTitan",
-            "source": "import { GeminiTitan } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new GeminiTitan({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchClosedOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Mock",
-            "source": "import { Mock } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Mock({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchClosedOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Router",
-            "source": "import { Router } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Router({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchClosedOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
           }
         ]
       }
@@ -4625,7 +3966,20 @@
         "operationId": "fetchAllOrders",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ExchangeParam"
+            "in": "path",
+            "name": "exchange",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "kalshi",
+                "kalshi-demo",
+                "limitless",
+                "opinion",
+                "smarkets"
+              ]
+            },
+            "required": true,
+            "description": "The prediction market exchange to target."
           },
           {
             "in": "query",
@@ -4706,11 +4060,6 @@
         "x-codeSamples": [
           {
             "lang": "python",
-            "label": "Polymarket",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Polymarket(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_all_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
             "label": "Limitless",
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Limitless(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_all_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
           },
@@ -4726,63 +4075,13 @@
           },
           {
             "lang": "python",
-            "label": "Probable",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Probable(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_all_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Baozi",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Baozi(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_all_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Myriad",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Myriad(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_all_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
             "label": "Opinion",
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Opinion(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_all_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
           },
           {
             "lang": "python",
-            "label": "Metaculus",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Metaculus(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_all_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
             "label": "Smarkets",
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Smarkets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_all_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
-            "label": "PolymarketUs",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_all_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Hyperliquid",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Hyperliquid(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_all_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
-            "label": "GeminiTitan",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.GeminiTitan(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_all_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Mock",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Mock(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_all_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "python",
-            "label": "Router",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Router(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_all_orders(\n    market_id=\"12345\",\n    since=\"value\",\n    until=\"value\",\n    limit=10,\n    cursor=\"abc123\",\n)"
-          },
-          {
-            "lang": "javascript",
-            "label": "Polymarket",
-            "source": "import { Polymarket } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Polymarket({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchAllOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
           },
           {
             "lang": "javascript",
@@ -4801,58 +4100,13 @@
           },
           {
             "lang": "javascript",
-            "label": "Probable",
-            "source": "import { Probable } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Probable({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchAllOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Baozi",
-            "source": "import { Baozi } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Baozi({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchAllOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Myriad",
-            "source": "import { Myriad } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Myriad({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchAllOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
             "label": "Opinion",
             "source": "import { Opinion } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Opinion({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchAllOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
           },
           {
             "lang": "javascript",
-            "label": "Metaculus",
-            "source": "import { Metaculus } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Metaculus({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchAllOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
             "label": "Smarkets",
             "source": "import { Smarkets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Smarkets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchAllOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "PolymarketUs",
-            "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchAllOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Hyperliquid",
-            "source": "import { Hyperliquid } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Hyperliquid({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchAllOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "GeminiTitan",
-            "source": "import { GeminiTitan } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new GeminiTitan({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchAllOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Mock",
-            "source": "import { Mock } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Mock({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchAllOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
-          },
-          {
-            "lang": "javascript",
-            "label": "Router",
-            "source": "import { Router } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Router({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchAllOrders({\n  marketId: \"12345\",\n  since: \"value\",\n  until: \"value\",\n  limit: 10,\n  cursor: \"abc123\",\n});"
           }
         ]
       }
@@ -4863,7 +4117,25 @@
         "operationId": "fetchPositions",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ExchangeParam"
+            "in": "path",
+            "name": "exchange",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "polymarket",
+                "kalshi",
+                "kalshi-demo",
+                "limitless",
+                "probable",
+                "baozi",
+                "myriad",
+                "opinion",
+                "smarkets",
+                "polymarket_us"
+              ]
+            },
+            "required": true,
+            "description": "The prediction market exchange to target."
           },
           {
             "in": "query",
@@ -4946,11 +4218,6 @@
           },
           {
             "lang": "python",
-            "label": "Metaculus",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Metaculus(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_positions(address=\"0xabc...\")"
-          },
-          {
-            "lang": "python",
             "label": "Smarkets",
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Smarkets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_positions(address=\"0xabc...\")"
           },
@@ -4958,26 +4225,6 @@
             "lang": "python",
             "label": "PolymarketUs",
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_positions(address=\"0xabc...\")"
-          },
-          {
-            "lang": "python",
-            "label": "Hyperliquid",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Hyperliquid(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_positions(address=\"0xabc...\")"
-          },
-          {
-            "lang": "python",
-            "label": "GeminiTitan",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.GeminiTitan(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_positions(address=\"0xabc...\")"
-          },
-          {
-            "lang": "python",
-            "label": "Mock",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Mock(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_positions(address=\"0xabc...\")"
-          },
-          {
-            "lang": "python",
-            "label": "Router",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Router(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_positions(address=\"0xabc...\")"
           },
           {
             "lang": "javascript",
@@ -5021,11 +4268,6 @@
           },
           {
             "lang": "javascript",
-            "label": "Metaculus",
-            "source": "import { Metaculus } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Metaculus({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchPositions({ address: \"0xabc...\" });"
-          },
-          {
-            "lang": "javascript",
             "label": "Smarkets",
             "source": "import { Smarkets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Smarkets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchPositions({ address: \"0xabc...\" });"
           },
@@ -5033,26 +4275,6 @@
             "lang": "javascript",
             "label": "PolymarketUs",
             "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchPositions({ address: \"0xabc...\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "Hyperliquid",
-            "source": "import { Hyperliquid } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Hyperliquid({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchPositions({ address: \"0xabc...\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "GeminiTitan",
-            "source": "import { GeminiTitan } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new GeminiTitan({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchPositions({ address: \"0xabc...\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "Mock",
-            "source": "import { Mock } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Mock({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchPositions({ address: \"0xabc...\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "Router",
-            "source": "import { Router } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Router({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchPositions({ address: \"0xabc...\" });"
           }
         ]
       }
@@ -5063,7 +4285,24 @@
         "operationId": "fetchBalance",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ExchangeParam"
+            "in": "path",
+            "name": "exchange",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "polymarket",
+                "kalshi",
+                "kalshi-demo",
+                "limitless",
+                "probable",
+                "baozi",
+                "myriad",
+                "smarkets",
+                "polymarket_us"
+              ]
+            },
+            "required": true,
+            "description": "The prediction market exchange to target."
           },
           {
             "in": "query",
@@ -5141,16 +4380,6 @@
           },
           {
             "lang": "python",
-            "label": "Opinion",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Opinion(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_balance(address=\"0xabc...\")"
-          },
-          {
-            "lang": "python",
-            "label": "Metaculus",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Metaculus(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_balance(address=\"0xabc...\")"
-          },
-          {
-            "lang": "python",
             "label": "Smarkets",
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Smarkets(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_balance(address=\"0xabc...\")"
           },
@@ -5158,26 +4387,6 @@
             "lang": "python",
             "label": "PolymarketUs",
             "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.PolymarketUs(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_balance(address=\"0xabc...\")"
-          },
-          {
-            "lang": "python",
-            "label": "Hyperliquid",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Hyperliquid(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_balance(address=\"0xabc...\")"
-          },
-          {
-            "lang": "python",
-            "label": "GeminiTitan",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.GeminiTitan(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_balance(address=\"0xabc...\")"
-          },
-          {
-            "lang": "python",
-            "label": "Mock",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Mock(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_balance(address=\"0xabc...\")"
-          },
-          {
-            "lang": "python",
-            "label": "Router",
-            "source": "import pmxt\n\n# API key optional — enables faster catalog-backed lookups\nexchange = pmxt.Router(\n    pmxt_api_key=\"YOUR_PMXT_API_KEY\",\n)\nresult = exchange.fetch_balance(address=\"0xabc...\")"
           },
           {
             "lang": "javascript",
@@ -5216,16 +4425,6 @@
           },
           {
             "lang": "javascript",
-            "label": "Opinion",
-            "source": "import { Opinion } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Opinion({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchBalance({ address: \"0xabc...\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "Metaculus",
-            "source": "import { Metaculus } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Metaculus({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchBalance({ address: \"0xabc...\" });"
-          },
-          {
-            "lang": "javascript",
             "label": "Smarkets",
             "source": "import { Smarkets } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Smarkets({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchBalance({ address: \"0xabc...\" });"
           },
@@ -5233,26 +4432,6 @@
             "lang": "javascript",
             "label": "PolymarketUs",
             "source": "import { PolymarketUs } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new PolymarketUs({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchBalance({ address: \"0xabc...\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "Hyperliquid",
-            "source": "import { Hyperliquid } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Hyperliquid({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchBalance({ address: \"0xabc...\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "GeminiTitan",
-            "source": "import { GeminiTitan } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new GeminiTitan({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchBalance({ address: \"0xabc...\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "Mock",
-            "source": "import { Mock } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Mock({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchBalance({ address: \"0xabc...\" });"
-          },
-          {
-            "lang": "javascript",
-            "label": "Router",
-            "source": "import { Router } from \"pmxtjs\";\n\n// API key optional — enables faster catalog-backed lookups\nconst exchange = new Router({\n  pmxtApiKey: \"YOUR_PMXT_API_KEY\",\n});\nconst result = await exchange.fetchBalance({ address: \"0xabc...\" });"
           }
         ]
       }
@@ -10834,6 +10013,27 @@
         "required": [
           "resolution"
         ]
+      },
+      "FetchOrderBookParams": {
+        "type": "object",
+        "properties": {
+          "side": {
+            "type": "string",
+            "enum": [
+              "yes",
+              "no"
+            ],
+            "description": "Outcome side: 'yes' or 'no'. Required for exchanges like Limitless where the API returns a single orderbook per market."
+          },
+          "since": {
+            "type": "number",
+            "description": "Unix timestamp (ms) — fetch a historical snapshot at or before this time, or the start of a range when combined with `until` (hosted API only)."
+          },
+          "until": {
+            "type": "number",
+            "description": "Unix timestamp (ms) — end of a historical range. When combined with `since`, returns an array of reconstructed L2 OrderBook snapshots between `since` and `until` (hosted API only)."
+          }
+        }
       },
       "TradesParams": {
         "type": "object",
