@@ -365,8 +365,8 @@ class Smarkets(Exchange):
         )
 
 
-class Polymarket_us(Exchange):
-    """Polymarket_us exchange client."""
+class PolymarketUs(Exchange):
+    """PolymarketUs exchange client."""
 
     def __init__(
         self,
@@ -377,7 +377,7 @@ class Polymarket_us(Exchange):
         pmxt_api_key: Optional[str] = None,
     ):
         """
-        Initialize Polymarket_us client.
+        Initialize PolymarketUs client.
 
         Args:
             api_key: API key for authentication (optional)

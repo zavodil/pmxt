@@ -2675,3 +2675,51 @@ export class PolymarketUS extends Exchange {
         super("polymarket_us", options);
     }
 }
+
+/**
+ * Gemini Titan exchange client.
+ *
+ * @example
+ * ```typescript
+ * const titan = new GeminiTitan();
+ * const markets = await titan.fetchMarkets();
+ * ```
+ */
+export class GeminiTitan extends Exchange {
+    constructor(options: ExchangeOptions = {}) {
+        super("gemini-titan", options);
+    }
+}
+
+/**
+ * Hyperliquid exchange client.
+ *
+ * @example
+ * ```typescript
+ * const hl = new Hyperliquid();
+ * const markets = await hl.fetchMarkets();
+ * ```
+ */
+export class Hyperliquid extends Exchange {
+    constructor(options: ExchangeOptions = {}) {
+        super("hyperliquid", options);
+    }
+}
+
+/**
+ * Mock exchange client.
+ *
+ * Offline deterministic exchange for testing and development.
+ * No credentials required.
+ *
+ * @example
+ * ```typescript
+ * const mock = new Mock();
+ * const markets = await mock.fetchMarkets();
+ * ```
+ */
+export class Mock extends Exchange {
+    constructor(options: ExchangeOptions = {}) {
+        super("mock", options);
+    }
+}

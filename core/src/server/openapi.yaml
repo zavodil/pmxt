@@ -730,16 +730,7 @@ paths:
       summary: Fetch Order Books
       operationId: fetchOrderBooks
       parameters:
-        - in: path
-          name: exchange
-          schema:
-            type: string
-            enum:
-              - polymarket
-              - kalshi
-              - kalshi-demo
-          required: true
-          description: The prediction market exchange to target.
+        - $ref: '#/components/parameters/ExchangeParam'
       requestBody:
         content:
           application/json:
@@ -2757,6 +2748,9 @@ components:
           - metaculus
           - smarkets
           - polymarket_us
+          - gemini-titan
+          - hyperliquid
+          - mock
           - router
       required: true
       description: The prediction market exchange to target.
