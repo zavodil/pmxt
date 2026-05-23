@@ -314,6 +314,11 @@ function resolveRef(ref, spec) {
 function exampleValue(name, schema) {
     const lowerName = (name || '').toLowerCase();
 
+    if (schema) {
+        if (schema.example !== undefined) return schema.example;
+        if (Array.isArray(schema.enum) && schema.enum.length > 0) return schema.enum[0];
+    }
+
     if (lowerName === 'query') return 'election';
     if (lowerName === 'id' || lowerName === 'marketid' || lowerName === 'eventid') return '12345';
     if (lowerName === 'outcomeid') return '67890';
@@ -331,8 +336,6 @@ function exampleValue(name, schema) {
     if (lowerName.includes('id')) return '12345';
 
     if (schema) {
-        if (schema.example !== undefined) return schema.example;
-        if (Array.isArray(schema.enum) && schema.enum.length > 0) return schema.enum[0];
         if (schema.type === 'string') return 'value';
         if (schema.type === 'number' || schema.type === 'integer') return 1;
         if (schema.type === 'boolean') return true;
