@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.43.9] - 2026-05-23
+
+### Fixed
+
+- **Docs**: `fetchOrderBook` API reference examples now show `side="yes"` instead of `side="buy"`. The OpenAPI example generator checked parameter names before schema enums, so the `side` fallback (`"buy"`) shadowed the actual enum (`['yes', 'no']`).
+
 ## [2.43.8] - 2026-05-23
 
 ### Fixed
