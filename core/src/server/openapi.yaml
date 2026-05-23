@@ -751,7 +751,10 @@ paths:
                     properties:
                       data:
                         $ref: '#/components/schemas/OrderBook'
-      description: Fetch the order book (bids/asks) for a specific outcome.
+      description: >-
+        Fetch the order book (bids/asks) for a specific outcome. Supports live and historical queries. For historical
+        data, pass `since` to get a single snapshot, or `since` + `until` to get an array of fully reconstructed L2
+        books from the archive. Range queries return up to `limit` snapshots (default 100, max 1000).
   '/api/{exchange}/fetchOrderBooks':
     post:
       summary: Fetch Order Books
