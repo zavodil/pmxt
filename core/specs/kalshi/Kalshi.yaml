@@ -863,6 +863,13 @@ paths:
         - kalshiAccessKey: []
           kalshiAccessSignature: []
           kalshiAccessTimestamp: []
+      parameters:
+        - name: subaccount
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Subaccount number (0 for primary, 1-32 for subaccounts). When provided, returns only that subaccount's balance.
       responses:
         '200':
           description: Balance retrieved successfully
@@ -4088,6 +4095,10 @@ components:
           type: integer
           format: int64
           description: Unix timestamp of the last update to the balance.
+        balance_dollars:
+          type: number
+          format: double
+          description: Member's available balance in USD dollars.
 
     CreateSubaccountResponse:
       type: object
@@ -4417,6 +4428,10 @@ components:
           nullable: true
           x-omitempty: true
           description: Subaccount number (0 for primary, 1-32 for subaccounts). Present for direct users.
+        ts_ms:
+          type: integer
+          format: int64
+          description: Order timestamp in milliseconds (Unix epoch).
 
     Milestone:
       type: object
@@ -4852,9 +4867,6 @@ components:
         order_id:
           type: string
           description: Unique identifier for the order that resulted in this fill
-        client_order_id:
-          type: string
-          description: Client-provided identifier for the order that resulted in this fill
         ticker:
           type: string
           description: Unique identifier for the market

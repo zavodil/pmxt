@@ -1,6 +1,6 @@
 /**
- * Auto-generated from /home/zihao/pmxt/core/specs/kalshi/Kalshi.yaml
- * Generated at: 2026-05-10T23:00:51.402Z
+ * Auto-generated from /Users/samueltinnerholm/Documents/GitHub/pmxt/.claude/worktrees/agent-a6e1b73d/core/specs/kalshi/Kalshi.yaml
+ * Generated at: 2026-05-24T14:48:08.117Z
  * Do not edit manually -- run "npm run fetch:openapi" to regenerate.
  */
 export const kalshiApiSpec = {
@@ -643,6 +643,16 @@ export const kalshiApiSpec = {
                         "kalshiAccessKey": [],
                         "kalshiAccessSignature": [],
                         "kalshiAccessTimestamp": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "subaccount",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
                     }
                 ]
             }
