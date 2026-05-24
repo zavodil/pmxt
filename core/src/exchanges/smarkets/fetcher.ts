@@ -403,14 +403,22 @@ export class SmarketsFetcher implements IExchangeFetcher<SmarketsRawEventWithMar
 
         const marketsByEvent = new Map<string, SmarketsRawMarket[]>();
         for (const market of allMarkets) {
-            const existing = marketsByEvent.get(market.event_id) || [];
-            marketsByEvent.set(market.event_id, [...existing, market]);
+            const existing = marketsByEvent.get(market.event_id);
+            if (existing) {
+                existing.push(market);
+            } else {
+                marketsByEvent.set(market.event_id, [market]);
+            }
         }
 
         const contractsByMarket = new Map<string, SmarketsRawContract[]>();
         for (const contract of allContracts) {
-            const existing = contractsByMarket.get(contract.market_id) || [];
-            contractsByMarket.set(contract.market_id, [...existing, contract]);
+            const existing = contractsByMarket.get(contract.market_id);
+            if (existing) {
+                existing.push(contract);
+            } else {
+                contractsByMarket.set(contract.market_id, [contract]);
+            }
         }
 
         const volumesByMarket = new Map<string, SmarketsRawVolume>();
@@ -443,7 +451,7 @@ export class SmarketsFetcher implements IExchangeFetcher<SmarketsRawEventWithMar
         queryParams: Record<string, any>,
         targetCount?: number
     ): Promise<SmarketsRawEvent[]> {
-        let allEvents: SmarketsRawEvent[] = [];
+        const allEvents: SmarketsRawEvent[] = [];
         let lastId: string | undefined;
         let page = 0;
 
@@ -461,7 +469,7 @@ export class SmarketsFetcher implements IExchangeFetcher<SmarketsRawEventWithMar
             const events: SmarketsRawEvent[] = data.events || [];
             if (events.length === 0) break;
 
-            allEvents = [...allEvents, ...events];
+            allEvents.push(...events);
 
             // Check pagination: next_page is null when there are no more results
             const nextPage = data.pagination?.next_page;
