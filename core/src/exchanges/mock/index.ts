@@ -197,14 +197,18 @@ export class MockExchange extends PredictionMarketExchange {
             const candidates = f.pick(CANDIDATES);
             const rawPrices = candidates.map(() => f.float(0.05, 0.9));
             const total = rawPrices.reduce((s, p) => s + p, 0);
-            outcomes = candidates.map((label, i) => ({
-                outcomeId: `${marketId}-${i}`,
-                marketId,
-                label,
-                price: round(rawPrices[i]! / total, 3),
-                priceChange24h: round(f.float(-0.05, 0.05), 3),
-                metadata: { clobTokenId: `mock-clob-${seed}-${i}` },
-            }));
+            outcomes = candidates.map((label, i) => {
+                const rawPrice = rawPrices[i];
+                if (rawPrice === undefined) throw new Error(`Missing raw price at index ${i}`);
+                return {
+                    outcomeId: `${marketId}-${i}`,
+                    marketId,
+                    label,
+                    price: round(rawPrice / total, 3),
+                    priceChange24h: round(f.float(-0.05, 0.05), 3),
+                    metadata: { clobTokenId: `mock-clob-${seed}-${i}` },
+                };
+            });
         }
 
         const market: UnifiedMarket = {
@@ -258,13 +262,18 @@ export class MockExchange extends PredictionMarketExchange {
         const eventMap = new Map<string, UnifiedMarket[]>();
         for (const m of markets) {
             if (!m.eventId) continue;
-            if (!eventMap.has(m.eventId)) eventMap.set(m.eventId, []);
-            eventMap.get(m.eventId)!.push(m);
+            const existing = eventMap.get(m.eventId);
+            if (existing) {
+                existing.push(m);
+            } else {
+                eventMap.set(m.eventId, [m]);
+            }
         }
         const events: UnifiedEvent[] = [];
         for (const [eventId, eventMarkets] of eventMap) {
             const f = rng(eventId);
-            const first = eventMarkets[0]!;
+            if (eventMarkets.length === 0) continue;
+            const first = eventMarkets[0];
             const volume24h = round(eventMarkets.reduce((s, m) => s + m.volume24h, 0), 2);
             const volume = round(eventMarkets.reduce((s, m) => s + (m.volume ?? 0), 0), 2);
             events.push({
@@ -507,7 +516,9 @@ export class MockExchange extends PredictionMarketExchange {
         const sizeChange = params.side === 'buy' ? amount : -amount;
         this._setPosition(params, price, sizeChange);
         this._pushTrade(f, params, orderId, price, amount, ts);
-        return { ...this._orders.get(orderId)! };
+        const filled = this._orders.get(orderId);
+        if (!filled) throw new Error(`Order disappeared after fill: ${orderId}`);
+        return { ...filled };
     }
 
     private _placeRestingLimit(params: CreateOrderParams, ts: number, price: number): Order {
@@ -615,7 +626,9 @@ export class MockExchange extends PredictionMarketExchange {
         this._setPosition(cp, p, current.side === 'buy' ? fillAmt : -fillAmt);
         this._pushTrade(f, cp, orderId, p, fillAmt, ts);
         this._orders.set(orderId, next);
-        return { ...this._orders.get(orderId)! };
+        const updated = this._orders.get(orderId);
+        if (!updated) throw new Error(`Order disappeared after fill: ${orderId}`);
+        return { ...updated };
     }
 
     override async cancelOrder(orderId: string): Promise<Order> {
