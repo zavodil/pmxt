@@ -46,14 +46,20 @@ export class SmarketsAuth {
      * Returns the username (email) used for session creation.
      */
     getUsername(): string {
-        return this.credentials.apiKey!;
+        if (!this.credentials.apiKey) {
+            throw new Error('[smarkets] apiKey (username) is required');
+        }
+        return this.credentials.apiKey;
     }
 
     /**
      * Returns the password used for session creation.
      */
     getPassword(): string {
-        return this.credentials.privateKey!;
+        if (!this.credentials.privateKey) {
+            throw new Error('[smarkets] privateKey (password) is required');
+        }
+        return this.credentials.privateKey;
     }
 
     /**
