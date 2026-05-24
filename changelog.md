@@ -2,11 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.43.22] - 2026-05-24
+## [2.43.23] - 2026-05-24
 
 ### Fixed
 
-- **Build**: Revert `FetcherContext.callApi` return type from `Promise<unknown>` back to `Promise<any>` — the `unknown` change broke all 33 exchange fetchers that access `callApi` return values without type narrowing. Internal interface, not user-facing.
+- **Build**: Revert `FetcherContext.callApi` return type from `Promise<unknown>` back to `Promise<any>` — the `unknown` change broke all 33 exchange fetchers that access `callApi` return values without type narrowing.
+- **Build**: Revert `Ticker.info`, `Market.info`, `FundingRate.info` from `Record<string, unknown>` back to `any` in feeds types — broke Binance normalizer and Chainlink feed assignments.
+- **Build**: Fix Chainlink feed logger calls to pass structured context object instead of bare string.
 
 ## [2.43.21] - 2026-05-24
 
