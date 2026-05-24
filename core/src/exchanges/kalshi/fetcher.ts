@@ -474,7 +474,7 @@ export class KalshiFetcher implements IExchangeFetcher<KalshiRawEvent, KalshiRaw
                 const events = data.events || [];
                 if (events.length === 0) break;
 
-                allEvents = allEvents.concat(events);
+                allEvents.push(...events);
 
                 if (targetMarketCount) {
                     for (const event of events) {
@@ -512,7 +512,7 @@ export class KalshiFetcher implements IExchangeFetcher<KalshiRawEvent, KalshiRaw
             const events = data.events || [];
             if (events.length === 0) break;
 
-            allEvents = allEvents.concat(events);
+            allEvents.push(...events);
             cursor = data.cursor;
             page++;
         } while (cursor && page < MAX_PAGES);
@@ -546,7 +546,7 @@ export class KalshiFetcher implements IExchangeFetcher<KalshiRawEvent, KalshiRaw
             page++;
 
             if (events.length === 0) break;
-            allEvents = allEvents.concat(events);
+            allEvents.push(...events);
         } while (cursor && allEvents.length < maxEvents && page < MAX_PAGES);
 
         return {
