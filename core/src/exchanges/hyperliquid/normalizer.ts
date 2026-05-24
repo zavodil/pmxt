@@ -346,8 +346,9 @@ export class HyperliquidNormalizer implements IExchangeNormalizer<HyperliquidRaw
     }
 
     normalizeOpenOrder(raw: HyperliquidRawOpenOrder): Order {
-        const origSz = parseFloat(raw.origSz);
         const currentSz = parseFloat(raw.sz);
+        // origSz is only available from frontendOpenOrders; fall back to sz
+        const origSz = raw.origSz !== undefined ? parseFloat(raw.origSz) : currentSz;
 
         return {
             id: String(raw.oid),
