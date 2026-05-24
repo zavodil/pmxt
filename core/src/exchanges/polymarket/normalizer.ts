@@ -77,11 +77,13 @@ export class PolymarketNormalizer implements IExchangeNormalizer<PolymarketRawEv
                     volume: volume,
                 });
             } else {
-                const candle = buckets.get(snappedMs)!;
-                candle.high = Math.max(candle.high, price);
-                candle.low = Math.min(candle.low, price);
-                candle.close = price;
-                candle.volume = (candle.volume || 0) + volume;
+                const candle = buckets.get(snappedMs);
+                if (candle) {
+                    candle.high = Math.max(candle.high, price);
+                    candle.low = Math.min(candle.low, price);
+                    candle.close = price;
+                    candle.volume = (candle.volume || 0) + volume;
+                }
             }
         }
 
