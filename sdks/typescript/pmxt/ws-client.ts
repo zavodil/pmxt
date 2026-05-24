@@ -240,7 +240,10 @@ export class SidecarWsClient {
             message.credentials = credentials;
         }
 
-        this.ws!.send(JSON.stringify(message));
+        if (!this.ws) {
+            throw new PmxtError('[ws-client] Cannot send: WebSocket not connected');
+        }
+        this.ws.send(JSON.stringify(message));
 
         return this.waitForData(requestId, timeoutMs);
     }
@@ -278,7 +281,10 @@ export class SidecarWsClient {
             message.credentials = credentials;
         }
 
-        this.ws!.send(JSON.stringify(message));
+        if (!this.ws) {
+            throw new PmxtError('[ws-client] Cannot send: WebSocket not connected');
+        }
+        this.ws.send(JSON.stringify(message));
 
         // Wait for first data event
         await this.waitForData(requestId, timeoutMs);

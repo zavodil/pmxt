@@ -75,8 +75,11 @@ export class PolymarketUSWebSocket {
         await this.ensureInitialized();
 
         if (!this.bookSubscriptions.has(slug)) {
+            if (!this.socket) {
+                throw new Error('[polymarket_us] Socket not available after connect');
+            }
             this.bookSubscriptions.add(slug);
-            this.socket!.subscribeMarketData(`book:${slug}`, [slug]);
+            this.socket.subscribeMarketData(`book:${slug}`, [slug]);
         }
 
         const dataPromise = new Promise<OrderBook>((resolve, reject) => {
@@ -97,8 +100,11 @@ export class PolymarketUSWebSocket {
         await this.ensureInitialized();
 
         if (!this.tradeSubscriptions.has(slug)) {
+            if (!this.socket) {
+                throw new Error('[polymarket_us] Socket not available after connect');
+            }
             this.tradeSubscriptions.add(slug);
-            this.socket!.subscribeTrades(`trade:${slug}`, [slug]);
+            this.socket.subscribeTrades(`trade:${slug}`, [slug]);
         }
 
         const dataPromise = new Promise<Trade[]>((resolve, reject) => {

@@ -297,6 +297,7 @@ export class Router extends Exchange {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },
                 body: JSON.stringify({ args: [query], credentials: this.getCredentials() }),
+                signal: AbortSignal.timeout(30_000),
             });
             if (!response.ok) {
                 const body = await response.json().catch(() => ({}));
