@@ -382,11 +382,9 @@ export class Router extends PredictionMarketExchange {
         if (params?.category) query.category = params.category;
         if (params?.limit !== undefined) query.limit = String(params.limit);
 
-        const res = await this.client.getArbitrage(query);
-        // getArbitrage already unwraps .data — res is the opportunities array.
-        const items: any[] = Array.isArray(res) ? res : (res?.data ?? []);
+        const items = await this.client.getArbitrage(query);
 
-        return items.map((r: any) => {
+        return items.map((r) => {
             if (r.spread == null || r.buyPrice == null || r.sellPrice == null) {
                 throw new Error(
                     `fetchArbitrageBulk: arbitrage record is missing required price fields ` +

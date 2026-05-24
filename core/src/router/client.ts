@@ -7,13 +7,38 @@ import {
     ExchangeNotAvailable,
     BadRequest,
 } from '../errors';
+import type { UnifiedMarket, UnifiedEvent } from '../types';
 import type {
     FetchMatchesParams,
     FetchMarketMatchesParams,
     FetchEventMatchesParams,
+    MatchResult,
+    EventMatchResult,
+    ArbitrageOpportunity,
+    MatchRelation,
     RouterMarketSearchParams,
     RouterEventSearchParams,
 } from './types';
+
+// ---------------------------------------------------------------------------
+// Raw API response shapes (before Router-level reshaping)
+// ---------------------------------------------------------------------------
+
+interface MarketMatchesResponse {
+    matches: MatchResult[];
+}
+
+interface EventMatchesResponse {
+    matches: EventMatchResult[];
+}
+
+interface RawMatchedPair {
+    marketA: UnifiedMarket;
+    marketB: UnifiedMarket;
+    relation?: MatchRelation;
+    confidence?: number;
+    reasoning?: string | null;
+}
 
 const DEFAULT_BASE_URL = process.env.PMXT_API_URL || 'https://api.pmxt.dev';
 
@@ -31,7 +56,7 @@ export class PmxtApiClient {
         });
     }
 
-    async getMarketMatches(params: FetchMatchesParams): Promise<any> {
+    async getMarketMatches(params: FetchMatchesParams): Promise<MarketMatchesResponse> {
         const id = params.marketId ?? params.slug ?? params.url;
         if (!id) throw new BadRequest('One of marketId, slug, or url is required', 'Router');
 
@@ -41,11 +66,11 @@ export class PmxtApiClient {
         if (params.limit !== undefined) query.limit = String(params.limit);
         if (params.includePrices) query.includePrices = 'true';
 
-        const res = await this.request('GET', `/v0/markets/${encodeURIComponent(id)}/matches`, query);
+        const res = await this.request<MarketMatchesResponse>('GET', `/v0/markets/${encodeURIComponent(id)}/matches`, query);
         return res.data;
     }
 
-    async getEventMatches(params: FetchEventMatchesParams): Promise<any> {
+    async getEventMatches(params: FetchEventMatchesParams): Promise<EventMatchesResponse> {
         const id = params.eventId ?? params.slug;
         if (!id) throw new BadRequest('One of eventId or slug is required', 'Router');
 
@@ -55,11 +80,11 @@ export class PmxtApiClient {
         if (params.limit !== undefined) query.limit = String(params.limit);
         if (params.includePrices) query.includePrices = 'true';
 
-        const res = await this.request('GET', `/v0/events/${encodeURIComponent(id)}/matches`, query);
+        const res = await this.request<EventMatchesResponse>('GET', `/v0/events/${encodeURIComponent(id)}/matches`, query);
         return res.data;
     }
 
-    async browseMarketMatches(params: FetchMarketMatchesParams): Promise<any> {
+    async browseMarketMatches(params: FetchMarketMatchesParams): Promise<MatchResult[]> {
         const query: Record<string, string> = {};
         if (params.query) query.query = params.query;
         if (params.category) query.category = params.category;
@@ -67,10 +92,10 @@ export class PmxtApiClient {
         if (params.minConfidence !== undefined) query.minConfidence = String(params.minConfidence);
         if (params.limit !== undefined) query.limit = String(params.limit);
 
-        const res = await this.request('GET', '/v0/matched-markets', query);
+        const res = await this.request<RawMatchedPair[]>('GET', '/v0/matched-markets', query);
         // Reshape { marketA, marketB, ... } pairs into MatchResult shape
-        const pairs: any[] = Array.isArray(res.data) ? res.data : [];
-        return pairs.map((pair: any) => ({
+        const pairs: RawMatchedPair[] = Array.isArray(res.data) ? res.data : [];
+        return pairs.map((pair: RawMatchedPair) => ({
             sourceMarket: pair.marketA,
             market: pair.marketB,
             relation: pair.relation || 'identity',
@@ -81,7 +106,7 @@ export class PmxtApiClient {
         }));
     }
 
-    async browseEventMatches(params: FetchEventMatchesParams): Promise<any> {
+    async browseEventMatches(params: FetchEventMatchesParams): Promise<EventMatchResult[]> {
         const query: Record<string, string> = {};
         if (params.query) query.query = params.query;
         if (params.category) query.category = params.category;
@@ -89,11 +114,11 @@ export class PmxtApiClient {
         if (params.minConfidence !== undefined) query.minConfidence = String(params.minConfidence);
         if (params.limit !== undefined) query.limit = String(params.limit);
 
-        const res = await this.request('GET', '/v0/events/matches', query);
+        const res = await this.request<EventMatchResult[]>('GET', '/v0/events/matches', query);
         return res.data;
     }
 
-    async searchMarkets(params?: RouterMarketSearchParams): Promise<any> {
+    async searchMarkets(params?: RouterMarketSearchParams): Promise<UnifiedMarket[]> {
         const query: Record<string, string> = {};
         if (params?.query) query.q = params.query;
         if (params?.sourceExchange) query.sourceExchange = params.sourceExchange;
@@ -101,11 +126,11 @@ export class PmxtApiClient {
         if (params?.limit !== undefined) query.limit = String(params.limit);
         if (params?.offset !== undefined) query.offset = String(params.offset);
         if (params?.closed) query.closed = 'true';
-        const res = await this.request('GET', '/v0/markets', query);
+        const res = await this.request<UnifiedMarket[]>('GET', '/v0/markets', query);
         return res.data;
     }
 
-    async searchEvents(params?: RouterEventSearchParams): Promise<any> {
+    async searchEvents(params?: RouterEventSearchParams): Promise<UnifiedEvent[]> {
         const query: Record<string, string> = {};
         if (params?.query) query.q = params.query;
         if (params?.sourceExchange) query.sourceExchange = params.sourceExchange;
@@ -113,12 +138,12 @@ export class PmxtApiClient {
         if (params?.limit !== undefined) query.limit = String(params.limit);
         if (params?.offset !== undefined) query.offset = String(params.offset);
         if (params?.closed) query.closed = 'true';
-        const res = await this.request('GET', '/v0/events', query);
+        const res = await this.request<UnifiedEvent[]>('GET', '/v0/events', query);
         return res.data;
     }
 
-    async getArbitrage(query?: Record<string, string>): Promise<any> {
-        const res = await this.request('GET', '/v0/arbitrage', query);
+    async getArbitrage(query?: Record<string, string>): Promise<ArbitrageOpportunity[]> {
+        const res = await this.request<ArbitrageOpportunity[]>('GET', '/v0/arbitrage', query);
         return res.data;
     }
 
@@ -126,11 +151,11 @@ export class PmxtApiClient {
     // Internal
     // -----------------------------------------------------------------------
 
-    private async request(
+    private async request<T = unknown>(
         method: string,
         path: string,
         query?: Record<string, string>,
-    ): Promise<{ data: any }> {
+    ): Promise<{ data: T }> {
         try {
             const response = await this.http.request({
                 method,
@@ -138,12 +163,12 @@ export class PmxtApiClient {
                 params: query,
             });
             return response.data;
-        } catch (error: any) {
+        } catch (error: unknown) {
             throw this.mapError(error);
         }
     }
 
-    private mapError(error: any): Error {
+    private mapError(error: unknown): Error {
         if (axios.isAxiosError(error)) {
             const status = error.response?.status;
             const message =
@@ -177,10 +202,14 @@ export class PmxtApiClient {
             }
         }
 
-        if (error?.code === 'ECONNREFUSED' || error?.code === 'ENOTFOUND' || error?.code === 'ETIMEDOUT') {
-            return new NetworkError(`Network error: ${error.message}`, 'Router');
+        if (error instanceof Error) {
+            const code = (error as NodeJS.ErrnoException).code;
+            if (code === 'ECONNREFUSED' || code === 'ENOTFOUND' || code === 'ETIMEDOUT') {
+                return new NetworkError(`Network error: ${error.message}`, 'Router');
+            }
+            return error;
         }
 
-        return error instanceof Error ? error : new Error(String(error));
+        return new Error(String(error));
     }
 }
