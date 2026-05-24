@@ -57,7 +57,10 @@ export class KalshiAuth {
             // Allow input of private key in both raw string or PEM format
             // If it's a raw key without headers, accessing it might be tricky with implicit types,
             // but standard PEM is best. We assume the user provides a valid PEM.
-            let privateKey = this.credentials.privateKey!;
+            if (!this.credentials.privateKey) {
+                throw new Error('[kalshi] privateKey is required for authenticated requests');
+            }
+            let privateKey = this.credentials.privateKey;
             
             // Fix for common .env issue where newlines are escaped
             if (privateKey.includes('\\n')) {
