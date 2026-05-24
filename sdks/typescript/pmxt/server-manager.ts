@@ -108,7 +108,9 @@ export class ServerManager {
         try {
             // Use native fetch to check health on the actual running port
             // This avoids issues where this.api is configured with the wrong port
-            const response = await fetch(`http://localhost:${port}/health`);
+            const response = await fetch(`http://localhost:${port}/health`, {
+                signal: AbortSignal.timeout(5_000),
+            });
             if (response.ok) {
                 const data = await response.json();
                 return (data as any).status === "ok";
@@ -129,7 +131,9 @@ export class ServerManager {
             const info = this.getServerInfo();
             if (info) {
                 try {
-                    const response = await fetch(`http://localhost:${info.port}/health`);
+                    const response = await fetch(`http://localhost:${info.port}/health`, {
+                        signal: AbortSignal.timeout(5_000),
+                    });
                     if (response.ok) {
                         const data = await response.json() as any;
                         if (data.status === "ok") return;
