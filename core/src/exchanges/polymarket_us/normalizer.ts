@@ -459,16 +459,20 @@ export class PolymarketUSNormalizer {
             const totalCost = fromAmount(pos.cost);
             const entryPrice = size > 0 ? Math.abs(totalCost) / size : 0;
 
+            // cashValue is the current mark-to-market value of the position.
+            // unrealizedPnL = cashValue - abs(cost).
+            const cashValue = fromAmount(pos.cashValue);
+            const unrealizedPnL = cashValue - Math.abs(totalCost);
+            const currentPrice = size > 0 ? cashValue / size : 0;
+
             results.push({
                 marketId: slug,
                 outcomeId: isLong ? `${slug}:long` : `${slug}:short`,
                 outcomeLabel: isLong ? 'long' : 'short',
                 size,
                 entryPrice,
-                // SDK does not expose live mark on the position object.
-                // Callers must enrich with current price if needed.
-                currentPrice: 0,
-                unrealizedPnL: 0,
+                currentPrice,
+                unrealizedPnL,
                 realizedPnL: fromAmount(pos.realized),
             });
         }
