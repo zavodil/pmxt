@@ -17,7 +17,7 @@ Example:
 """
 
 from .client import Exchange
-from ._exchanges import Polymarket, Limitless, Kalshi, KalshiDemo, Probable, Baozi, Myriad, Opinion, Metaculus, Smarkets, PolymarketUS, Hyperliquid, GeminiTitan, Mock, Router
+from ._exchanges import Polymarket, Limitless, Kalshi, KalshiDemo, Probable, Baozi, Myriad, Opinion, Metaculus, Smarkets, PolymarketUS, Polymarket_us, Hyperliquid, GeminiTitan, Mock, Router
 from .router import Router
 from .server_manager import ServerManager
 from .errors import (
@@ -46,6 +46,7 @@ from .models import (
     OrderLevel,
     Trade,
     UserTrade,
+    FirehoseEvent,
     PaginatedMarketsResult,
     PaginatedEventsResult,
     Order,
@@ -60,6 +61,7 @@ from .models import (
     EventMatchResult,
     PriceComparison,
     ArbitrageOpportunity,
+    SubscribedAddressSnapshot,
     MatchRelation,
 )
 
@@ -144,6 +146,7 @@ __all__ = [
     "Metaculus",
     "Smarkets",
     "PolymarketUS",
+    "Polymarket_us",
     "Hyperliquid",
     "GeminiTitan",
     "Mock",
@@ -179,6 +182,7 @@ __all__ = [
     "OrderLevel",
     "Trade",
     "UserTrade",
+    "FirehoseEvent",
     "PaginatedMarketsResult",
     "PaginatedEventsResult",
     "Order",
@@ -189,5 +193,6 @@ __all__ = [
     "EventMatchResult",
     "PriceComparison",
     "ArbitrageOpportunity",
+    "SubscribedAddressSnapshot",
     "MatchRelation",
 ]
