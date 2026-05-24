@@ -387,6 +387,41 @@ function buildPyReturnLines(config) {
 }
 
 function generatePyMethod(name, params, config, sf) {
+    if (name === 'fetchOrderBook') {
+        return [
+            `    def fetch_order_book(self, outcome_id: Union[str, "MarketOutcome"] = _UNSET, limit: Optional[float] = None, params: Optional[dict] = None, **kwargs) -> Union[OrderBook, List[OrderBook]]:`,
+            `        try:`,
+            `            args = []`,
+            `            if kwargs:`,
+            `                params = {**(params or {}), **kwargs}`,
+            `            outcome_id = _compat_id(outcome_id, kwargs)`,
+            `            args.append(_resolve_outcome_id(outcome_id))`,
+            `            if limit is not None:`,
+            `                args.append(limit)`,
+            `            if params is not None:`,
+            `                if limit is None:`,
+            `                    args.append(None)`,
+            `                args.append(params)`,
+            `            body: dict = {"args": args}`,
+            `            creds = self._get_credentials_dict()`,
+            `            if creds:`,
+            `                body["credentials"] = creds`,
+            `            url = f"{self._resolve_sidecar_host()}/api/{self.exchange_name}/fetchOrderBook"`,
+            `            headers = {"Content-Type": "application/json", "Accept": "application/json"}`,
+            `            headers.update(self._get_auth_headers())`,
+            `            response = self._fetch_with_retry(`,
+            `                lambda: self._api_client.call_api(method="POST", url=url, body=body, header_params=headers)`,
+            `            )`,
+            `            response.read()`,
+            `            data = self._handle_response(json.loads(response.data))`,
+            `            if isinstance(data, list):`,
+            `                return [_convert_order_book(d) for d in data]`,
+            `            return _convert_order_book(data)`,
+            `        except ApiException as e:`,
+            `            raise self._parse_api_exception(e) from None`,
+        ].join('\n');
+    }
+
     const snakeName = camelToSnake(name);
     const paramSig = buildPySignatureParams(params, sf);
     const hasParams = params.some(p => camelToSnake(p.name.getText(sf)) === 'params');

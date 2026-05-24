@@ -381,6 +381,44 @@ function buildReturnLines(config) {
 }
 
 function generateMethod(name, params, config, sf) {
+    if (name === 'fetchOrderBook') {
+        return [
+            `    async fetchOrderBook(outcomeId: string | MarketOutcome, limit?: number, params?: FetchOrderBookParams): Promise<OrderBook | OrderBook[]> {`,
+            `        await this.initPromise;`,
+            `        try {`,
+            `            const args: any[] = [];`,
+            `            args.push(resolveOutcomeId(outcomeId));`,
+            `            if (limit !== undefined) args.push(limit);`,
+            `            if (params !== undefined) {`,
+            `                if (limit === undefined) args.push(null);`,
+            `                args.push(params);`,
+            `            }`,
+            `            const response = await this.fetchWithRetry(\`\${this.resolveBaseUrl()}/api/\${this.exchangeName}/fetchOrderBook\`, {`,
+            `                method: 'POST',`,
+            `                headers: { 'Content-Type': 'application/json', ...this.getAuthHeaders() },`,
+            `                body: JSON.stringify({ args, credentials: this.getCredentials() }),`,
+            `            });`,
+            `            if (!response.ok) {`,
+            `                const body = await response.json().catch(() => ({}));`,
+            `                if (body.error && typeof body.error === "object") {`,
+            `                    throw fromServerError(body.error);`,
+            `                }`,
+            `                throw new PmxtError(body.error?.message || response.statusText);`,
+            `            }`,
+            `            const json = await response.json();`,
+            `            const data = this.handleResponse(json);`,
+            `            if (Array.isArray(data)) {`,
+            `                return data.map(convertOrderBook);`,
+            `            }`,
+            `            return convertOrderBook(data);`,
+            `        } catch (error) {`,
+            `            if (error instanceof PmxtError) throw error;`,
+            `            throw new PmxtError(\`Failed to fetchOrderBook: \${error}\`);`,
+            `        }`,
+            `    }`,
+        ].join('\n');
+    }
+
     const sig = buildSignatureParams(params, sf);
     const argsCode = buildArgsLines(params, sf);
     const returnCode = buildReturnLines(config);

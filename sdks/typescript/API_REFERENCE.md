@@ -389,14 +389,14 @@ Fetch the order book (bids/asks) for a specific outcome.
 **Signature:**
 
 ```typescript
-async fetchOrderBook(outcomeId: string, limit?: number, params?: Record<string, any>): Promise<OrderBook>
+async fetchOrderBook(outcomeId: string, limit?: number, params?: FetchOrderBookParams): Promise<OrderBook>
 ```
 
 **Parameters:**
 
 - `outcomeId` (string): The Outcome ID (outcomeId) or market slug
-- `limit` (number) - **Optional**: Max number of bid/ask levels to return (CCXT-style).
-- `params` (Record<string, any>) - **Optional**: Optional parameters:
+- `limit` (number) - **Optional**: Max number of bid/ask levels to return. For range
+- `params` ([FetchOrderBookParams](#fetchorderbookparams)) - **Optional**: Optional parameters:
 
 **Returns:** Promise<[OrderBook](#orderbook)> - Order book with bids and asks. Returns OrderBook[] when
 
@@ -925,7 +925,7 @@ await exchange.unwatchAddress("0xabc...")
 
 
 ---
-### `testDummyMethod`
+### `close`
 
 Close all WebSocket connections and clean up resources.
 
@@ -933,19 +933,19 @@ Close all WebSocket connections and clean up resources.
 **Signature:**
 
 ```typescript
-async testDummyMethod(param?: string): Promise<string>
+async close(): Promise<void>
 ```
 
 **Parameters:**
 
-- `param` (string) - **Optional**: param
+- None
 
-**Returns:** Promise<string> - Result
+**Returns:** Promise<void> - Result
 
 **Example:**
 
 ```typescript
-await exchange.testDummyMethod({ param: "..." })
+await exchange.close()
 ```
 
 
@@ -1968,15 +1968,29 @@ limit?: number; // Maximum number of results to return
 ```
 
 ---
+### `FetchOrderBookParams`
+
+
+
+```typescript
+interface FetchOrderBookParams {
+side?: string; // Outcome side: 'yes' or 'no'. Required for exchanges like Limitless where the API returns a single orderbook per market.
+outcome?: string; // Outcome alias: 'yes' or 'no', or an outcome token ID. When set, the first argument is treated as a market ID and this value selects which outcome's order book to fetch. Accepts the literal strings 'yes'/'no' (resolved via a market lookup) or a raw outcome token ID.
+since?: number; // Unix timestamp (ms) — fetch a historical snapshot at or before this time, or the start of a range when combined with `until` (hosted API only).
+until?: number; // Unix timestamp (ms) — end of a historical range. When combined with `since`, returns an array of reconstructed L2 OrderBook snapshots between `since` and `until` (hosted API only).
+}
+```
+
+---
 ### `TradesParams`
 
-Parameters for fetching trade history. No resolution parameter - trades are discrete events.
+
 
 ```typescript
 interface TradesParams {
 start?: string; // Start of the time range
 end?: string; // End of the time range
-limit?: number; // Maximum number of results to return
+limit?: number; // Maximum number of results to return (max {@link MAX_TRADES_LIMIT})
 }
 ```
 

@@ -386,14 +386,14 @@ Fetch the order book (bids/asks) for a specific outcome.
 **Signature:**
 
 ```python
-def fetch_order_book(outcome_id: str, limit: Optional[float] = None, params: Optional[Dict[str, Any]] = None) -> OrderBook:
+def fetch_order_book(outcome_id: str, limit: Optional[float] = None, params: Optional[FetchOrderBookParams] = None) -> OrderBook:
 ```
 
 **Parameters:**
 
 - `outcome_id` (str): The Outcome ID (outcomeId) or market slug
-- `limit` (float) - **Optional**: Max number of bid/ask levels to return (CCXT-style).
-- `params` (Dict[str, Any]) - **Optional**: Optional parameters:
+- `limit` (float) - **Optional**: Max number of bid/ask levels to return. For range
+- `params` ([FetchOrderBookParams](#fetchorderbookparams)) - **Optional**: Optional parameters:
 
 **Returns:** [OrderBook](#orderbook) - Order book with bids and asks. Returns OrderBook[] when
 
@@ -922,7 +922,7 @@ exchange.unwatch_address(address="0xabc...")
 
 
 ---
-### `test_dummy_method`
+### `close`
 
 Close all WebSocket connections and clean up resources.
 
@@ -930,19 +930,19 @@ Close all WebSocket connections and clean up resources.
 **Signature:**
 
 ```python
-def test_dummy_method(param: Optional[str] = None) -> str:
+def close() -> void:
 ```
 
 **Parameters:**
 
-- `param` (str) - **Optional**: param
+- None
 
-**Returns:** str - Result
+**Returns:** void - Result
 
 **Example:**
 
 ```python
-exchange.test_dummy_method(param="...")
+exchange.close()
 ```
 
 
@@ -1967,16 +1967,30 @@ limit: float # Maximum number of results to return
 ```
 
 ---
+### `FetchOrderBookParams`
+
+
+
+```python
+@dataclass
+class FetchOrderBookParams:
+side: str # Outcome side: 'yes' or 'no'. Required for exchanges like Limitless where the API returns a single orderbook per market.
+outcome: str # Outcome alias: 'yes' or 'no', or an outcome token ID. When set, the first argument is treated as a market ID and this value selects which outcome's order book to fetch. Accepts the literal strings 'yes'/'no' (resolved via a market lookup) or a raw outcome token ID.
+since: float # Unix timestamp (ms) — fetch a historical snapshot at or before this time, or the start of a range when combined with `until` (hosted API only).
+until: float # Unix timestamp (ms) — end of a historical range. When combined with `since`, returns an array of reconstructed L2 OrderBook snapshots between `since` and `until` (hosted API only).
+```
+
+---
 ### `TradesParams`
 
-Parameters for fetching trade history. No resolution parameter - trades are discrete events.
+
 
 ```python
 @dataclass
 class TradesParams:
 start: str # Start of the time range
 end: str # End of the time range
-limit: float # Maximum number of results to return
+limit: float # Maximum number of results to return (max {@link MAX_TRADES_LIMIT})
 ```
 
 ---
