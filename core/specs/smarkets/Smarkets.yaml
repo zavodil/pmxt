@@ -1870,6 +1870,7 @@ paths:
           description: Jurisdiction of user
           enum:
           - CDG
+          - CFTC
           - DGA
           - IGC
           - MGA
@@ -2186,6 +2187,11 @@ paths:
                             name: Tottenham Hotspur Stadium
                             neutral: true
                           nullable: true
+                          type: object
+                        cftc:
+                          description: CFTC-specific regulatory metadata for this event
+                          nullable: true
+                          additionalProperties: true
                           type: object
                       required:
                       - created
@@ -2553,6 +2559,7 @@ paths:
           description: Jurisdiction of user
           enum:
           - CDG
+          - CFTC
           - DGA
           - IGC
           - MGA
@@ -2901,6 +2908,11 @@ paths:
                             Top x Finish\" type markets\n    "
                           example: 1
                           type: integer
+                        cftc:
+                          description: CFTC-specific regulatory metadata for this market
+                          nullable: true
+                          additionalProperties: true
+                          type: object
                       required:
                       - bet_delay
                       - complete
@@ -3031,6 +3043,7 @@ paths:
           description: Jurisdiction of user
           enum:
           - CDG
+          - CFTC
           - DGA
           - IGC
           - MGA
@@ -5770,6 +5783,7 @@ paths:
           description: Jurisdiction of user
           enum:
           - CDG
+          - CFTC
           - DGA
           - IGC
           - MGA
@@ -5931,6 +5945,11 @@ paths:
                           - unavailable
                           example: live
                           type: string
+                        cftc:
+                          description: CFTC-specific regulatory metadata for this contract
+                          nullable: true
+                          additionalProperties: true
+                          type: object
                       required:
                       - id
                       - created
@@ -7159,6 +7178,12 @@ paths:
                               example: 1.0
                               nullable: true
                               type: number
+                            original_price:
+                              description: The price at which the token was originally
+                                purchased before any amendments
+                              example: '5000'
+                              nullable: true
+                              type: string
                           required:
                           - bet_token_type
                           - boost_percent
@@ -7954,15 +7979,21 @@ paths:
                           description: Stake of an order
                           example: '24.08'
                           type: number
+                        original_bets:
+                          description: The component bets that make up the fullcover
+                            order, with their individual prices and selections
+                          items:
+                            additionalProperties: true
+                            type: object
+                          nullable: true
+                          type: array
                       required:
                       - reference_id
                       - fullcover_type
                       - original_contracts
-                      - to_return
                       - returned_amount
                       - state
                       - stake
-                      - price
                       - side
                       - cashed_out_quantity
                       - cashed_out_amount
