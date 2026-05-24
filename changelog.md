@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.43.19] - 2026-05-24
+
+### Fixed
+
+- **Myriad**: Read `eventId` instead of deprecated `questionId` in normalizer and utils. Fixes #556.
+
 ## [2.43.18] - 2026-05-24
 
 ### Fixed
