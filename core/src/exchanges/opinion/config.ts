@@ -4,4 +4,4 @@ export const OPINION_MAX_PAGE_SIZE = 20;
 
 // CLOB SDK chain constants
 export const OPINION_CHAIN_ID = 56;
-export const OPINION_DEFAULT_RPC_URL = 'https://bsc-dataseed.binance.org';
+export const OPINION_DEFAULT_RPC_URL = process.env.OPINION_RPC_URL || 'https://bsc-dataseed.binance.org';

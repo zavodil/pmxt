@@ -1,5 +1,6 @@
 import { HttpClient, OrderClient, OrderBuilder, OrderSigner, MarketFetcher, Side, OrderType } from '@limitless-exchange/sdk';
 import { Wallet, providers, Contract, utils } from 'ethers';
+import { LIMITLESS_RPC_URL } from './config';
 
 const DEFAULT_LIMITLESS_API_URL = process.env.LIMITLESS_BASE_URL || 'https://api.limitless.exchange';
 
@@ -378,8 +379,7 @@ export class LimitlessClient {
         const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
         const ABI = ["function balanceOf(address) view returns (uint256)", "function decimals() view returns (uint8)"];
         
-        // Use a public RPC for Base
-        const provider = new providers.StaticJsonRpcProvider('https://mainnet.base.org', {
+        const provider = new providers.StaticJsonRpcProvider(LIMITLESS_RPC_URL, {
             chainId: 8453,
             name: 'base',
         });
