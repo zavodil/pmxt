@@ -94,7 +94,7 @@ export class FeedClient {
         return this.get<Tickers>('fetchTickers', params);
     }
 
-    async fetchOHLCV(symbol: string, timeframe?: string, since?: number, limit?: number): Promise<OHLCV[]> {
+    async fetchOHLCV(symbol: string, timeframe: string = '1h', since?: number, limit?: number): Promise<OHLCV[]> {
         return this.get<OHLCV[]>('fetchOHLCV', { symbol, timeframe, since, limit });
     }
 

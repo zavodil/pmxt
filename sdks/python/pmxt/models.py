@@ -570,6 +570,8 @@ class MarketFetchParams(TypedDict, total=False):
     category: str
     tags: List[str]
     filter: MarketFilterCriteria
+    page: int
+    similarity_threshold: float
 
 
 class EventFetchParams(TypedDict, total=False):
