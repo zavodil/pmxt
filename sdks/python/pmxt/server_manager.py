@@ -20,7 +20,7 @@ import subprocess
 import shutil
 import threading
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import List, Optional, Dict, Any
 import urllib.request
 import urllib.error
 
@@ -228,7 +228,7 @@ class ServerManager:
         port = self.get_running_port()
         return self._check_health(port, timeout=2)
 
-    def logs(self, n: int = 50) -> list:
+    def logs(self, n: int = 50) -> List[str]:
         """
         Return the last `n` lines from the sidecar server log file.
 

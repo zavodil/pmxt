@@ -7,6 +7,8 @@ enabling users to catch specific error types.
 
 from __future__ import annotations
 
+from typing import Dict, Any
+
 
 class PmxtError(Exception):
     """Base error class for all pmxt errors."""
@@ -118,7 +120,7 @@ _ERROR_CODE_MAP: dict[str, type[PmxtError]] = {
 }
 
 
-def from_server_error(error_data: dict) -> PmxtError:
+def from_server_error(error_data: Dict[str, Any]) -> PmxtError:
     """Convert a server error response dict into a typed PmxtError."""
     if isinstance(error_data, str):
         return PmxtError(error_data)
