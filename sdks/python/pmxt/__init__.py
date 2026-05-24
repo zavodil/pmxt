@@ -16,6 +16,8 @@ Example:
     >>> print(markets[0].title)
 """
 
+from typing import Any, Dict, List
+
 from .client import Exchange
 from ._exchanges import Polymarket, Limitless, Kalshi, KalshiDemo, Probable, Baozi, Myriad, Opinion, Metaculus, Smarkets, PolymarketUS, Polymarket_us, Hyperliquid, GeminiTitan, Mock, Router
 from .router import Router
@@ -62,6 +64,7 @@ from .models import (
     PriceComparison,
     ArbitrageOpportunity,
     SubscribedAddressSnapshot,
+    ExecutionPriceResult,
     MatchRelation,
     SortOption,
     SearchIn,
@@ -93,7 +96,7 @@ class _ServerNamespace:
     def __init__(self, manager: ServerManager):
         self._manager = manager
 
-    def status(self):
+    def status(self) -> Dict[str, Any]:
         return self._manager.status()
 
     def health(self) -> bool:
@@ -108,7 +111,7 @@ class _ServerNamespace:
     def restart(self) -> None:
         self._manager.restart()
 
-    def logs(self, n: int = 50):
+    def logs(self, n: int = 50) -> List[str]:
         return self._manager.logs(n)
 
 
@@ -192,6 +195,7 @@ __all__ = [
     "PaginatedEventsResult",
     "Order",
     "BuiltOrder",
+    "ExecutionPriceResult",
     "Position",
     "Balance",
     "MatchResult",
