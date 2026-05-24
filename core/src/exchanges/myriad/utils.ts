@@ -65,7 +65,7 @@ export function mapMarketToUnified(market: any): UnifiedMarket | null {
 
     const um = {
         marketId: `${market.networkId}:${market.id}`,
-        eventId: market.questionId ? String(market.questionId) : undefined,
+        eventId: market.eventId ? String(market.eventId) : undefined,
         title: market.title || '',
         description: market.description || '',
         outcomes,
