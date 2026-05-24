@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.44.4] - 2026-05-24
+
+### Fixed
+
+- **Docs publishing**: Preserve `Cross Exchange` directly after `Events & Markets` during release-time Mintlify regeneration instead of appending hosted groups near the bottom.
+
 ## [2.44.3] - 2026-05-24
 
 ### Fixed

@@ -314,6 +314,25 @@ function buildEndpointGroups(spec) {
     return groups;
 }
 
+function insertGroupsAfter(groups, targetGroupName, groupsToInsert) {
+    if (groupsToInsert.length === 0) return groups;
+
+    const result = [];
+    let inserted = false;
+    for (const group of groups) {
+        result.push(group);
+        if (group.group === targetGroupName) {
+            result.push(...groupsToInsert);
+            inserted = true;
+        }
+    }
+
+    if (!inserted) {
+        result.push(...groupsToInsert);
+    }
+    return result;
+}
+
 function updateDocsJsonEndpoints(spec) {
     // Remove any leftover legacy mint.json.
     if (fs.existsSync(LEGACY_MINT_JSON)) {
@@ -344,17 +363,30 @@ function updateDocsJsonEndpoints(spec) {
     const externalGroups = (existingApiTab?.groups || []).filter(
         (g) => g.openapi && g.openapi !== CORE_OPENAPI
     );
-
-    const apiTab = {
-        tab: 'API Reference',
-        groups: [
+    const crossExchangeGroups = externalGroups.filter(
+        (g) => g.group === 'Cross Exchange'
+    );
+    const enterpriseGroups = externalGroups.filter(
+        (g) => g.group === 'Enterprise'
+    );
+    const otherExternalGroups = externalGroups.filter(
+        (g) => g.group !== 'Cross Exchange' && g.group !== 'Enterprise'
+    );
+    const apiGroups = insertGroupsAfter(
+        [
             {
                 group: 'Overview',
                 pages: ['api-reference/overview'],
             },
             ...endpointGroups,
-            ...externalGroups,
         ],
+        'Events & Markets',
+        crossExchangeGroups
+    );
+
+    const apiTab = {
+        tab: 'API Reference',
+        groups: [...apiGroups, ...otherExternalGroups, ...enterpriseGroups],
     };
     if (apiTabIdx >= 0) {
         const updatedTabs = [...tabs];
