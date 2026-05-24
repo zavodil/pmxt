@@ -12,6 +12,8 @@ import { logger } from '../../utils/logger';
 
 export interface KalshiRawMarket {
     ticker: string;
+    title?: string;
+    status?: string;
     last_price?: number;
     yes_ask?: number;
     yes_bid?: number;

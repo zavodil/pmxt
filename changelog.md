@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.43.15] - 2026-05-24
+
+### Fixed
+
+- **Kalshi**: Market normalization now preserves the venue's market-level title instead of replacing it with the parent event title. Kalshi market slugs now use the market ticker, and raw market status is carried through to the unified market.
+
 ## [2.43.14] - 2026-05-24
 
 ### Fixed

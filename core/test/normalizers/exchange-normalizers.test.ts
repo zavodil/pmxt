@@ -374,6 +374,8 @@ describe('KalshiNormalizer', () => {
 
     const rawMarket: Readonly<KalshiRawMarket> = freeze({
         ticker: 'FED-25JAN29-B4.75',
+        title: 'Will Fed funds be above 4.75% on Jan 29, 2025?',
+        status: 'active',
         subtitle: 'Above 4.75%',
         yes_sub_title: 'Above 4.75%',
         last_price_dollars: '0.4540',
@@ -422,8 +424,24 @@ describe('KalshiNormalizer', () => {
             expect(market.eventId).toBe('FED-25JAN29');
         });
 
-        it('maps title from event title', () => {
-            expect(market.title).toBe('Fed Funds Rate Decision - January 2025');
+        it('prefers market title over event title', () => {
+            expect(market.title).toBe('Will Fed funds be above 4.75% on Jan 29, 2025?');
+        });
+
+        it('falls back to event title when market title is absent', () => {
+            const result = normalizer.normalizeRawMarket(rawEvent, {
+                ...rawMarket,
+                title: undefined,
+            } as KalshiRawMarket);
+            expect(result!.title).toBe('Fed Funds Rate Decision - January 2025');
+        });
+
+        it('maps slug from ticker', () => {
+            expect(market.slug).toBe('FED-25JAN29-B4.75');
+        });
+
+        it('maps status from raw market status', () => {
+            expect(market.status).toBe('active');
         });
 
         it('maps description from rules_primary', () => {

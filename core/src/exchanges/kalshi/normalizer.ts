@@ -79,8 +79,9 @@ export class KalshiNormalizer implements IExchangeNormalizer<KalshiRawEvent, Kal
             id: market.ticker,
             marketId: market.ticker,
             eventId: event.event_ticker,
-            title: event.title,
+            title: this.cleanLabel(market.title) || event.title,
             description: market.rules_primary || market.rules_secondary || '',
+            slug: market.ticker,
             outcomes,
             resolutionDate: new Date(market.expiration_time),
             volume24h: parseFloat(market.volume_24h_fp ?? '') || Number(market.volume_24h || market.volume || 0),
@@ -90,6 +91,7 @@ export class KalshiNormalizer implements IExchangeNormalizer<KalshiRawEvent, Kal
             url: `https://kalshi.com/events/${event.event_ticker}`,
             category: event.category,
             tags: unifiedTags,
+            status: this.cleanLabel(market.status) || undefined,
         } as UnifiedMarket;
 
         addBinaryOutcomes(um);
