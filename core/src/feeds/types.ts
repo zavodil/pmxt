@@ -14,7 +14,7 @@ export interface Dictionary<T> {
  */
 export interface Ticker {
     symbol: string;
-    info: any;
+    info: Record<string, unknown>;
     timestamp: number | undefined;
     datetime: string | undefined;
     high: number | undefined;
@@ -79,7 +79,7 @@ export interface Market {
         cost?: { min: number | undefined; max: number | undefined };
         price?: { min: number | undefined; max: number | undefined };
     };
-    info: any;
+    info: Record<string, unknown>;
 }
 
 /**
@@ -87,7 +87,7 @@ export interface Market {
  */
 export interface FundingRate {
     symbol: string;
-    info: any;
+    info: Record<string, unknown>;
     timestamp?: number;
     datetime?: string;
     fundingRate?: number;

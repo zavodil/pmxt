@@ -28,7 +28,7 @@ export interface MarketOutcome {
     priceChange24h?: number;
 
     /** Exchange-specific metadata */
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
 
     /** Best bid price from the order book (when includePrices=True) */
     bestBid?: number;

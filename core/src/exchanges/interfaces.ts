@@ -9,7 +9,7 @@ import { UnifiedMarket, UnifiedEvent, PriceCandle, OrderBook, Trade, UserTrade, 
 
 export interface FetcherContext {
     readonly http: AxiosInstance;
-    callApi(operationId: string, params?: Record<string, any>): Promise<any>;
+    callApi(operationId: string, params?: Record<string, unknown>): Promise<unknown>;
     getHeaders(): Record<string, string>;
 }
 

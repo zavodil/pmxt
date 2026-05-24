@@ -49,29 +49,26 @@ export class PermissionDenied extends PmxtError {
 }
 
 export class NotFoundError extends PmxtError {
-    constructor(message: string, exchange?: string) {
-        super(message, "NOT_FOUND", false, exchange);
+    constructor(message: string, exchange?: string, code: string = "NOT_FOUND") {
+        super(message, code, false, exchange);
     }
 }
 
 export class OrderNotFound extends NotFoundError {
     constructor(orderId: string, exchange?: string) {
-        super(`Order not found: ${orderId}`, exchange);
-        (this as any).code = "ORDER_NOT_FOUND";
+        super(`Order not found: ${orderId}`, exchange, "ORDER_NOT_FOUND");
     }
 }
 
 export class MarketNotFound extends NotFoundError {
     constructor(marketId: string, exchange?: string) {
-        super(`Market not found: ${marketId}`, exchange);
-        (this as any).code = "MARKET_NOT_FOUND";
+        super(`Market not found: ${marketId}`, exchange, "MARKET_NOT_FOUND");
     }
 }
 
 export class EventNotFound extends NotFoundError {
     constructor(identifier: string, exchange?: string) {
-        super(`Event not found: ${identifier}`, exchange);
-        (this as any).code = "EVENT_NOT_FOUND";
+        super(`Event not found: ${identifier}`, exchange, "EVENT_NOT_FOUND");
     }
 }
 
@@ -120,7 +117,7 @@ export class ExchangeNotAvailable extends PmxtError {
 }
 
 // Error code to class mapping
-const ERROR_CODE_MAP: Record<string, new (...args: any[]) => PmxtError> = {
+const ERROR_CODE_MAP: Record<string, new (...args: string[]) => PmxtError> = {
     BAD_REQUEST: BadRequest,
     AUTHENTICATION_ERROR: AuthenticationError,
     PERMISSION_DENIED: PermissionDenied,
@@ -137,23 +134,27 @@ const ERROR_CODE_MAP: Record<string, new (...args: any[]) => PmxtError> = {
 };
 
 /** Convert a server error response object into a typed PmxtError. */
-export function fromServerError(errorData: any): PmxtError {
+export function fromServerError(errorData: unknown): PmxtError {
     if (typeof errorData === "string") {
         return new PmxtError(errorData);
     }
 
-    const message = errorData.message || "Unknown error";
-    const code = errorData.code || "UNKNOWN_ERROR";
-    const retryable = errorData.retryable || false;
-    const exchange = errorData.exchange;
+    const data = errorData as Record<string, unknown>;
+
+    const message = (typeof data.message === "string" ? data.message : undefined) || "Unknown error";
+    const code = (typeof data.code === "string" ? data.code : undefined) || "UNKNOWN_ERROR";
+    const retryable = typeof data.retryable === "boolean" ? data.retryable : false;
+    const exchange = typeof data.exchange === "string" ? data.exchange : undefined;
 
     const ErrorClass = ERROR_CODE_MAP[code];
 
     if (ErrorClass === RateLimitExceeded) {
-        return new RateLimitExceeded(message, errorData.retryAfter, exchange);
+        const retryAfter = typeof data.retryAfter === "number" ? data.retryAfter : undefined;
+        return new RateLimitExceeded(message, retryAfter, exchange);
     }
     if (ErrorClass === ValidationError) {
-        return new ValidationError(message, errorData.field, exchange);
+        const field = typeof data.field === "string" ? data.field : undefined;
+        return new ValidationError(message, field, exchange);
     }
     if (ErrorClass) {
         return new ErrorClass(message, exchange);
