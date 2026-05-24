@@ -346,12 +346,18 @@ export class GoldSkySubscriber implements BaseSubscriber {
             headers['Authorization'] = `Bearer ${this.config.apiKey}`;
         }
 
+        const timeoutSignal = AbortSignal.timeout(30_000);
+        const combinedController = new AbortController();
+        const onAbort = () => combinedController.abort();
+        signal.addEventListener('abort', onAbort, { once: true });
+        timeoutSignal.addEventListener('abort', onAbort, { once: true });
+
         try {
             const res = await fetch(q.url, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({ query: q.query, variables: q.variables ?? {} }),
-                signal,
+                signal: combinedController.signal,
             });
             if (!res.ok) {
                 logger.warn(`GoldSkySubscriber: HTTP ${res.status} from ${q.url}`);
@@ -364,10 +370,13 @@ export class GoldSkySubscriber implements BaseSubscriber {
             }
             return json?.data ?? null;
         } catch (err: any) {
-            if (err?.name !== 'AbortError') {
+            if (err?.name !== 'AbortError' && err?.name !== 'TimeoutError') {
                 logger.warn(`GoldSkySubscriber: Fetch failed for ${q.url}`, { error: String(err) });
             }
             return null;
+        } finally {
+            signal.removeEventListener('abort', onAbort);
+            timeoutSignal.removeEventListener('abort', onAbort);
         }
     }
 }
