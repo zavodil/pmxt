@@ -53,6 +53,7 @@ export interface GeminiRawEvent {
     expiryDate?: string;
     contracts: GeminiRawContract[];
     volume?: string;
+    volume24h?: string;
     liquidity?: string;
     tags?: string[];
     subcategory?: Record<string, unknown>;

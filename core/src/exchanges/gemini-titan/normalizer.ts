@@ -109,7 +109,7 @@ export class GeminiNormalizer implements IExchangeNormalizer<GeminiRawEvent, Gem
             description: raw.description ?? '',
             slug: raw.slug ?? raw.ticker.toLowerCase(),
             markets: [],
-            volume24h: raw.volume ? parseFloat(raw.volume) : 0,
+            volume24h: raw.volume24h ? parseFloat(raw.volume24h) : 0,
             url: buildExchangeUrl(raw.ticker),
             category: raw.category,
             tags: raw.tags ?? [],
