@@ -197,8 +197,10 @@ export class LimitlessExchange extends PredictionMarketExchange {
 
     async fetchOHLCV(outcomeId: string, params: OHLCVParams): Promise<PriceCandle[]> {
         const slug = await this.resolveSlug(outcomeId);
-        const rawPrices = await this.fetcher.fetchRawOHLCV!(slug, params);
-        return this.normalizer.normalizeOHLCV!(rawPrices as any, params);
+        if (!this.fetcher.fetchRawOHLCV) { throw new Error('fetchRawOHLCV is not implemented for this exchange'); }
+        const rawPrices = await this.fetcher.fetchRawOHLCV(slug, params);
+        if (!this.normalizer.normalizeOHLCV) { throw new Error('normalizeOHLCV is not implemented for this exchange'); }
+        return this.normalizer.normalizeOHLCV(rawPrices as any, params);
     }
 
     async fetchOrderBook(outcomeId: string, limit?: number, params?: Record<string, any>): Promise<OrderBook> {
@@ -206,8 +208,10 @@ export class LimitlessExchange extends PredictionMarketExchange {
         outcomeId = resolved.outcomeId;
         params = resolved.params;
         const slug = await this.resolveSlug(outcomeId);
-        const rawOrderBook = await this.fetcher.fetchRawOrderBook!(slug);
-        const orderBook = this.normalizer.normalizeOrderBook!(rawOrderBook as any, outcomeId);
+        if (!this.fetcher.fetchRawOrderBook) { throw new Error('fetchRawOrderBook is not implemented for this exchange'); }
+        const rawOrderBook = await this.fetcher.fetchRawOrderBook(slug);
+        if (!this.normalizer.normalizeOrderBook) { throw new Error('normalizeOrderBook is not implemented for this exchange'); }
+        const orderBook = this.normalizer.normalizeOrderBook(rawOrderBook as any, outcomeId);
 
         // The Limitless API always returns the Yes-side order book regardless
         // of which token is queried. If the caller asked for the No token,
@@ -251,14 +255,20 @@ export class LimitlessExchange extends PredictionMarketExchange {
             );
         }
         const slug = await this.resolveSlug(outcomeId);
-        const rawTrades = await this.fetcher.fetchRawTrades!(slug, params);
-        return rawTrades.map((raw, i) => this.normalizer.normalizeTrade!(raw, i));
+        if (!this.fetcher.fetchRawTrades) { throw new Error('fetchRawTrades is not implemented for this exchange'); }
+        const rawTrades = await this.fetcher.fetchRawTrades(slug, params);
+        if (!this.normalizer.normalizeTrade) { throw new Error('normalizeTrade is not implemented for this exchange'); }
+        const normalizeTrade = this.normalizer.normalizeTrade;
+        return rawTrades.map((raw, i) => normalizeTrade(raw, i));
     }
 
     async fetchMyTrades(params?: MyTradesParams): Promise<UserTrade[]> {
         const auth = this.ensureAuth();
-        const rawTrades = await this.fetcher.fetchRawMyTrades!(params || {}, auth.getApiKey());
-        return rawTrades.map((raw, i) => this.normalizer.normalizeUserTrade!(raw, i));
+        if (!this.fetcher.fetchRawMyTrades) { throw new Error('fetchRawMyTrades is not implemented for this exchange'); }
+        const rawTrades = await this.fetcher.fetchRawMyTrades(params || {}, auth.getApiKey());
+        if (!this.normalizer.normalizeUserTrade) { throw new Error('normalizeUserTrade is not implemented for this exchange'); }
+        const normalizeUserTrade = this.normalizer.normalizeUserTrade;
+        return rawTrades.map((raw, i) => normalizeUserTrade(raw, i));
     }
 
     // ------------------------------------------------------------------------
@@ -438,7 +448,9 @@ export class LimitlessExchange extends PredictionMarketExchange {
         // Public endpoint -- no auth needed when an address is explicitly supplied.
         const account = address ?? this.ensureAuth().getAddress();
         const rawItems = await this.fetcher.fetchRawPositions(account);
-        return rawItems.map((raw) => this.normalizer.normalizePosition!(raw));
+        if (!this.normalizer.normalizePosition) { throw new Error('normalizePosition is not implemented for this exchange'); }
+        const normalizePosition = this.normalizer.normalizePosition;
+        return rawItems.map((raw) => normalizePosition(raw));
     }
 
     async fetchBalance(address?: string): Promise<Balance[]> {
