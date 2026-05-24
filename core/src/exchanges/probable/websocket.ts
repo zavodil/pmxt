@@ -71,10 +71,7 @@ export class ProbableWebSocket {
 
         // Return a promise that resolves on the next orderbook update
         const dataPromise = new Promise<OrderBook>((resolve, reject) => {
-            if (!this.orderBookResolvers.has(tokenId)) {
-                this.orderBookResolvers.set(tokenId, []);
-            }
-            this.orderBookResolvers.get(tokenId)!.push({ resolve, reject });
+            this.getOrderBookQueue(tokenId).push({ resolve, reject });
         });
 
         return withWatchTimeout(
@@ -118,6 +115,17 @@ export class ProbableWebSocket {
             resolvers.forEach(r => r.resolve(orderBook));
             this.orderBookResolvers.set(tokenId, []);
         }
+    }
+
+    private getOrderBookQueue(tokenId: string): QueuedPromise<OrderBook>[] {
+        const resolvers = this.orderBookResolvers.get(tokenId);
+        if (resolvers) {
+            return resolvers;
+        }
+
+        const queue: QueuedPromise<OrderBook>[] = [];
+        this.orderBookResolvers.set(tokenId, queue);
+        return queue;
     }
 
     async close() {
