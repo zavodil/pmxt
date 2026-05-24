@@ -33,9 +33,9 @@ export function createFeedRouter(): Router {
     // GET /api/feeds/:feed/fetchTicker?symbol=BTC/USD
     router.get('/:feed/fetchTicker', async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const symbol = req.query.symbol as string;
-            if (!symbol) {
-                res.status(400).json({ success: false, error: 'Missing required parameter: symbol' });
+            const symbol = req.query.symbol;
+            if (typeof symbol !== 'string') {
+                res.status(400).json({ success: false, error: 'Missing required query parameter: symbol' });
                 return;
             }
             const data = await (req as any)._feed.fetchTicker(symbol);
@@ -46,7 +46,11 @@ export function createFeedRouter(): Router {
     // GET /api/feeds/:feed/fetchTickers?symbols=BTC/USD,ETH/USD
     router.get('/:feed/fetchTickers', async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const symbolsRaw = req.query.symbols as string | undefined;
+            const symbolsRaw = req.query.symbols;
+            if (symbolsRaw !== undefined && typeof symbolsRaw !== 'string') {
+                res.status(400).json({ success: false, error: 'Invalid query parameter: symbols must be a string' });
+                return;
+            }
             const symbols = symbolsRaw ? symbolsRaw.split(',').map((s) => s.trim()) : undefined;
             const data = await (req as any)._feed.fetchTickers(symbols);
             res.json({ success: true, data });
@@ -56,14 +60,19 @@ export function createFeedRouter(): Router {
     // GET /api/feeds/:feed/fetchOHLCV?symbol=BTC/USDT&timeframe=1h&since=...&limit=...
     router.get('/:feed/fetchOHLCV', async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const symbol = req.query.symbol as string;
-            if (!symbol) {
-                res.status(400).json({ success: false, error: 'Missing required parameter: symbol' });
+            const symbol = req.query.symbol;
+            if (typeof symbol !== 'string') {
+                res.status(400).json({ success: false, error: 'Missing required query parameter: symbol' });
+                return;
+            }
+            const timeframe = req.query.timeframe;
+            if (timeframe !== undefined && typeof timeframe !== 'string') {
+                res.status(400).json({ success: false, error: 'Invalid query parameter: timeframe must be a string' });
                 return;
             }
             const data = await (req as any)._feed.fetchOHLCV(
                 symbol,
-                (req.query.timeframe as string) || '1h',
+                timeframe || '1h',
                 req.query.since ? Number(req.query.since) : undefined,
                 req.query.limit ? Number(req.query.limit) : undefined,
             );
@@ -79,9 +88,9 @@ export function createFeedRouter(): Router {
                 res.status(501).json({ success: false, error: `Feed '${req.params.feed}' does not support fetchOrderBook` });
                 return;
             }
-            const symbol = req.query.symbol as string;
-            if (!symbol) {
-                res.status(400).json({ success: false, error: 'Missing required parameter: symbol' });
+            const symbol = req.query.symbol;
+            if (typeof symbol !== 'string') {
+                res.status(400).json({ success: false, error: 'Missing required query parameter: symbol' });
                 return;
             }
             const data = await feed.fetchOrderBook(symbol, req.query.limit ? Number(req.query.limit) : undefined);
@@ -97,9 +106,9 @@ export function createFeedRouter(): Router {
                 res.status(501).json({ success: false, error: `Feed '${req.params.feed}' does not support fetchOracleRound` });
                 return;
             }
-            const feedName = req.query.feed as string;
-            if (!feedName) {
-                res.status(400).json({ success: false, error: 'Missing required parameter: feed' });
+            const feedName = req.query.feed;
+            if (typeof feedName !== 'string') {
+                res.status(400).json({ success: false, error: 'Missing required query parameter: feed' });
                 return;
             }
             const data = await feed.fetchOracleRound({ feed: feedName });
@@ -115,9 +124,9 @@ export function createFeedRouter(): Router {
                 res.status(501).json({ success: false, error: `Feed '${req.params.feed}' does not support fetchOracleHistory` });
                 return;
             }
-            const feedName = req.query.feed as string;
-            if (!feedName) {
-                res.status(400).json({ success: false, error: 'Missing required parameter: feed' });
+            const feedName = req.query.feed;
+            if (typeof feedName !== 'string') {
+                res.status(400).json({ success: false, error: 'Missing required query parameter: feed' });
                 return;
             }
             const data = await feed.fetchOracleHistory({
@@ -136,16 +145,21 @@ export function createFeedRouter(): Router {
                 res.status(501).json({ success: false, error: `Feed '${req.params.feed}' does not support fetchHistoricalPrices` });
                 return;
             }
-            const symbol = req.query.symbol as string;
-            if (!symbol) {
-                res.status(400).json({ success: false, error: 'Missing required parameter: symbol' });
+            const symbol = req.query.symbol;
+            if (typeof symbol !== 'string') {
+                res.status(400).json({ success: false, error: 'Missing required query parameter: symbol' });
+                return;
+            }
+            const order = req.query.order;
+            if (order !== undefined && typeof order !== 'string') {
+                res.status(400).json({ success: false, error: 'Invalid query parameter: order must be a string' });
                 return;
             }
             const data = await feed.fetchHistoricalPrices(symbol, {
                 fromTimestamp: req.query.fromTimestamp ? Number(req.query.fromTimestamp) : undefined,
                 untilTimestamp: req.query.untilTimestamp ? Number(req.query.untilTimestamp) : undefined,
                 maxSize: req.query.maxSize ? Number(req.query.maxSize) : undefined,
-                order: req.query.order as 'asc' | 'desc' | undefined,
+                order: order as 'asc' | 'desc' | undefined,
             });
             res.json({ success: true, data });
         } catch (error) { next(error); }
