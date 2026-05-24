@@ -140,13 +140,17 @@ export class PolymarketAuth {
             };
         }
 
-        const address = this.signerAddress!;
+        if (!this.signerAddress) {
+            throw new Error('[polymarket] Wallet not initialized — privateKey required before discoverProxy()');
+        }
+        const address = this.signerAddress;
         try {
             // Polymarket Data API / Profiles endpoint
             // Path-based: https://data-api.polymarket.com/profiles/0x...
             const dataApiUrl = process.env.POLYMARKET_DATA_URL || 'https://data-api.polymarket.com';
             const response = await axios.get(`${dataApiUrl}/profiles/${address}`, {
-                headers: { 'User-Agent': 'pmxt (https://github.com/pmxt-dev/pmxt)' }
+                headers: { 'User-Agent': 'pmxt (https://github.com/pmxt-dev/pmxt)' },
+                timeout: 10_000,
             });
             const profile = response.data;
             // console.log(`[PolymarketAuth] Profile for ${address}:`, JSON.stringify(profile));
@@ -159,9 +163,12 @@ export class PolymarketAuth {
                 this.discoveredSignatureType = profile.isGnosisSafe ? SIG_TYPE_GNOSIS_SAFE : SIG_TYPE_POLY_PROXY;
 
                 // console.log(`[PolymarketAuth] Auto-discovered proxy for ${address}: ${this.discoveredProxyAddress} (Type: ${this.discoveredSignatureType})`);
+                if (!this.discoveredProxyAddress || this.discoveredSignatureType === undefined) {
+                    throw new Error('[polymarket] Proxy discovery incomplete — missing proxyAddress or signatureType');
+                }
                 return {
-                    proxyAddress: this.discoveredProxyAddress as string,
-                    signatureType: this.discoveredSignatureType as number
+                    proxyAddress: this.discoveredProxyAddress,
+                    signatureType: this.discoveredSignatureType
                 };
             }
         } catch (error: unknown) {
@@ -259,8 +266,11 @@ export class PolymarketAuth {
         const apiCreds = await this.getApiCredentials();
 
         // Final addresses
-        const signerAddress = this.signerAddress!;
-        const finalProxyAddress: string = (proxyAddress || signerAddress) as string;
+        if (!this.signerAddress) {
+            throw new Error('[polymarket] Wallet not initialized — privateKey required before getClobClient()');
+        }
+        const signerAddress = this.signerAddress;
+        const finalProxyAddress: string = proxyAddress || signerAddress;
         const finalSignatureType: number = signatureType;
 
         // Create L2-authenticated client
@@ -294,14 +304,23 @@ export class PolymarketAuth {
      * Synchronous getter for credentials funder address.
      */
     getFunderAddress(): string {
-        return this.credentials.funderAddress || this.signerAddress!;
+        if (this.credentials.funderAddress) {
+            return this.credentials.funderAddress;
+        }
+        if (!this.signerAddress) {
+            throw new Error('[polymarket] Wallet not initialized — no funderAddress or signerAddress available');
+        }
+        return this.signerAddress;
     }
 
     /**
      * Get the signer's address.
      */
     getAddress(): string {
-        return this.signerAddress!;
+        if (!this.signerAddress) {
+            throw new Error('[polymarket] Wallet not initialized — privateKey required');
+        }
+        return this.signerAddress;
     }
 
     /**
