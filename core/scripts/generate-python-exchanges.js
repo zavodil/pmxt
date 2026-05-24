@@ -30,8 +30,8 @@ const OVERRIDES = {
 
 function toClassName(name) {
     return name
-        .split('-')
-        .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+        .split(/[-_]/)
+        .map(part => part.toLowerCase() === 'us' ? 'US' : part.charAt(0).toUpperCase() + part.slice(1))
         .join('');
 }
 
@@ -244,7 +244,7 @@ init = init.replace(
 // Update the # Exchanges section in __all__
 const allEntries = classNames.map(n => `    "${n}",`).join('\n');
 init = init.replace(
-    /(    # Exchanges\n)([\s\S]*?)(    "Exchange",)/,
+    /(    # Exchanges\r?\n)([\s\S]*?)(    "Exchange",)/,
     `$1${allEntries}\n$3`
 );
 
