@@ -66,6 +66,7 @@ export interface HyperliquidRawTrade {
     hash: string;    // transaction hash
     time: number;    // timestamp (ms)
     tid: number;     // trade id
+    users: string[]; // [takerAddress, makerAddress]
 }
 
 export interface HyperliquidRawMid {
@@ -87,6 +88,7 @@ export interface HyperliquidRawFill {
     fee: string;
     tid: number;
     feeToken: string;
+    builderFee?: string; // present when order was placed through a builder
 }
 
 export interface HyperliquidRawOpenOrder {
@@ -96,7 +98,7 @@ export interface HyperliquidRawOpenOrder {
     side: string;
     sz: string;
     timestamp: number;
-    origSz: string;
+    origSz?: string; // only returned by frontendOpenOrders, not openOrders
     cloid?: string;
 }
 
