@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.43.20] - 2026-05-24
+
+### Fixed
+
+- **Kalshi**: Non-null assertion guards on WebSocket resolver maps + 30s connection timeout. Fixes #230, #231.
+- **Gemini Titan**: Non-null assertion guards on resolver maps + 30s handshake timeout. Fixes #235, #236.
+- **Opinion**: Non-null assertion guards on resolver maps + 30s connection timeout. Fixes #239, #249.
+- **Myriad**: Non-null assertion guards on WebSocket resolver/rejecter maps. Fixes #240.
+- **Polymarket**: Non-null assertion guards, bounded `pendingTrades` (1000/asset), `userCallbacks` dedup + cap (100), 30s connection timeout on both channels. Fixes #243, #245, #247, #334, #380.
+- **Polymarket US**: Non-null assertion guards on WebSocket socket reference. Fixes #284.
+- **Polymarket**: Guard `Map.get()` on candle buckets in normalizer. Fixes #321.
+- **Limitless**: Non-null assertion guards on websocket resolvers/buffers + stale resolver cleanup on timeout + client orderClient/signer guards + normalizer param narrowing. Fixes #257, #290, #303, #372.
+- **Kalshi/Limitless/GoldSky**: Remove unsafe `as` casts on nullable fields — use type predicates, null guards, optional chaining. Fixes #336.
+- **TypeScript SDK**: Non-null guards on `ws-client.ts` send + 30s fetch timeout on router `compareMarketPrices`. Fixes #223, #281.
+- **Chainlink/Binance feeds**: Add 30s connection timeout to WebSocket `establishConnection()`. Fixes #252, #253.
+- **Server**: Replace console calls with structured logger in `server/index.ts`. Fixes #306, #308, #310, #311, #312.
+- **TypeScript SDK**: Replace `console.warn` with structured logger in SDK router. Fixes #396.
+- **Utils**: Non-null guards on `market-utils.ts` + max queue depth (1000) on throttler + watcher resolver safety. Fixes #269, #296, #329.
+
+### Performance
+
+- **Kalshi**: Replace O(n²) `concat()` with `push()` in fetcher pagination (3 loops, MAX_PAGES=1000). Fixes #343.
+- **Opinion**: Replace O(n²) spread with `push()` in fetcher pagination (MAX_PAGES=500). Fixes #347.
+- **Smarkets**: Replace O(n²) spread with `push()` in fetcher pagination + map building (MAX_PAGES=100). Fixes #355.
+
 ## [2.43.19] - 2026-05-24
 
 ### Fixed
