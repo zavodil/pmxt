@@ -117,7 +117,7 @@ export class ExchangeNotAvailable extends PmxtError {
 }
 
 // Error code to class mapping
-const ERROR_CODE_MAP: Record<string, new (...args: string[]) => PmxtError> = {
+const ERROR_CODE_MAP: Record<string, new (...args: any[]) => PmxtError> = {
     BAD_REQUEST: BadRequest,
     AUTHENTICATION_ERROR: AuthenticationError,
     PERMISSION_DENIED: PermissionDenied,
