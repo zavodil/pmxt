@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.44.5] - 2026-05-25
+
+### Fixed
+
+- **Mock exchange**: Respect `limit` in `fetchOrderBook()` and `fetchTrades()`, and expose the documented `fetchOrderBooks()` batch method.
+- **Local sidecar**: Expose documented `/api/feeds`, `/v0/sql`, and `/ws` surfaces from `createApp()`/local servers with clearer unsupported-capability and missing-environment errors.
+- **Router**: Resolve local mock market, outcome, and event IDs locally for `/api/router` match lookups instead of sending fixture IDs to the hosted catalog.
+
 ## [2.44.4] - 2026-05-24
 
 ### Fixed
