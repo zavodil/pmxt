@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.46.3] - 2026-05-25
+
+### Fixed
+
+- **Limitless**: Preserve parent event context when normalizing grouped child markets. `fetchEvents()` and `fetchMarkets({ query })` now return full grouped market titles such as `World Cup, USA vs Paraguay, Jun 13, 2026 - USA` while keeping outcome labels as `USA` / `Not USA`, improving cross-venue matching and avoiding ambiguous one-word market titles.
+
 ## [2.46.2] - 2026-05-25
 
 ### Fixed
