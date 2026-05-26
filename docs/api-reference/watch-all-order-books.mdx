@@ -65,14 +65,6 @@ while (true) {
 }
 ```
 
-```bash curl
-export PMXT_API_KEY="YOUR_PMXT_API_KEY"
-
-printf '%s\n' '{"id":"all-books","action":"subscribe","method":"watchAllOrderBooks"}' \
-  | curl --no-progress-meter --no-buffer --http1.1 -T . \
-      "wss://api.pmxt.dev/ws?apiKey=${PMXT_API_KEY}"
-```
-
 </CodeGroup>
 
 ### Raw WebSocket without an SDK
@@ -84,54 +76,7 @@ Use this when you are not using the Python or TypeScript SDKs, or when you are i
 | Hosted PMXT | `wss://api.pmxt.dev/ws?apiKey=YOUR_PMXT_API_KEY` |
 | Local hosted-compatible relay | `ws://localhost:5005/ws?apiKey=YOUR_PMXT_API_KEY` |
 
-curl supports WebSocket when `curl --version` lists `ws` and `wss` under protocols. These piped examples require curl `8.16.0` or newer so curl can send the subscription frame from stdin. curl `8.11.x` can list `ws` / `wss` but still fail here with `curl: (22) Refused WebSockets upgrade: 400`.
-
-<Warning>
-Do not put quote characters around the API key inside the URL. `?apiKey='pmxt_...'` sends the quotes as part of the key and the WebSocket upgrade will be rejected.
-</Warning>
-
-If you still see `curl: (22) Refused WebSockets upgrade: 400`, use curl `8.16.0` or newer, or use the raw Python WebSocket example below.
-
-```bash
-export PMXT_API_KEY="YOUR_PMXT_API_KEY"
-export PMXT_WS_URL="wss://api.pmxt.dev/ws"
-
-curl --version
-# Confirm the version is 8.16.0+ and the Protocols line includes ws and wss.
-
-printf '%s\n' '{"id":"all-books","action":"subscribe","method":"watchAllOrderBooks"}' \
-  | curl --no-progress-meter --no-buffer --http1.1 -T . \
-      "${PMXT_WS_URL}?apiKey=${PMXT_API_KEY}"
-```
-
-If you inline the key, do it without quotes around the query value:
-
-```bash
-printf '%s\n' '{"id":"all-books","action":"subscribe","method":"watchAllOrderBooks"}' \
-  | curl --no-progress-meter --no-buffer --http1.1 -T . \
-      "wss://api.pmxt.dev/ws?apiKey=YOUR_PMXT_API_KEY"
-```
-
-For a single venue, put the venue list in `args`:
-
-```bash
-export PMXT_API_KEY="YOUR_PMXT_API_KEY"
-export PMXT_WS_URL="wss://api.pmxt.dev/ws"
-
-printf '%s\n' '{"id":"kalshi-books","action":"subscribe","method":"watchAllOrderBooks","args":[["kalshi"]]}' \
-  | curl --no-progress-meter --no-buffer --http1.1 -T . \
-      "${PMXT_WS_URL}?apiKey=${PMXT_API_KEY}"
-```
-
-When testing a PMXT-compatible hosted relay locally, use the same message shape and switch only the URL:
-
-```bash
-export PMXT_WS_URL="ws://localhost:5005/ws"
-```
-
-Do not use `--data` or `--data-binary` for this. Those options send an HTTP request body instead of a WebSocket frame.
-
-If your curl is older, use a WebSocket client library directly. This Python example does not use the PMXT SDK; it connects to the same raw WebSocket URL that a Rust or Go client would use.
+This Python example does not use the PMXT SDK; it connects to the same raw WebSocket URL that a Rust or Go client would use.
 
 ```bash
 pip install websockets
@@ -156,25 +101,13 @@ async def main():
     url = f"{PMXT_WS_URL}?apiKey={PMXT_API_KEY}"
     async with websockets.connect(url) as ws:
         await ws.send(json.dumps({
-            "id": "kalshi-books",
+            "id": "all-books",
             "action": "subscribe",
             "method": "watchAllOrderBooks",
-            "args": [["kalshi"]],
         }))
 
         async for raw in ws:
-            msg = json.loads(raw)
-            if msg.get("event") != "data":
-                print(msg)
-                continue
-
-            book = msg["data"]
-            print({
-                "source": msg["source"],
-                "symbol": msg["symbol"],
-                "bestBid": book.get("bids", [])[:1],
-                "bestAsk": book.get("asks", [])[:1],
-            })
+            print(raw)
 
 
 asyncio.run(main())
@@ -268,14 +201,6 @@ while (true) {
   if (!event.orderbook.bids.length) continue;
   console.log(`[${event.source}] bid=${event.orderbook.bids[0].price}`);
 }
-```
-
-```bash curl
-export PMXT_API_KEY="YOUR_PMXT_API_KEY"
-
-printf '%s\n' '{"id":"poly-limitless","action":"subscribe","method":"watchAllOrderBooks","args":[["polymarket","limitless"]]}' \
-  | curl --no-progress-meter --no-buffer --http1.1 -T . \
-      "wss://api.pmxt.dev/ws?apiKey=${PMXT_API_KEY}"
 ```
 
 </CodeGroup>

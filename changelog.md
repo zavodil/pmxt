@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.46.13] - 2026-05-26
+
+### Fixed
+
+- **Docs**: Replace the raw WebSocket curl examples for `watchAllOrderBooks()` with a direct Python WebSocket example for non-SDK users.
+
 ## [2.46.12] - 2026-05-26
 
 ### Fixed
