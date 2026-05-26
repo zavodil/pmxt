@@ -108,20 +108,45 @@ jobs:
       - name: Build (All Workspaces)
         run: npm run build --workspaces
         
-      - name: Publish pmxt-core
-        run: npm publish --workspace=pmxt-core --provenance --access public --tag ${{ steps.get_version.outputs.npm_tag }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          
-      - name: Publish pmxtjs
-        run: npm publish --workspace=pmxtjs --provenance --access public --tag ${{ steps.get_version.outputs.npm_tag }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish npm packages
+        shell: bash
+        run: |
+          set -euo pipefail
 
-      - name: Publish @pmxt/cli
-        run: npm publish --workspace=@pmxt/cli --provenance --access public --tag ${{ steps.get_version.outputs.npm_tag }}
+          publish_workspace() {
+            local workspace="$1"
+            local package_name="$2"
+            local log_file
+            log_file="$(mktemp)"
+
+            echo "Publishing ${package_name}@${VERSION} from ${workspace}"
+
+            if npm publish --workspace="${workspace}" --provenance --access public --tag "${NPM_TAG}" 2>&1 | tee "${log_file}"; then
+              return 0
+            fi
+
+            if npm view "${package_name}@${VERSION}" version --silent >/dev/null 2>&1; then
+              echo "${package_name}@${VERSION} is already published; continuing."
+              return 0
+            fi
+
+            if grep -Eq 'IDENTITY_TOKEN_READ_ERROR|TLOG_CREATE_ENTRY_ERROR|provenance|transparency log' "${log_file}"; then
+              echo "Provenance publish failed for ${package_name}; retrying without provenance."
+              npm publish --workspace="${workspace}" --access public --tag "${NPM_TAG}"
+              return 0
+            fi
+
+            cat "${log_file}"
+            return 1
+          }
+
+          publish_workspace "pmxt-core" "pmxt-core"
+          publish_workspace "pmxtjs" "pmxtjs"
+          publish_workspace "@pmxt/cli" "@pmxt/cli"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TAG: ${{ steps.get_version.outputs.npm_tag }}
+          VERSION: ${{ steps.get_version.outputs.version }}
 
   publish-python:
     name: Publish pmxt (Python)

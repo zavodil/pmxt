@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.46.12] - 2026-05-26
+
+### Fixed
+
+- **Release**: Recover npm package publishing after repeated provenance/transparency-log failures left registry versions split across `2.46.9` and `2.46.10`.
+
 ## [2.46.11] - 2026-05-26
 
 ### Fixed
