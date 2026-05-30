@@ -1,6 +1,7 @@
 import { IExchangeNormalizer } from '../interfaces';
 import { UnifiedMarket, UnifiedEvent, Position } from '../../types';
 import { SuibetsRawOffer, SuibetsRawEvent } from './fetcher';
+import { buildSourceMetadata } from '../../utils/metadata';
 import {
     impliedProbability,
     takerProbability,
@@ -10,6 +11,21 @@ import {
     toOutcomeId,
     mapStatus,
 } from './utils';
+
+// Raw SuiBets offer fields already promoted to first-class UnifiedMarket columns.
+// Omit these from sourceMetadata to capture only vendor-specific data not
+// represented by the unified shape.
+const SUIBETS_PROMOTED_OFFER_KEYS = [
+    'id', 'matchId', 'matchName', 'homeTeam', 'awayTeam',
+    'creatorOdds', 'creatorStake', 'remainingStake', 'totalMatched',
+    'matchDate', 'expiresAt', 'status', 'onchainOfferId',
+    'leagueName', 'sport', 'isOnchain',
+] as const;
+
+// Raw SuiBets event fields already promoted to first-class UnifiedEvent columns.
+const SUIBETS_PROMOTED_EVENT_KEYS = [
+    'id', 'name', 'homeTeam', 'awayTeam', 'sport', 'leagueName', 'offers',
+] as const;
 
 function liquidity(offer: SuibetsRawOffer): number {
     const remaining = offer.remainingStake ?? offer.creatorStake;
@@ -71,6 +87,12 @@ export class SuibetsNormalizer implements IExchangeNormalizer<SuibetsRawOffer, S
             contractAddress: raw.onchainOfferId,
             yes: creatorOutcome,
             no: takerOutcome,
+            // Retains creatorWallet, creatorTeam, takerStake, currency \u2014 fields
+            // that are vendor-specific and not promoted to any unified column.
+            sourceMetadata: buildSourceMetadata(
+                raw as unknown as Record<string, unknown>,
+                SUIBETS_PROMOTED_OFFER_KEYS,
+            ),
         };
 
         return market;
@@ -103,6 +125,12 @@ export class SuibetsNormalizer implements IExchangeNormalizer<SuibetsRawOffer, S
             url: 'https://suibets.replit.app/p2p',
             category: 'Sports',
             tags: ['Sports', 'P2P', 'Sui', raw.sport, raw.leagueName].filter((t): t is string => Boolean(t)),
+            // Retains matchDate and status \u2014 event-level fields not promoted to
+            // any first-class UnifiedEvent column.
+            sourceMetadata: buildSourceMetadata(
+                raw as unknown as Record<string, unknown>,
+                SUIBETS_PROMOTED_EVENT_KEYS,
+            ),
         };
     }
 

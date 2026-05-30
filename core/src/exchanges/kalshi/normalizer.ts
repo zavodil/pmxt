@@ -2,8 +2,23 @@ import { OHLCVParams } from '../../BaseExchange';
 import { UnifiedMarket, UnifiedEvent, PriceCandle, OrderBook, Trade, UserTrade, Position, Balance, MarketOutcome } from '../../types';
 import { IExchangeNormalizer } from '../interfaces';
 import { addBinaryOutcomes } from '../../utils/market-utils';
+import { buildSourceMetadata } from '../../utils/metadata';
 import { fromKalshiCents, invertKalshiUnified } from './price';
 import { KalshiRawEvent, KalshiRawMarket, KalshiRawCandlestick, KalshiRawTrade, KalshiRawFill, KalshiRawOrder, KalshiRawPosition, KalshiRawOrderBookFp } from './fetcher';
+
+// Raw Kalshi fields already promoted to first-class Unified columns — excluded
+// from sourceMetadata so we capture only what the unified shape would drop.
+const KALSHI_PROMOTED_EVENT_KEYS = [
+    'event_ticker', 'title', 'markets', 'category', 'image_url', 'tags',
+] as const;
+
+const KALSHI_PROMOTED_MARKET_KEYS = [
+    'ticker', 'title', 'rules_primary', 'rules_secondary', 'expiration_time',
+    'volume_24h_fp', 'volume_24h', 'volume', 'volume_fp',
+    'liquidity_dollars', 'liquidity', 'open_interest_fp', 'open_interest',
+    'status', 'last_price_dollars', 'previous_price_dollars',
+    'yes_ask_dollars', 'yes_bid_dollars', 'last_price', 'yes_ask', 'yes_bid',
+] as const;
 
 export class KalshiNormalizer implements IExchangeNormalizer<KalshiRawEvent, KalshiRawEvent> {
 
@@ -92,6 +107,15 @@ export class KalshiNormalizer implements IExchangeNormalizer<KalshiRawEvent, Kal
             category: event.category,
             tags: unifiedTags,
             status: this.cleanLabel(market.status) || undefined,
+            // series_ticker/series_title live on the parent event, not the raw
+            // market, and aren't promoted to a column — attach them here so
+            // markets are queryable by series. event_ticker is omitted (already
+            // promoted to eventId).
+            sourceMetadata: buildSourceMetadata(
+                market as unknown as Record<string, unknown>,
+                KALSHI_PROMOTED_MARKET_KEYS,
+                { series_ticker: event.series_ticker, series_title: event.series_title },
+            ),
         } as UnifiedMarket;
 
         addBinaryOutcomes(um);
@@ -117,6 +141,12 @@ export class KalshiNormalizer implements IExchangeNormalizer<KalshiRawEvent, Kal
             image: raw.image_url ?? undefined,
             category: raw.category,
             tags: raw.tags || [],
+            // Keeps non-promoted event fields (series_ticker, series_title,
+            // sub_title, strike_period, ...); raw markets array is promoted.
+            sourceMetadata: buildSourceMetadata(
+                raw as unknown as Record<string, unknown>,
+                KALSHI_PROMOTED_EVENT_KEYS,
+            ),
         };
     }
 

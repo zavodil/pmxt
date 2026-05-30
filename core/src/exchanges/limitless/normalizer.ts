@@ -2,6 +2,7 @@ import { OHLCVParams } from '../../BaseExchange';
 import { UnifiedMarket, UnifiedEvent, PriceCandle, OrderBook, Trade, UserTrade, Position, Balance } from '../../types';
 import { IExchangeNormalizer } from '../interfaces';
 import { mapMarketToUnified } from './utils';
+import { buildSourceMetadata } from '../../utils/metadata';
 import {
     LimitlessRawMarket,
     LimitlessRawEvent,
@@ -9,6 +10,15 @@ import {
     LimitlessRawOrderBook,
     LimitlessRawTrade,
 } from './fetcher';
+
+// Raw Limitless event fields already promoted to first-class Unified columns —
+// excluded from sourceMetadata so we capture only what the unified shape drops.
+const LIMITLESS_PROMOTED_EVENT_KEYS = [
+    'slug', 'title', 'question', 'description',
+    'logo',
+    'categories', 'tags',
+    'markets',
+] as const;
 
 // Limitless uses USDC with 6 decimals
 const USDC_DECIMALS = 6;
@@ -59,6 +69,10 @@ export class LimitlessNormalizer implements IExchangeNormalizer<LimitlessRawMark
             image: raw.logo || `https://limitless.exchange/api/og?slug=${raw.slug}`,
             category: raw.categories?.[0],
             tags: raw.tags || [],
+            sourceMetadata: buildSourceMetadata(
+                raw as unknown as Record<string, unknown>,
+                LIMITLESS_PROMOTED_EVENT_KEYS,
+            ),
         } as UnifiedEvent;
     }
 

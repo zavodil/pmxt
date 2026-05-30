@@ -58,6 +58,7 @@ export class BaoziNormalizer implements IExchangeNormalizer<BaoziRawMarket, Baoz
             image: market.image,
             category: market.category,
             tags: market.tags,
+            sourceMetadata: market.sourceMetadata,
         };
     }
 
@@ -84,6 +85,7 @@ export class BaoziNormalizer implements IExchangeNormalizer<BaoziRawMarket, Baoz
             image: m.image,
             category: m.category,
             tags: m.tags,
+            sourceMetadata: m.sourceMetadata,
         }));
     }
 

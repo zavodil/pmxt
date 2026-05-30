@@ -1,7 +1,8 @@
 import { EventFetchParams } from "../../BaseExchange";
 import { UnifiedEvent } from "../../types";
-import { expandPost } from "./utils";
+import { expandPost, METACULUS_PROMOTED_EVENT_KEYS } from "./utils";
 import { metaculusErrorMapper } from "./errors";
+import { buildSourceMetadata } from "../../utils/metadata";
 
 type CallApi = (
     operationId: string,
@@ -85,6 +86,10 @@ function postToEvent(post: any): UnifiedEvent | null {
                     : post.projects.category[0]?.name
                 : undefined,
         tags: markets[0]?.tags ?? [],
+        sourceMetadata: buildSourceMetadata(
+            post as unknown as Record<string, unknown>,
+            METACULUS_PROMOTED_EVENT_KEYS,
+        ),
     };
 }
 

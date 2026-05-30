@@ -1,6 +1,7 @@
 import { OHLCVParams } from '../../BaseExchange';
 import { UnifiedMarket, UnifiedEvent, PriceCandle, OrderBook, Trade, UserTrade, Position } from '../../types';
 import { IExchangeNormalizer } from '../interfaces';
+import { buildSourceMetadata } from '../../utils/metadata';
 import { mapMarketToUnified, mapIntervalToFidelity } from './utils';
 import {
     PolymarketRawEvent,
@@ -9,6 +10,15 @@ import {
     PolymarketRawTrade,
     PolymarketRawPosition,
 } from './fetcher';
+
+// Raw Polymarket Gamma event fields already promoted to first-class Unified
+// columns — excluded from sourceMetadata so we capture only what the unified
+// shape would otherwise drop.
+const POLYMARKET_PROMOTED_EVENT_KEYS = [
+    'id', 'slug', 'title', 'description', 'image', 'category', 'tags',
+    // 'markets' is the child-markets array — promoted to UnifiedEvent.markets
+    'markets',
+] as const;
 
 export class PolymarketNormalizer implements IExchangeNormalizer<PolymarketRawEvent, PolymarketRawEvent> {
 
@@ -51,6 +61,15 @@ export class PolymarketNormalizer implements IExchangeNormalizer<PolymarketRawEv
             image: (raw.image as string) || `https://polymarket.com/api/og?slug=${raw.slug}`,
             category: (raw.category as string) || raw.tags?.[0]?.label,
             tags: raw.tags?.map((t: any) => t.label) || [],
+            // Keeps non-promoted Gamma event fields (e.g. active, closed, and
+            // any other vendor fields not surfaced as first-class columns).
+            // NOTE: Polymarket "series" data lives on a separate Gamma /series
+            // endpoint — it is NOT present in the event payload and therefore
+            // requires a separate /series fetch+join to populate here.
+            sourceMetadata: buildSourceMetadata(
+                raw as unknown as Record<string, unknown>,
+                POLYMARKET_PROMOTED_EVENT_KEYS,
+            ),
         } as UnifiedEvent;
     }
 

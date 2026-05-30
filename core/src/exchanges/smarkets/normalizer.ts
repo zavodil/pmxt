@@ -1,6 +1,7 @@
 import { UnifiedMarket, UnifiedEvent, OrderBook, Trade, UserTrade, Position, Balance, MarketOutcome, Order } from '../../types';
 import { IExchangeNormalizer } from '../interfaces';
 import { addBinaryOutcomes } from '../../utils/market-utils';
+import { buildSourceMetadata } from '../../utils/metadata';
 import { fromBasisPoints, fromQuantityUnits } from './price';
 import {
     SmarketsRawEventWithMarkets,
@@ -13,6 +14,20 @@ import {
     SmarketsRawVolume,
     SmarketsRawBalance,
 } from './fetcher';
+
+// Raw Smarkets event fields already promoted to first-class Unified columns —
+// excluded from sourceMetadata so we capture only vendor data not in the
+// unified shape.
+const SMARKETS_PROMOTED_EVENT_KEYS = [
+    'id', 'name', 'description', 'slug', 'full_slug',
+    'start_datetime', 'end_date',
+] as const;
+
+// Raw Smarkets market fields already promoted to first-class Unified columns.
+const SMARKETS_PROMOTED_MARKET_KEYS = [
+    'id', 'event_id', 'name', 'slug', 'description',
+    'category', 'categories',
+] as const;
 
 // ----------------------------------------------------------------------------
 // Helpers
@@ -123,6 +138,12 @@ export class SmarketsNormalizer implements IExchangeNormalizer<SmarketsRawEventW
             url: buildEventUrl(event),
             category,
             tags,
+            // event_id is promoted to eventId; parent_id lives on the raw event
+            // (not a recurring/series market field), so no extra is needed.
+            sourceMetadata: buildSourceMetadata(
+                market as unknown as Record<string, unknown>,
+                SMARKETS_PROMOTED_MARKET_KEYS,
+            ),
         } as UnifiedMarket;
 
         addBinaryOutcomes(um);
@@ -148,6 +169,13 @@ export class SmarketsNormalizer implements IExchangeNormalizer<SmarketsRawEventW
             url: buildEventUrl(raw.event),
             category,
             tags: category ? [category] : [],
+            // Captures non-promoted event fields: state, type, parent_id,
+            // start_date, created, modified, bettable, hidden, inplay_enabled,
+            // short_name, seo_description, special_rules, chart_time_period, etc.
+            sourceMetadata: buildSourceMetadata(
+                raw.event as unknown as Record<string, unknown>,
+                SMARKETS_PROMOTED_EVENT_KEYS,
+            ),
         };
     }
 

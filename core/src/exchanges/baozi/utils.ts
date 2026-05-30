@@ -3,6 +3,7 @@ import bs58 from 'bs58';
 import { createHash } from 'crypto';
 import { UnifiedMarket, MarketOutcome } from '../../types';
 import { addBinaryOutcomes } from '../../utils/market-utils';
+import { buildSourceMetadata } from '../../utils/metadata';
 import { clampBaoziPrice, normalizeBaoziOutcomes } from './price';
 
 // ---------------------------------------------------------------------------
@@ -365,6 +366,34 @@ export function parseRacePosition(data: Buffer | Uint8Array): BaoziRacePosition 
 }
 
 // ---------------------------------------------------------------------------
+// Promoted key sets — fields already represented by first-class unified columns.
+// These are excluded from sourceMetadata to avoid duplication.
+// ---------------------------------------------------------------------------
+
+// BaoziMarket fields promoted to unified columns:
+//   question -> title
+//   resolutionTime -> resolutionDate
+//   yesPool / noPool -> volume + liquidity
+//   status -> status
+// pubkey is promoted to marketId; outcomeLabels / outcomePools -> outcomes
+const BAOZI_BOOLEAN_PROMOTED_KEYS = [
+    'question',
+    'resolutionTime',
+    'yesPool',
+    'noPool',
+    'status',
+] as const;
+
+const BAOZI_RACE_PROMOTED_KEYS = [
+    'question',
+    'resolutionTime',
+    'totalPool',
+    'status',
+    'outcomeLabels',
+    'outcomePools',
+] as const;
+
+// ---------------------------------------------------------------------------
 // Mapping to Unified Types
 // ---------------------------------------------------------------------------
 
@@ -410,6 +439,10 @@ export function mapBooleanToUnified(market: BaoziMarket, pubkey: string): Unifie
         url: `https://baozi.bet/market/${pubkey}`,
         category: undefined,
         tags: [`tier:${layerName(market.layer)}`, 'solana', 'pari-mutuel'],
+        sourceMetadata: buildSourceMetadata(
+            market as unknown as Record<string, unknown>,
+            BAOZI_BOOLEAN_PROMOTED_KEYS,
+        ),
     };
 
     addBinaryOutcomes(um);
@@ -451,6 +484,10 @@ export function mapRaceToUnified(market: BaoziRaceMarket, pubkey: string): Unifi
         url: `https://baozi.bet/market/${pubkey}`,
         category: undefined,
         tags: [`tier:${layerName(market.layer)}`, 'solana', 'pari-mutuel', 'race'],
+        sourceMetadata: buildSourceMetadata(
+            market as unknown as Record<string, unknown>,
+            BAOZI_RACE_PROMOTED_KEYS,
+        ),
     };
 
     // For 2-outcome races, add binary convenience getters

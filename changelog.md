@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.47.0] - 2026-05-30
+
+### Added
+
+- **Core**: Optional `sourceMetadata` field on `UnifiedEvent` and `UnifiedMarket` (`Record<string, unknown>`) — captures venue-specific raw fields that are not promoted to first-class unified columns. Populated by every exchange normalizer (Kalshi, Polymarket, Polymarket US, Limitless, Smarkets, Opinion, Myriad, Probable, Metaculus, Baozi, Gemini-Titan, Hyperliquid, SuiBets) via a shared `buildSourceMetadata` helper at `core/src/utils/metadata.ts`. Includes recurring-series identifiers where the venue exposes them (Kalshi `series_ticker`/`series_title`, Polymarket `series`/`seriesSlug` when present, Opinion `collection`, Gemini-Titan `series`).
+
 ## [2.46.14] - 2026-05-26
 
 ### Fixed

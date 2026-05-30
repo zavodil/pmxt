@@ -1,5 +1,35 @@
 import { UnifiedMarket, MarketOutcome } from "../../types";
 import { addBinaryOutcomes } from "../../utils/market-utils";
+import { buildSourceMetadata } from "../../utils/metadata";
+
+// Raw Metaculus Post fields already promoted to first-class UnifiedMarket columns
+// — excluded from sourceMetadata so we capture only what the unified shape drops.
+const METACULUS_PROMOTED_MARKET_KEYS = [
+    // identity / slug
+    'id', 'slug', 'url_title',
+    // title
+    'title',
+    // description lives inside question / group_of_questions — those are excluded below
+    // resolution timing -> resolutionDate
+    'scheduled_resolve_time', 'scheduled_close_time', 'actual_close_time',
+    // forecaster count -> liquidity / openInterest
+    'nr_forecasters',
+    // child objects whose fields are promoted individually
+    'question', 'group_of_questions',
+    // project sub-tree fields that map to image / category / tags / eventId
+    'projects',
+    // status -> mapStatus
+    'status',
+] as const;
+
+// Raw Metaculus Post fields already promoted to first-class UnifiedEvent columns.
+export const METACULUS_PROMOTED_EVENT_KEYS = [
+    'id', 'slug', 'url_title',
+    'title',
+    'question', 'group_of_questions',
+    'projects',
+    'status',
+] as const;
 
 /**
  * Base URL passed to parseOpenApiSpec to override the spec's servers[0].url.
@@ -196,7 +226,7 @@ function buildOutcomes(question: any, postId: string, medianProb: number): Marke
  * @param eventId   Optional parent event ID (tournament slug) to override
  *                  the value derived from post.projects.tournament.
  */
-export function mapMarketToUnified(post: any, eventId?: string): UnifiedMarket | null {
+export function mapMarketToUnified(post: any, eventId?: string, groupPostId?: number): UnifiedMarket | null {
     if (!post || !post.id) return null;
 
     // Group-of-questions posts have no top-level question -- they must be
@@ -264,6 +294,11 @@ export function mapMarketToUnified(post: any, eventId?: string): UnifiedMarket |
         image: post.projects?.default_project?.header_image ?? undefined,
         category,
         tags,
+        sourceMetadata: buildSourceMetadata(
+            post as unknown as Record<string, unknown>,
+            METACULUS_PROMOTED_MARKET_KEYS,
+            groupPostId !== undefined ? { group_post_id: groupPostId } : undefined,
+        ),
     };
 
     addBinaryOutcomes(um);
@@ -309,7 +344,7 @@ function mapGroupPostToMarkets(post: any, eventId?: string): UnifiedMarket[] {
             status: post.status,
         };
 
-        const market = mapMarketToUnified(syntheticPost, groupEventId);
+        const market = mapMarketToUnified(syntheticPost, groupEventId, Number(parentPostId));
         if (market) {
             // Tag each outcome with the parent group post ID for traceability
             for (const outcome of market.outcomes) {

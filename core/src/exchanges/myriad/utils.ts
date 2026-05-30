@@ -1,5 +1,18 @@
 import { UnifiedMarket, UnifiedEvent, MarketOutcome } from '../../types';
 import { addBinaryOutcomes } from '../../utils/market-utils';
+import { buildSourceMetadata } from '../../utils/metadata';
+
+// Raw Myriad fields already promoted to first-class Unified columns — excluded
+// from sourceMetadata so we capture only what the unified shape would drop.
+const MYRIAD_PROMOTED_MARKET_KEYS = [
+    'id', 'networkId', 'title', 'description', 'slug', 'imageUrl',
+    'expiresAt', 'volume24h', 'volume', 'liquidity', 'eventId',
+    'topics', 'outcomes', 'state',
+] as const;
+
+const MYRIAD_PROMOTED_EVENT_KEYS = [
+    'id', 'title', 'markets',
+] as const;
 
 export const DEFAULT_BASE_URL = 'https://api-v2.myriadprotocol.com';
 
@@ -76,6 +89,10 @@ export function mapMarketToUnified(market: any): UnifiedMarket | null {
         url: `https://myriad.markets/markets/${market.slug || market.id}`,
         image: market.imageUrl,
         tags: market.topics || [],
+        sourceMetadata: buildSourceMetadata(
+            market as unknown as Record<string, unknown>,
+            MYRIAD_PROMOTED_MARKET_KEYS,
+        ),
     } as UnifiedMarket;
 
     addBinaryOutcomes(um);
@@ -100,6 +117,11 @@ export function mapQuestionToEvent(question: any): UnifiedEvent | null {
         volume24h: markets.reduce((sum, m) => sum + m.volume24h, 0),
         volume: markets.some(m => m.volume !== undefined) ? markets.reduce((sum, m) => sum + (m.volume ?? 0), 0) : undefined,
         url: `https://myriad.markets`,
+        // Keeps non-promoted question fields; raw markets array is promoted.
+        sourceMetadata: buildSourceMetadata(
+            question as unknown as Record<string, unknown>,
+            MYRIAD_PROMOTED_EVENT_KEYS,
+        ),
     };
 
     return unifiedEvent;

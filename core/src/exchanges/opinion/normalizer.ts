@@ -12,6 +12,7 @@ import {
 } from '../../types';
 import { IExchangeNormalizer } from '../interfaces';
 import { addBinaryOutcomes } from '../../utils/market-utils';
+import { buildSourceMetadata } from '../../utils/metadata';
 import { parseNumStr, mapOrderStatus, toMillis, intervalToMs } from './utils';
 import {
     OpinionRawMarket,
@@ -23,6 +24,24 @@ import {
     OpinionRawPosition,
     OpinionRawOrder,
 } from './fetcher';
+
+// ---------------------------------------------------------------------------
+// Raw Opinion fields already promoted to first-class Unified columns — omit
+// from sourceMetadata so we capture only what the unified shape would drop.
+// ---------------------------------------------------------------------------
+
+// Fields promoted on a market or child-market payload.
+const OPINION_PROMOTED_MARKET_KEYS = [
+    'marketId', 'marketTitle', 'rules', 'slug',
+    'volume', 'volume24h', 'cutoffAt',
+    'yesTokenId', 'noTokenId',
+] as const;
+
+// Fields promoted on the parent (event-level) payload.
+const OPINION_PROMOTED_EVENT_KEYS = [
+    'marketId', 'marketTitle', 'rules', 'slug',
+    'volume', 'volume24h', 'childMarkets',
+] as const;
 
 // ---------------------------------------------------------------------------
 // Opinion Trade Normalizer
@@ -97,6 +116,13 @@ export class OpinionNormalizer implements IExchangeNormalizer<OpinionRawMarket, 
             volume24h,
             volume: totalVolume,
             url: `https://www.opinion.trade/market/${raw.slug || raw.marketId}`,
+            // collection carries series/recurring identifier (title, symbol,
+            // frequency, current period, next periods) — not a unified column.
+            sourceMetadata: buildSourceMetadata(
+                raw as unknown as Record<string, unknown>,
+                OPINION_PROMOTED_EVENT_KEYS,
+                raw.collection ? { collection: raw.collection } : undefined,
+            ),
         };
     }
 
@@ -317,6 +343,10 @@ export class OpinionNormalizer implements IExchangeNormalizer<OpinionRawMarket, 
             volume: parseNumStr(raw.volume),
             liquidity: 0,
             url: `https://www.opinion.trade/market/${raw.slug || raw.marketId}`,
+            sourceMetadata: buildSourceMetadata(
+                raw as unknown as Record<string, unknown>,
+                OPINION_PROMOTED_MARKET_KEYS,
+            ),
         };
 
         addBinaryOutcomes(market);
@@ -370,6 +400,16 @@ export class OpinionNormalizer implements IExchangeNormalizer<OpinionRawMarket, 
             volume: parseNumStr(child.volume),
             liquidity: 0,
             url: `https://www.opinion.trade/market/${child.slug || child.marketId}`,
+            // parentMarketId links the child back to its categorical parent;
+            // collection carries the series/recurring context from the parent.
+            sourceMetadata: buildSourceMetadata(
+                child as unknown as Record<string, unknown>,
+                OPINION_PROMOTED_MARKET_KEYS,
+                {
+                    parentMarketId: parent.marketId,
+                    ...(parent.collection ? { collection: parent.collection } : {}),
+                },
+            ),
         };
 
         addBinaryOutcomes(market);

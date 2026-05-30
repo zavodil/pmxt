@@ -46,6 +46,9 @@ export interface UnifiedEvent {
     /** Optional list of tags. More granular than category — e.g. ["Sports", "FIFA World Cup", "2026 FIFA World Cup"] or ["Politics", "Geopolitics", "Middle East"]. Tags vary by venue: Polymarket markets carry several, Kalshi typically one. */
     tags?: string[];
 
+    /** Raw venue-specific metadata not captured by first-class fields (e.g. Kalshi series_ticker / series_title, Polymarket series). Passed through verbatim so downstream consumers can recover anything the unified shape omits. Each venue populates what it has. */
+    sourceMetadata?: Record<string, unknown>;
+
     /** The exchange/venue this event originates from (e.g. 'polymarket', 'kalshi'). Populated by the Router. */
     sourceExchange?: string;
 }
@@ -89,6 +92,9 @@ export interface UnifiedMarket {
     status?: string;
     /** On-chain contract / condition identifier where applicable (Polymarket conditionId, etc.). */
     contractAddress?: string;
+
+    /** Raw venue-specific metadata not captured by first-class fields (e.g. Kalshi series_ticker / series_title from the parent event, Polymarket series). Passed through verbatim so downstream consumers can recover anything the unified shape omits. Each venue populates what it has. */
+    sourceMetadata?: Record<string, unknown>;
 
     /** The exchange/venue this market originates from (e.g. 'polymarket', 'kalshi'). Populated by the Router. */
     sourceExchange?: string;

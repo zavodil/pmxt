@@ -1,7 +1,24 @@
 import { UnifiedMarket, MarketOutcome, CandleInterval } from '../../types';
 import { addBinaryOutcomes } from '../../utils/market-utils';
+import { buildSourceMetadata } from '../../utils/metadata';
 
 export const DEFAULT_LIMITLESS_API_URL = 'https://api.limitless.exchange';
+
+// Raw Limitless market fields already promoted to first-class Unified columns —
+// excluded from sourceMetadata so we capture only what the unified shape drops.
+// Also excludes __pmxt* internal injection keys (not raw vendor data).
+const LIMITLESS_PROMOTED_MARKET_KEYS = [
+    'slug', 'title', 'question', 'description',
+    'tokens', 'prices',
+    'expirationTimestamp',
+    'volumeFormatted', 'volume',
+    'logo',
+    'categories', 'tags',
+    'expired', 'status',
+    'markets',
+    '__pmxtEventId', '__pmxtEventTitle', '__pmxtEventDescription',
+    '__pmxtCategories', '__pmxtTags',
+] as const;
 
 export interface LimitlessMarketContext {
     eventId?: string;
@@ -84,6 +101,10 @@ export function mapMarketToUnified(market: any, context: LimitlessMarketContext 
         category: market.categories?.[0] || resolvedContext.categories?.[0],
         tags: market.tags || resolvedContext.tags || [],
         status,
+        sourceMetadata: buildSourceMetadata(
+            market as unknown as Record<string, unknown>,
+            LIMITLESS_PROMOTED_MARKET_KEYS,
+        ),
     } as UnifiedMarket;
 
     addBinaryOutcomes(um);

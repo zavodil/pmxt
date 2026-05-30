@@ -8,6 +8,7 @@ import {
 } from '../../types';
 import { IExchangeNormalizer } from '../interfaces';
 import { addBinaryOutcomes } from '../../utils/market-utils';
+import { buildSourceMetadata } from '../../utils/metadata';
 import { toMarketId, toOutcomeId } from './utils';
 import { TICK_SIZE } from './config';
 import {
@@ -17,6 +18,32 @@ import {
     GeminiRawPosition,
     GeminiRawOrderBook,
 } from './types';
+
+// Raw GeminiRawEvent fields already promoted to first-class unified columns.
+// Omitted from sourceMetadata so we capture only vendor data the unified shape
+// would otherwise drop.
+const GEMINI_PROMOTED_EVENT_KEYS = [
+    'ticker',       // -> id
+    'title',
+    'description',
+    'slug',
+    'contracts',    // -> markets (nested child array, always omitted)
+    'volume24h',
+    'imageUrl',     // -> image
+    'category',
+    'tags',
+] as const;
+
+// Raw GeminiRawContract fields already promoted to first-class unified columns.
+const GEMINI_PROMOTED_CONTRACT_KEYS = [
+    'instrumentSymbol', // -> marketId, slug
+    'label',            // -> title
+    'description',
+    'ticker',           // parent event ticker feeds eventId
+    'status',           // -> status
+    'prices',           // -> outcomes prices
+    'expiryDate',       // -> resolutionDate
+] as const;
 
 // ----------------------------------------------------------------------------
 // Helpers
@@ -114,6 +141,10 @@ export class GeminiNormalizer implements IExchangeNormalizer<GeminiRawEvent, Gem
             category: raw.category,
             tags: raw.tags ?? [],
             image: raw.imageUrl,
+            sourceMetadata: buildSourceMetadata(
+                raw as unknown as Record<string, unknown>,
+                GEMINI_PROMOTED_EVENT_KEYS,
+            ),
         };
     }
 
@@ -184,6 +215,11 @@ export class GeminiNormalizer implements IExchangeNormalizer<GeminiRawEvent, Gem
             tags.push(event.category);
         }
 
+        const seriesExtra: Record<string, unknown> = {};
+        if (event.series != null) {
+            seriesExtra['series'] = event.series;
+        }
+
         const um: UnifiedMarket = {
             marketId,
             eventId: event.ticker,
@@ -199,6 +235,11 @@ export class GeminiNormalizer implements IExchangeNormalizer<GeminiRawEvent, Gem
             tags,
             tickSize: TICK_SIZE,
             status: mapEventStatus(contract.status),
+            sourceMetadata: buildSourceMetadata(
+                contract as unknown as Record<string, unknown>,
+                GEMINI_PROMOTED_CONTRACT_KEYS,
+                Object.keys(seriesExtra).length > 0 ? seriesExtra : undefined,
+            ),
         };
 
         addBinaryOutcomes(um);

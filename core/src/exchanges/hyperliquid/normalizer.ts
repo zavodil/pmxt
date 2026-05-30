@@ -13,6 +13,7 @@ import {
 import { IExchangeNormalizer } from '../interfaces';
 import { OHLCVParams } from '../../BaseExchange';
 import { addBinaryOutcomes } from '../../utils/market-utils';
+import { buildSourceMetadata } from '../../utils/metadata';
 import { toMarketId, toOutcomeId, toMidKey, decodeAssetId } from './utils';
 import { OUTCOME_ASSET_BASE } from './config';
 import {
@@ -28,6 +29,25 @@ import {
     HyperliquidRawOutcomeMeta,
     HyperliquidRawMid,
 } from './fetcher';
+
+// Raw Hyperliquid outcome fields already promoted to first-class Unified columns —
+// excluded from sourceMetadata so we capture only what the unified shape would drop.
+const HL_PROMOTED_MARKET_KEYS = [
+    'outcome',      // -> marketId
+    'name',         // -> title
+    'description',  // -> description
+    'sideSpecs',    // -> outcomes (labels)
+] as const;
+
+// Raw Hyperliquid question fields already promoted to first-class Unified columns.
+// namedOutcomes is omitted as well — it is the child-markets array and must not
+// be duplicated in metadata.
+const HL_PROMOTED_EVENT_KEYS = [
+    'question',       // -> id / eventId
+    'name',           // -> title
+    'description',    // -> description
+    'namedOutcomes',  // -> markets (child-markets array)
+] as const;
 
 // ----------------------------------------------------------------------------
 // Helpers
@@ -220,6 +240,10 @@ export class HyperliquidNormalizer implements IExchangeNormalizer<HyperliquidRaw
             tags,
             tickSize: 0.001,
             status: 'active',
+            sourceMetadata: buildSourceMetadata(
+                outcome as unknown as Record<string, unknown>,
+                HL_PROMOTED_MARKET_KEYS,
+            ),
         };
 
         addBinaryOutcomes(um);
@@ -255,6 +279,10 @@ export class HyperliquidNormalizer implements IExchangeNormalizer<HyperliquidRaw
             url: buildEventUrl(raw.question),
             category: underlying ? 'Crypto' : undefined,
             tags,
+            sourceMetadata: buildSourceMetadata(
+                raw as unknown as Record<string, unknown>,
+                HL_PROMOTED_EVENT_KEYS,
+            ),
         };
     }
 

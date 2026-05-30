@@ -1,5 +1,17 @@
 import { UnifiedMarket, UnifiedEvent, MarketOutcome } from '../../types';
 import { addBinaryOutcomes } from '../../utils/market-utils';
+import { buildSourceMetadata } from '../../utils/metadata';
+
+// Raw Probable fields already promoted to first-class Unified columns — omitted
+// from sourceMetadata so we capture only what the unified shape would drop.
+const PROBABLE_PROMOTED_EVENT_KEYS = [
+    'id', 'title', 'description', 'slug', 'icon', 'image', 'category', 'tags', 'markets',
+] as const;
+
+const PROBABLE_PROMOTED_MARKET_KEYS = [
+    'id', 'question', 'title', 'description', 'slug', 'endDate',
+    'volume24hr', 'volume', 'liquidity', 'icon', 'category', 'tags', 'tokens', 'event_id',
+] as const;
 
 export const DEFAULT_BASE_URL = 'https://market-api.probable.markets';
 export const SEARCH_PATH = '/public/api/v1/public-search/';
@@ -52,6 +64,13 @@ export function mapMarketToUnified(market: any, event?: any): UnifiedMarket | nu
         image: market.icon || event?.icon || event?.image || undefined,
         category: event?.category || market.category || undefined,
         tags: market.tags || event?.tags || [],
+        sourceMetadata: buildSourceMetadata(
+            market as unknown as Record<string, unknown>,
+            PROBABLE_PROMOTED_MARKET_KEYS,
+            // event_slug is not promoted to any first-class column — attach it so
+            // markets remain queryable by their parent event slug.
+            event ? { event_slug: event.slug } : undefined,
+        ),
     } as UnifiedMarket;
 
     addBinaryOutcomes(um);
@@ -81,6 +100,12 @@ export function mapEventToUnified(event: any): UnifiedEvent | null {
         image: event.icon || event.image || undefined,
         category: event.category || undefined,
         tags: event.tags || [],
+        // Captures non-promoted event fields; markets child array is already
+        // promoted to the unified markets column so it is excluded.
+        sourceMetadata: buildSourceMetadata(
+            event as unknown as Record<string, unknown>,
+            PROBABLE_PROMOTED_EVENT_KEYS,
+        ),
     };
 
     return unifiedEvent;

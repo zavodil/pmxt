@@ -1,6 +1,28 @@
 import { UnifiedMarket, MarketOutcome, CandleInterval } from '../../types';
 import { addBinaryOutcomes } from '../../utils/market-utils';
+import { buildSourceMetadata } from '../../utils/metadata';
 import { logger } from '../../utils/logger';
+
+// Raw Polymarket Gamma market fields already promoted to first-class Unified
+// columns — excluded from sourceMetadata so we capture only what the unified
+// shape would otherwise drop.
+const POLYMARKET_PROMOTED_MARKET_KEYS = [
+    'id', 'question', 'description',
+    // outcomes array and prices are promoted to UnifiedMarket.outcomes
+    'outcomes', 'outcomePrices', 'clobTokenIds',
+    // resolution date fields
+    'endDate', 'end_date_iso', 'endDateIso',
+    // volume, liquidity, openInterest
+    'volume24hr', 'volume_24h', 'volume', 'liquidity', 'rewards',
+    'openInterest', 'open_interest',
+    // image, slug, contractAddress, tickSize, status fields
+    'image', 'slug',
+    'orderPriceMinTickSize',
+    'conditionId',
+    'active', 'closed', 'archived',
+    // parent event back-reference — eventId already promoted to UnifiedMarket.eventId
+    'events',
+] as const;
 
 export const GAMMA_API_URL = process.env.POLYMARKET_GAMMA_URL || 'https://gamma-api.polymarket.com/events';
 export const GAMMA_SEARCH_URL = process.env.POLYMARKET_GAMMA_SEARCH_URL || 'https://gamma-api.polymarket.com/public-search';
@@ -108,6 +130,16 @@ export function mapMarketToUnified(event: any, market: any, options: { useQuesti
         tickSize: market.orderPriceMinTickSize != null ? Number(market.orderPriceMinTickSize) : undefined,
         status,
         contractAddress: typeof market.conditionId === 'string' && market.conditionId.length > 0 ? market.conditionId : undefined,
+        // Keeps non-promoted Gamma market fields (e.g. groupItemTitle,
+        // oneDayPriceChange, and any other vendor fields not surfaced as
+        // first-class columns).
+        // NOTE: Polymarket "series" data lives on a separate Gamma /series
+        // endpoint — it is NOT present in the market payload and requires a
+        // separate /series fetch+join to populate here.
+        sourceMetadata: buildSourceMetadata(
+            market as unknown as Record<string, unknown>,
+            POLYMARKET_PROMOTED_MARKET_KEYS,
+        ),
     } as UnifiedMarket;
 
     addBinaryOutcomes(um);

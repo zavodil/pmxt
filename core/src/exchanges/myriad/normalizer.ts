@@ -2,9 +2,22 @@ import { OHLCVParams } from '../../BaseExchange';
 import { UnifiedMarket, UnifiedEvent, PriceCandle, OrderBook, Trade, UserTrade, Position, Balance, CandleInterval, MarketOutcome } from '../../types';
 import { IExchangeNormalizer } from '../interfaces';
 import { addBinaryOutcomes } from '../../utils/market-utils';
+import { buildSourceMetadata } from '../../utils/metadata';
 import { MyriadRawMarket, MyriadRawQuestion, MyriadRawTradeEvent, MyriadRawPortfolioItem } from './fetcher';
 import { resolveMyriadPrice } from './price';
 import { mapMarketState } from './utils';
+
+// Raw Myriad fields already promoted to first-class Unified columns — excluded
+// from sourceMetadata so we capture only what the unified shape would drop.
+const MYRIAD_PROMOTED_MARKET_KEYS = [
+    'id', 'networkId', 'title', 'description', 'slug', 'imageUrl',
+    'expiresAt', 'volume24h', 'volume', 'liquidity', 'eventId',
+    'topics', 'outcomes', 'state',
+] as const;
+
+const MYRIAD_PROMOTED_EVENT_KEYS = [
+    'id', 'title', 'markets',
+] as const;
 
 function selectTimeframe(interval: CandleInterval): string {
     switch (interval) {
@@ -51,6 +64,10 @@ export class MyriadNormalizer implements IExchangeNormalizer<MyriadRawMarket, My
             image: raw.imageUrl,
             tags: raw.topics || [],
             status,
+            sourceMetadata: buildSourceMetadata(
+                raw as unknown as Record<string, unknown>,
+                MYRIAD_PROMOTED_MARKET_KEYS,
+            ),
         } as UnifiedMarket;
 
         addBinaryOutcomes(um);
@@ -105,6 +122,11 @@ export class MyriadNormalizer implements IExchangeNormalizer<MyriadRawMarket, My
                 ? markets.reduce((sum, m) => sum + (m.volume ?? 0), 0)
                 : undefined,
             url: `https://myriad.markets`,
+            // Keeps non-promoted question fields; raw markets array is promoted.
+            sourceMetadata: buildSourceMetadata(
+                raw as unknown as Record<string, unknown>,
+                MYRIAD_PROMOTED_EVENT_KEYS,
+            ),
         };
     }
 

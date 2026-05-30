@@ -22,7 +22,22 @@ import {
     UserTrade,
 } from '../../types';
 import { addBinaryOutcomes } from '../../utils/market-utils';
+import { buildSourceMetadata } from '../../utils/metadata';
 import { fromAmount, fromLongSidePrice } from './price';
+
+// Raw Polymarket US fields already promoted to first-class Unified columns —
+// excluded from sourceMetadata so we capture only what the unified shape drops.
+const POLYMARKET_US_PROMOTED_EVENT_KEYS = [
+    'slug', 'title', 'description', 'category', 'tags', 'volume', 'markets',
+] as const;
+
+// marketSides and outcomePrices feed the outcomes array and are therefore
+// treated as promoted. orderPriceMinTickSize maps to tickSize.
+const POLYMARKET_US_PROMOTED_MARKET_KEYS = [
+    'slug', 'question', 'title', 'description', 'category', 'tags',
+    'endDate', 'marketSides', 'outcomePrices', 'orderPriceMinTickSize',
+    'eventSlug', 'volume', 'liquidity',
+] as const;
 
 // ----------------------------------------------------------------------------
 // Runtime-accurate shapes
@@ -335,6 +350,10 @@ export class PolymarketUSNormalizer {
             url: buildEventUrl(real.slug),
             category,
             tags,
+            sourceMetadata: buildSourceMetadata(
+                real as unknown as Record<string, unknown>,
+                POLYMARKET_US_PROMOTED_EVENT_KEYS,
+            ),
         };
     }
 
@@ -373,6 +392,10 @@ export class PolymarketUSNormalizer {
             tickSize: typeof market.orderPriceMinTickSize === 'number'
                 ? market.orderPriceMinTickSize
                 : undefined,
+            sourceMetadata: buildSourceMetadata(
+                market as unknown as Record<string, unknown>,
+                POLYMARKET_US_PROMOTED_MARKET_KEYS,
+            ),
         };
 
         addBinaryOutcomes(um);
