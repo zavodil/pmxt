@@ -475,17 +475,30 @@ export function createApp(options: CreateAppOptions = {}): Express {
 
   // POST /api/:exchange/:method
   //
-  // The original RPC-shaped surface. Body: { args: any[], credentials? }.
+  // Supports two calling conventions:
+  //   - Envelope:   { args: [...], credentials? }  — original RPC shape, used by SDKs
+  //   - Flat body:  { slug: "wta", limit: 3, ... } — raw-curl / documentation examples
+  //
+  // When `args` is a valid array it is used directly (envelope path).
+  // When the body is a plain object without an `args` array, the body minus
+  // the reserved envelope keys (`args`, `credentials`) becomes args[0].
   // Accepts every method, including reads — so pre-existing clients
   // that POST reads keep working forever.
   app.post(
     "/api/:exchange/:method",
     async (req: Request, res: Response, next: NextFunction) => {
       const methodName = req.params.method as string;
-      const args = Array.isArray(req.body.args) ? req.body.args : [];
-      const credentials = req.body.credentials as
-        | ExchangeCredentials
-        | undefined;
+      const body = req.body as Record<string, unknown>;
+      const credentials = body.credentials as ExchangeCredentials | undefined;
+      let args: unknown[];
+      if (Array.isArray(body.args)) {
+        args = body.args;
+      } else if (body && typeof body === 'object' && !Array.isArray(body)) {
+        const { args: _ignored, credentials: _creds, ...rest } = body;
+        args = Object.keys(rest).length > 0 ? [rest] : [];
+      } else {
+        args = [];
+      }
       await dispatchMethod(req, res, next, methodName, args, credentials);
     },
   );

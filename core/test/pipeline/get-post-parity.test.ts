@@ -315,4 +315,38 @@ describe('GET/POST parity (mock exchange)', () => {
             expect(body.error.message).not.toContain('Cannot read properties');
         });
     });
+
+    describe('flat-body POST (no args envelope)', () => {
+        it('treats a flat body as the first positional arg', async () => {
+            // Flat body: { limit: 3 } instead of { args: [{ limit: 3 }] }
+            const res = await fetch(`${baseUrl}/api/mock/fetchMarkets`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ limit: 3 }),
+            });
+            const responseBody = (await res.json()) as ApiResponse<unknown[]>;
+            expect(responseBody.success).toBe(true);
+            expect((responseBody as ApiSuccess<unknown[]>).data.length).toBe(3);
+        });
+
+        it('an empty flat body (no keys) produces the same result as args:[]', async () => {
+            const [flatResult, envelopeResult] = await Promise.all([
+                fetch(`${baseUrl}/api/mock/fetchMarkets`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({}),
+                }).then((r) => r.json()) as Promise<ApiResponse<unknown[]>>,
+                fetch(`${baseUrl}/api/mock/fetchMarkets`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ args: [] }),
+                }).then((r) => r.json()) as Promise<ApiResponse<unknown[]>>,
+            ]);
+            expect(flatResult.success).toBe(true);
+            expect(envelopeResult.success).toBe(true);
+            expect(
+                (flatResult as ApiSuccess<unknown[]>).data.length,
+            ).toBe((envelopeResult as ApiSuccess<unknown[]>).data.length);
+        });
+    });
 });
