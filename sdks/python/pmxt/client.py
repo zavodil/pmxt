@@ -370,7 +370,7 @@ class Exchange(ABC):
             except Exception as e:
                 raise Exception(
                     f"Failed to start PMXT server: {e}\n\n"
-                    f"Please ensure 'pmxtjs' is installed: npm install -g pmxtjs\n"
+                    f"Please ensure 'pmxt-core' is installed: npm install -g pmxt-core\n"
                     f"Or start the server manually: pmxt-server"
                 )
 
