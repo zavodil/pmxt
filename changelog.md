@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.48.1] - 2026-05-30
+
+### Fixed
+
+- **Server**: `POST /api/<exchange>/<method>` now tolerates flat-body requests like `{"slug":"wta"}` in addition to the existing `{"args":[{"slug":"wta"}]}` envelope. Previously, flat bodies caused all filter parameters to be silently dropped (the method was invoked with no arguments). The Python and TypeScript SDKs were not affected — they always wrap params in `args` — but raw `curl` callers and documentation examples hit this. Empty bodies still behave as `args:[]`.
+
 ## [2.48.0] - 2026-05-30
 
 ### Added
