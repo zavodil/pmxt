@@ -49,6 +49,16 @@
       }
     ]
   },
+  "fetchSeries": {
+    "verb": "get",
+    "args": [
+      {
+        "name": "params",
+        "kind": "object",
+        "optional": true
+      }
+    ]
+  },
   "fetchMarket": {
     "verb": "get",
     "args": [

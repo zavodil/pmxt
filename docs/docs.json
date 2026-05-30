@@ -204,6 +204,13 @@
             "openapi": "api-reference/openapi.json"
           },
           {
+            "group": "Other",
+            "pages": [
+              "GET /api/{exchange}/fetchSeries"
+            ],
+            "openapi": "api-reference/openapi.json"
+          },
+          {
             "group": "Enterprise",
             "openapi": "api-reference/openapi-hosted.json",
             "pages": [

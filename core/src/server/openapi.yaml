@@ -365,6 +365,15 @@ paths:
             type: string
           description: Lookup by event slug
         - in: query
+          name: series
+          required: false
+          schema:
+            type: string
+          description: >-
+            Filter events by their parent series. Accepts the venue-native series id / ticker / slug (e.g. Kalshi
+            `"KXATPMATCH"`, Polymarket `"wta"`). Passed through to the vendor where supported, otherwise applied to
+            `sourceMetadata` after fetch.
+        - in: query
           name: filter
           required: false
           schema:
@@ -407,6 +416,31 @@ paths:
       description: >-
         Fetch events with optional keyword search. Events group related markets together (e.g., "Who will be Fed Chair?"
         contains multiple candidate markets).
+  '/api/{exchange}/fetchSeries':
+    get:
+      summary: Fetch Series
+      operationId: fetchSeries
+      parameters:
+        - $ref: '#/components/parameters/ExchangeParam'
+      responses:
+        '200':
+          description: Fetch Series response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BaseResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/UnifiedSeries'
+      description: >-
+        Fetch the recurring series (fourth tier above Event -> Market -> Outcome) that this venue exposes. Returns an
+        empty array on venues without a series concept (Limitless, Smarkets, Probable, Metaculus, Baozi, Hyperliquid,
+        SuiBets, Polymarket US). - `params.id` -> a single matching series with its events populated where supported. -
+        no params -> the full list, typically without nested events for payload size.
   '/api/{exchange}/fetchMarket':
     get:
       summary: Fetch Market
@@ -586,6 +620,15 @@ paths:
           schema:
             type: string
           description: Lookup by event slug
+        - in: query
+          name: series
+          required: false
+          schema:
+            type: string
+          description: >-
+            Filter events by their parent series. Accepts the venue-native series id / ticker / slug (e.g. Kalshi
+            `"KXATPMATCH"`, Polymarket `"wta"`). Passed through to the vendor where supported, otherwise applied to
+            `sourceMetadata` after fetch.
         - in: query
           name: filter
           required: false
@@ -3028,6 +3071,63 @@ components:
         - markets
         - volume24h
         - url
+    UnifiedSeries:
+      type: object
+      description: >-
+        A recurring grouping of events on a venue — the fourth tier above Event -> Market -> Outcome. Examples: Kalshi
+        `KXATPMATCH` (every ATP tennis match), Polymarket `wta` (every WTA match), Opinion's daily `collection`. Series
+        only exists where the venue exposes a recurring-event concept; venues without one return an empty array from
+        `fetchSeries`.
+      properties:
+        id:
+          type: string
+          description: >-
+            Stable venue-native series identifier (e.g. "KXATPMATCH" on Kalshi, "atp" on Polymarket Gamma, numeric Gamma
+            id).
+        ticker:
+          type: string
+          description: 'Venue-native ticker, when distinct from `id`.'
+        slug:
+          type: string
+          description: Venue-native slug.
+        title:
+          type: string
+          description: 'Human-readable series title (e.g. "ATP Match Winner", "WTA").'
+        description:
+          oneOf:
+            - type: string
+            - {}
+          description: Long-form series description.
+        recurrence:
+          oneOf:
+            - type: string
+            - {}
+          description: 'Recurrence cadence the venue reports (''daily'', ''weekly'', ''annual'', ...).'
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/UnifiedEvent'
+          description: Child events. Populated when fetched by id; the list form usually omits this to keep payloads small.
+        url:
+          oneOf:
+            - type: string
+            - {}
+          description: Canonical venue URL for the series.
+        image:
+          oneOf:
+            - type: string
+            - {}
+          description: Venue-hosted image.
+        sourceExchange:
+          type: string
+          description: The exchange this series originates from. Populated by the Router.
+        sourceMetadata:
+          type: object
+          additionalProperties: {}
+          description: Raw venue-specific fields not promoted to first-class columns.
+      required:
+        - id
+        - title
     PriceCandle:
       type: object
       properties:
@@ -3421,6 +3521,12 @@ components:
         slug:
           type: string
           description: Lookup by event slug
+        series:
+          type: string
+          description: >-
+            Filter events by their parent series. Accepts the venue-native series id / ticker / slug (e.g. Kalshi
+            `"KXATPMATCH"`, Polymarket `"wta"`). Passed through to the vendor where supported, otherwise applied to
+            `sourceMetadata` after fetch.
         filter:
           allOf:
             - $ref: '#/components/schemas/EventFilterCriteria'
