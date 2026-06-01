@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.48.3] - 2026-06-01
+
+### Fixed
+
+- **SDK (TS + Python)**: `sourceMetadata` is now declared on `UnifiedMarket` and `UnifiedEvent` model classes in both SDKs (it was previously declared only on `UnifiedSeries`). Closes a schema-drift gap so the venue-specific raw metadata that core already attaches via `buildSourceMetadata` actually surfaces on the SDK objects rather than being dropped at the model boundary.
+- **Core (`addBinaryOutcomes`)**: Promoting `Yes`/`No` labels to the market title now mutates the existing outcome object instead of replacing it with a spread copy. This restores reference identity between `market.yes` / `market.no` and `market.outcomes[0]` / `market.outcomes[1]` — an invariant the unified-market contract assumes. Consumers diffing by object equality no longer see split snapshots after title promotion.
+- **Kalshi**: The event-title contamination heuristic now also counts sub-market ticker tails (e.g. `PSG` from `KXUCL-26-PSG`) as candidate labels. Previously, titles like `"Champions League Winner: PSG vs Arsenal"` only matched a single full label (`Arsenal`) and fell short of the `>= 2`-match threshold, so the contaminated title was kept instead of falling back to the series title. The threshold itself is unchanged.
+
 ## [2.48.2] - 2026-06-01
 
 ### Fixed
