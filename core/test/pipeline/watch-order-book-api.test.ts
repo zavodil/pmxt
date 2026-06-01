@@ -26,7 +26,7 @@ describe('watchOrderBook API consistency', () => {
             { name: 'params', kind: 'object', optional: true },
         ]);
         expect(apiConfig.methods.watchOrderBook.params.map((param: { name: string }) => param.name)).toEqual([
-            'id',
+            'outcomeId',
             'limit',
             'params',
         ]);

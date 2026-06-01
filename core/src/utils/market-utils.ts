@@ -47,10 +47,10 @@ export function addBinaryOutcomes(market: UnifiedMarket): void {
     const yesLabel = market.yes?.label.toLowerCase();
     const noLabel = market.no?.label.toLowerCase();
     if (market.title && market.yes && yesLabel === 'yes') {
-        market.yes = { ...market.yes, label: market.title };
+        market.yes.label = market.title;
     }
     if (market.title && market.no && noLabel === 'no') {
-        market.no = { ...market.no, label: `Not ${market.title}` };
+        market.no.label = `Not ${market.title}`;
     }
 
     market.up = market.yes;

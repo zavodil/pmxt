@@ -404,14 +404,47 @@ export class KalshiNormalizer implements IExchangeNormalizer<KalshiRawEvent, Kal
 
         const normalizedTitle = this.normalizeTitleText(rawTitle);
         const containedLabels = new Set<string>();
-        for (const label of candidateLabels) {
+
+        const addIfContained = (label: string | null | undefined): void => {
+            if (!label) return;
             const normalizedLabel = this.normalizeTitleText(label);
             if (normalizedLabel && normalizedTitle.includes(normalizedLabel)) {
                 containedLabels.add(normalizedLabel);
             }
+        };
+
+        for (const label of candidateLabels) {
+            addIfContained(label);
+        }
+
+        // Sub-market tickers often carry the outcome's short identifier or
+        // abbreviation (e.g. KXUCL-26-PSG for "Paris Saint-Germain"). Title
+        // contamination commonly uses these abbreviations ("PSG vs Arsenal")
+        // rather than the full outcome label, so count ticker tails as
+        // additional candidate matches.
+        const tickerPrefix = typeof event.event_ticker === 'string' ? event.event_ticker : '';
+        for (const market of markets) {
+            const tail = this.extractTickerTail(market.ticker, tickerPrefix);
+            if (tail && tail.length >= 3) {
+                addIfContained(tail);
+            }
         }
 
         return containedLabels.size >= 2;
+    }
+
+    private extractTickerTail(ticker: string | undefined, eventTicker: string): string | null {
+        if (typeof ticker !== 'string' || !ticker) return null;
+        let tail = ticker;
+        if (eventTicker && tail.startsWith(eventTicker)) {
+            tail = tail.slice(eventTicker.length);
+        }
+        // Strip any leading separators left over from the event_ticker prefix
+        // and take the last dash-separated segment as the outcome identifier.
+        tail = tail.replace(/^[-_:]+/, '');
+        const segments = tail.split(/[-_]/).filter((s) => s.length > 0);
+        if (segments.length === 0) return null;
+        return segments[segments.length - 1];
     }
 
     private deriveCommonEventTitle(event: KalshiRawEvent, markets: KalshiRawMarket[]): string | null {

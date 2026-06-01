@@ -500,7 +500,8 @@ describe('MyriadNormalizer', () => {
         it('sets resolutionDate as a Date', () => {
             const result = normalizer.normalizeMarket(rawMarket)!;
             expect(result.resolutionDate).toBeInstanceOf(Date);
-            expect(result.resolutionDate.getFullYear()).toBe(2025);
+            // Derive expected year from the fixture input so this test is not a time-bomb.
+            expect(result.resolutionDate.getFullYear()).toBe(new Date(rawMarket.expiresAt!).getFullYear());
         });
 
         it('builds two outcomes', () => {
