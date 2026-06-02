@@ -69,6 +69,36 @@ def test_legacy_polymarket_us_alias_stays_public():
     assert aliases["Polymarket_us"] == "PolymarketUS"
 
 
+def test_feed_client_is_top_level_public_export():
+    init_path = Path(__file__).resolve().parents[1] / "pmxt" / "__init__.py"
+    tree = ast.parse(init_path.read_text(encoding="utf-8"))
+
+    imported_modules = {
+        alias.name: node.module
+        for node in tree.body
+        if isinstance(node, ast.ImportFrom)
+        for alias in node.names
+    }
+    public_exports = set()
+
+    for node in tree.body:
+        if (
+            isinstance(node, ast.Assign)
+            and len(node.targets) == 1
+            and isinstance(node.targets[0], ast.Name)
+            and node.targets[0].id == "__all__"
+            and isinstance(node.value, ast.List)
+        ):
+            public_exports.update(
+                item.value
+                for item in node.value.elts
+                if isinstance(item, ast.Constant) and isinstance(item.value, str)
+            )
+
+    assert imported_modules["FeedClient"] == "feed_client"
+    assert "FeedClient" in public_exports
+
+
 def test_polymarket_init_auth_is_generated():
     exchanges_path = Path(__file__).resolve().parents[1] / "pmxt" / "_exchanges.py"
     tree = ast.parse(exchanges_path.read_text(encoding="utf-8"))
