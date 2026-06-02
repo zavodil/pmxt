@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.48.4] - 2026-06-02
+
+### Fixed
+
+- **Python SDK**: `FeedClient` is now exported from the top-level `pmxt` package, so `from pmxt import FeedClient` (and `pmxt.FeedClient(...)`) work without reaching into the internal `pmxt.feed_client` submodule. (#835)
+- **TypeScript SDK**: `FeedClient` is now exported from the top-level `pmxtjs` package alongside its related types (`Ticker`, `Tickers`, `OHLCV`, `OracleRound`, `FeedClientOptions`), and is exposed on the default `pmxt` object. Consumers can now `import { FeedClient } from 'pmxtjs'` or call `pmxt.FeedClient(...)` directly. (#835)
+
 ## [2.48.3] - 2026-06-01
 
 ### Fixed
