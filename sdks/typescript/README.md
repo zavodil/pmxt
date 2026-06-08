@@ -2,7 +2,7 @@
 
 A unified TypeScript/Node.js SDK for prediction markets — The ccxt for prediction markets.
 
-> **Note**: Use with a PMXT API key (hosted, recommended) or self-host the sidecar locally. Get a key at [pmxt.dev/dashboard](https://pmxt.dev/dashboard).
+> **Note**: Use with a PMXT API key (hosted, recommended) or run a local PMXT service. Get a key at [pmxt.dev/dashboard](https://pmxt.dev/dashboard).
 
 ## Installation
 
@@ -53,7 +53,7 @@ When you pass `pmxtApiKey`, the SDK talks to PMXT's hosted services: catalog req
 
 ### How it works (self-hosted)
 
-Omit `pmxtApiKey` to use the local sidecar. Install `pmxt-core` from npm and supply venue credentials directly. See [Self-hosted trading (advanced)](#self-hosted-trading-advanced) below.
+Omit `pmxtApiKey` to use the local PMXT service. Install `pmxt-core` from npm and supply venue credentials directly. See [Self-hosted trading (advanced)](#self-hosted-trading-advanced) below.
 
 ## Core Methods
 
@@ -139,7 +139,7 @@ See the full [hosted trading guide](https://pmxt.dev/docs/concepts/hosted-tradin
 
 ### Self-hosted trading (advanced)
 
-When self-hosting, supply venue credentials directly — no `pmxtApiKey`. The SDK spawns a local sidecar process.
+When self-hosting, supply venue credentials directly — no `pmxtApiKey`. The SDK spawns a local PMXT service.
 
 **Polymarket:**
 ```typescript

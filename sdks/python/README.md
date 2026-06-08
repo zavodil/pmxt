@@ -2,7 +2,7 @@
 
 A unified Python interface for prediction market exchanges (Polymarket, Kalshi, Limitless, Opinion, and more).
 
-> **Note**: Use with a PMXT API key (hosted, recommended) or self-host the sidecar locally. Get a key at [pmxt.dev/dashboard](https://pmxt.dev/dashboard).
+> **Note**: Use with a PMXT API key (hosted, recommended) or run a local PMXT service. Get a key at [pmxt.dev/dashboard](https://pmxt.dev/dashboard).
 
 ## Installation
 
@@ -10,7 +10,7 @@ A unified Python interface for prediction market exchanges (Polymarket, Kalshi, 
 pip install pmxt
 ```
 
-**Requirements**: Python >= 3.8. The sidecar server is bundled automatically via the `pmxt-core` dependency — only needed when self-hosting.
+**Requirements**: Python >= 3.8. The local PMXT service is bundled automatically via the `pmxt-core` dependency — only needed when self-hosting.
 
 ## Quick Start
 
@@ -61,7 +61,7 @@ When you pass `pmxt_api_key`, the SDK talks to the PMXT hosted services:
 
 ### How it works (self-hosted)
 
-When you omit `pmxt_api_key`, the Python SDK manages the PMXT sidecar server for you:
+When you omit `pmxt_api_key`, the Python SDK manages the local PMXT service for you:
 
 1. **First API call**: Checks if server is running
 2. **Auto-start**: Starts server if needed (takes ~1-2 seconds)
@@ -128,7 +128,7 @@ See the full [hosted trading guide](https://pmxt.dev/docs/concepts/hosted-tradin
 
 ### Self-hosted trading (advanced)
 
-When self-hosting, you supply venue credentials directly — no `pmxt_api_key`. The SDK spawns a local sidecar process.
+When self-hosting, you supply venue credentials directly — no `pmxt_api_key`. The SDK spawns a local PMXT service.
 
 #### Polymarket
 

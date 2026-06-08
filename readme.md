@@ -277,7 +277,7 @@ exchange = pmxt.Limitless(
 
 ## Self-hosted
 
-To self-host pmxt-core on your own machine: `pip install pmxt-core` (Python) or `npm install pmxt-core` (Node.js), then construct any venue client without `pmxt_api_key`. The SDK spawns a local sidecar process; you supply venue credentials directly. See the [self-hosted guide](https://pmxt.dev/docs/guides/self-hosted) for details.
+To self-host pmxt-core on your own machine: `pip install pmxt-core` (Python) or `npm install pmxt-core` (Node.js), then construct any venue client without `pmxt_api_key`. The SDK spawns a local PMXT service; you supply venue credentials directly. See the [self-hosted guide](https://pmxt.dev/docs/guides/self-hosted) for details.
 
 ## Documentation
 
