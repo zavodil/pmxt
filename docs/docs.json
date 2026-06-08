@@ -176,8 +176,7 @@
               "api-reference/buildOrder",
               "api-reference/submitOrder",
               "api-reference/cancelOrder"
-            ],
-            "openapi": "api-reference/openapi.json"
+            ]
           },
           {
             "group": "Orders & Positions",
@@ -189,8 +188,7 @@
               "api-reference/fetchAllOrders",
               "api-reference/fetchPositions",
               "api-reference/fetchBalance"
-            ],
-            "openapi": "api-reference/openapi.json"
+            ]
           },
           {
             "group": "Realtime",
