@@ -92,23 +92,6 @@
               "guides/self-hosted",
               "sdk/server"
             ]
-          },
-          {
-            "group": "Self-host API reference",
-            "openapi": "api-reference/openapi.json",
-            "pages": [
-              "POST /api/{exchange}/createOrder",
-              "POST /api/{exchange}/buildOrder",
-              "POST /api/{exchange}/submitOrder",
-              "POST /api/{exchange}/cancelOrder",
-              "GET /api/{exchange}/fetchOrder",
-              "GET /api/{exchange}/fetchOpenOrders",
-              "GET /api/{exchange}/fetchMyTrades",
-              "GET /api/{exchange}/fetchClosedOrders",
-              "GET /api/{exchange}/fetchAllOrders",
-              "GET /api/{exchange}/fetchPositions",
-              "GET /api/{exchange}/fetchBalance"
-            ]
           }
         ]
       },
@@ -190,26 +173,24 @@
           },
           {
             "group": "Trading",
+            "openapi": "api-reference/openapi-hosted-trading.json",
             "pages": [
-              "POST /api/{exchange}/createOrder",
-              "POST /api/{exchange}/buildOrder",
-              "POST /api/{exchange}/submitOrder",
-              "POST /api/{exchange}/cancelOrder"
-            ],
-            "openapi": "api-reference/openapi.json"
+              "POST /v0/trade/create-order",
+              "POST /v0/trade/build-order",
+              "POST /v0/trade/submit-order",
+              "POST /v0/orders/cancel/build"
+            ]
           },
           {
             "group": "Orders & Positions",
+            "openapi": "api-reference/openapi-hosted-trading.json",
             "pages": [
-              "GET /api/{exchange}/fetchOrder",
-              "GET /api/{exchange}/fetchOpenOrders",
-              "GET /api/{exchange}/fetchMyTrades",
-              "GET /api/{exchange}/fetchClosedOrders",
-              "GET /api/{exchange}/fetchAllOrders",
-              "GET /api/{exchange}/fetchPositions",
-              "GET /api/{exchange}/fetchBalance"
-            ],
-            "openapi": "api-reference/openapi.json"
+              "GET /v0/orders/{order_id}",
+              "GET /v0/orders/open",
+              "GET /v0/user/{address}/trades",
+              "GET /v0/user/{address}/positions",
+              "GET /v0/user/{address}/balances"
+            ]
           },
           {
             "group": "Realtime",

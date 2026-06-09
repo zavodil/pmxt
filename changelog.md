@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.49.5] - 2026-06-09
+
+Sidebar cleanup: drop "(Hosted)" suffixes everywhere and hide the parallel self-hosted Group A reference. The hosted endpoints are now the only Group A surface in the sidebar; the API reference reads as "Trading → Create Order" instead of "Trading (Hosted) → Create Order (Hosted)."
+
+### Changed
+
+- **Sidebar group labels (`docs.json`)**: `"Trading (Hosted)"` → `"Trading"`, `"Orders & Positions (Hosted)"` → `"Orders & Positions"` inside the API Reference tab. The "(Hosted)" disambiguation made sense when a sibling self-hosted group existed in the same sidebar; with that group removed (see below), the suffix is just noise.
+- **Operation summaries (`openapi-hosted-trading.json`)**: All 9 hosted op `summary` fields drop the `(Hosted)` suffix — `"Create Order (Hosted)"` → `"Create Order"`, etc. `"Cancel Order -- Build (Hosted)"` collapses to `"Cancel Order"` (the build / sign / submit two-step is already explained in the operation description; the user-facing name shouldn't telegraph internal mechanics).
+- **Operation tags (`openapi-hosted-trading.json`)**: `"Trading (Hosted)"` → `"Trading"`, `"Orders & Positions (Hosted)"` → `"Orders & Positions"` on every op. Mintlify derives URL slugs from the tag, so the rendered hosted endpoint URLs go from `/api-reference/trading-hosted/create-order` to `/api-reference/trading/create-order` (and equivalent for Orders & Positions). No external links pointed at the previous slugs.
+
+### Removed
+
+- **`"Self-host API reference"` sidebar group (`docs.json`)**: The 11-page nested group rendering the self-hosted Group A endpoints from `openapi.json` (each operation flagged with a `"Local Only"` badge) is dropped from the Documentation tab sidebar. It duplicated the hosted endpoints' purpose for most readers and made the sidebar feel cluttered (a "Trading" group with "Local Only"–badged entries sitting alongside the prominent hosted "Trading" group on the API Reference tab). The underlying `openapi.json` file is unchanged — self-hosters who want the full reference can still consume the spec directly or reach the per-method pages via the existing `/guides/self-hosted` narrative. Net effect on the rendered sidebar: one canonical "Trading" group in the API Reference tab, no parallel "Local Only" entries elsewhere.
+
 ## [2.49.4] - 2026-06-09
 
 Hosted-trading docs QA pass. This patch also ships the 2.49.2 doc restructure work that had accumulated dirty in the working tree but never landed (Pattern E sidebar split, custody page, prediction-markets-101 glossary, terminology cleanup, etc. — see the 2.49.2 entry below for the full list).

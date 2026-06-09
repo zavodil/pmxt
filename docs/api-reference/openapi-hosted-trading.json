@@ -37,10 +37,10 @@
   "paths": {
     "/v0/trade/build-order": {
       "post": {
-        "summary": "Build Order (Hosted)",
+        "summary": "Build Order",
         "description": "Build an order *without* placing it. Returns the order's typed-data payload (for the wallet to sign) plus a `built_order_id` to pass to `submitOrderHosted` once it's signed.\n\nUse this when you want a human to approve each trade before it submits — for example, surfacing the order details in a wallet popup. For everything else, use `createOrderHosted`, which builds + signs + submits in one call.",
         "tags": [
-          "Trading (Hosted)"
+          "Trading"
         ],
         "operationId": "buildOrderHosted",
         "requestBody": {
@@ -144,10 +144,10 @@
     },
     "/v0/trade/submit-order": {
       "post": {
-        "summary": "Submit Order (Hosted)",
+        "summary": "Submit Order",
         "description": "Submit a signed order returned by `buildOrderHosted` and get back the resulting order — id, fill status, average price, and the on-chain tx hash once it settles.\n\n`built_order_id` must come from a recent `buildOrderHosted` call and be submitted before its expiry. For one-shot order placement, use `createOrderHosted` instead.",
         "tags": [
-          "Trading (Hosted)"
+          "Trading"
         ],
         "operationId": "submitOrderHosted",
         "requestBody": {
@@ -231,10 +231,10 @@
     },
     "/v0/trade/create-order": {
       "post": {
-        "summary": "Create Order (Hosted)",
+        "summary": "Create Order",
         "description": "Place a buy or sell order on Polymarket or Opinion. Returns the resulting order with id, fill status, average price, fees, and the on-chain tx hash once it settles.\n\nMost callers pass an outcome straight from `client.fetch_markets()`:\n\n```python\nmarket = client.fetch_markets({\"query\": \"trump 2028\"})[0]\norder = client.create_order(outcome=market.yes, side=\"buy\", amount=10, order_type=\"limit\", price=0.55)\n```\n\nNeed to show the order to a user before they sign it (custom approval UX)? Use `buildOrderHosted` + `submitOrderHosted` instead — together they do the same thing.",
         "tags": [
-          "Trading (Hosted)"
+          "Trading"
         ],
         "operationId": "createOrderHosted",
         "requestBody": {
@@ -338,10 +338,10 @@
     },
     "/v0/orders/cancel/build": {
       "post": {
-        "summary": "Cancel Order -- Build (Hosted)",
+        "summary": "Cancel Order",
         "description": "Start a cancel on an existing open order. Returns the cancel payload for the wallet to sign — you then submit the signature to `POST /v0/orders/cancel`.\n\nThe SDK's `cancelOrder()` chains both steps. Call this endpoint directly only if you need to show the cancel to a user before signing.",
         "tags": [
-          "Trading (Hosted)"
+          "Trading"
         ],
         "operationId": "cancelOrderHosted",
         "requestBody": {
@@ -425,10 +425,10 @@
     },
     "/v0/user/{address}/balances": {
       "get": {
-        "summary": "Fetch Balance (Hosted)",
+        "summary": "Fetch Balance",
         "description": "Check the USDC available for trading. Returns the wallet's balance inside the PMXT escrow on Polygon — *not* the wallet's on-chain USDC balance.\n\nTop up by depositing at [pmxt.dev/dashboard/wallet](https://pmxt.dev/dashboard/wallet).",
         "tags": [
-          "Orders & Positions (Hosted)"
+          "Orders & Positions"
         ],
         "operationId": "fetchBalanceHosted",
         "parameters": [
@@ -503,10 +503,10 @@
     },
     "/v0/user/{address}/positions": {
       "get": {
-        "summary": "Fetch Positions (Hosted)",
+        "summary": "Fetch Positions",
         "description": "List the open positions held by `address` across Polymarket and Opinion. Each position carries the market, outcome, share count, and average entry price.\n\nMark-to-market fields (`current_price`, `current_value`, `unrealized_pnl`) are reserved for a future release and currently return `null`.",
         "tags": [
-          "Orders & Positions (Hosted)"
+          "Orders & Positions"
         ],
         "operationId": "fetchPositionsHosted",
         "parameters": [
@@ -584,10 +584,10 @@
     },
     "/v0/orders/open": {
       "get": {
-        "summary": "Fetch Open Orders (Hosted)",
+        "summary": "Fetch Open Orders",
         "description": "List the wallet's resting orders that haven't filled or been cancelled yet. Each entry has the market, outcome, side, size, price, and time-in-force.\n\nFilter by `venue` to scope to Polymarket or Opinion only.",
         "tags": [
-          "Orders & Positions (Hosted)"
+          "Orders & Positions"
         ],
         "operationId": "fetchOpenOrdersHosted",
         "parameters": [
@@ -667,10 +667,10 @@
     },
     "/v0/user/{address}/trades": {
       "get": {
-        "summary": "Fetch My Trades (Hosted)",
+        "summary": "Fetch My Trades",
         "description": "List the wallet's historical fills on Polymarket and Opinion. Each trade carries the executed price (net of venue fees), size, and on-chain settlement tx hash.\n\nClosed orders are modelled as trades in hosted mode — use this endpoint instead of `fetchClosedOrders` / `fetchAllOrders` (which raise `NotSupported`).",
         "tags": [
-          "Orders & Positions (Hosted)"
+          "Orders & Positions"
         ],
         "operationId": "fetchMyTradesHosted",
         "parameters": [
@@ -738,10 +738,10 @@
     },
     "/v0/orders/{order_id}": {
       "get": {
-        "summary": "Fetch Order (Hosted)",
+        "summary": "Fetch Order",
         "description": "Look up a single order by id. Returns the order's current status, filled / remaining size, average fill price, and — once settled — the on-chain tx hash.\n\n`order_id` is what `createOrderHosted` (or `fetchOpenOrdersHosted`) returns.",
         "tags": [
-          "Orders & Positions (Hosted)"
+          "Orders & Positions"
         ],
         "operationId": "fetchOrderHosted",
         "parameters": [
