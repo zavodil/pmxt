@@ -7,6 +7,7 @@ OpenAPI client, matching the JavaScript API exactly.
 
 import json
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -650,24 +651,52 @@ class Exchange(ABC):
         market_id: Optional[str],
         outcome_id: Optional[str],
         outcome: Optional["MarketOutcome"],
-    ) -> Tuple[str, str]:
+    ) -> Tuple[Optional[str], str]:
+        """Resolve (market_id, outcome_id) for a hosted order request.
+
+        Returns a tuple ``(market_id_or_None, outcome_id)``. The returned
+        ``outcome_id`` may be either a catalog UUID OR a venue-native
+        identifier -- the caller is responsible for inspecting its shape
+        and choosing the correct wire field (``outcome_id`` vs.
+        ``(venue, venue_outcome_id)``). ``market_id`` is optional in
+        hosted mode -- the trading backend derives it from ``outcome_id``
+        (when a catalog UUID is supplied) or from
+        ``(venue, venue_outcome_id)`` when a venue-native id is supplied.
+        Callers may still pass ``market_id`` for backward compatibility,
+        in which case it is forwarded as-is.
+        """
         if outcome is not None:
             if market_id is not None or outcome_id is not None:
                 raise ValueError(
                     "Cannot specify both 'outcome' and 'market_id'/'outcome_id'. "
                     "Use one or the other."
                 )
-            if not outcome.market_id:
+            if not outcome.outcome_id:
                 raise ValueError(
-                    "outcome.market_id is not set. Ensure the outcome comes "
+                    "outcome.outcome_id is not set. Ensure the outcome comes "
                     "from a fetched market."
                 )
-            return outcome.market_id, outcome.outcome_id
-        if market_id is None or outcome_id is None:
+            # outcome.market_id may be empty -- the backend derives it from outcome_id.
+            return outcome.market_id or None, outcome.outcome_id
+        if outcome_id is None:
             raise ValueError(
-                "Either provide 'outcome' or both 'market_id' and 'outcome_id'."
+                "Either provide 'outcome' or 'outcome_id' (with optional 'market_id')."
             )
         return market_id, outcome_id
+
+    # Match a canonical 8-4-4-4-12 UUID string. The hosted catalog emits
+    # UUIDs in this exact shape, so a regex is both faster and stricter than
+    # stdlib ``uuid.UUID(...)`` parsing (which also accepts braces, urns,
+    # and other variants we never want to forward as catalog ids).
+    _UUID_RE = re.compile(
+        r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        re.IGNORECASE,
+    )
+
+    @classmethod
+    def _looks_like_catalog_uuid(cls, value: str) -> bool:
+        """True iff ``value`` parses as a canonical catalog UUID string."""
+        return bool(cls._UUID_RE.match(value))
 
     @staticmethod
     def _hosted_amount_6dec(amount: float) -> int:
@@ -718,9 +747,12 @@ class Exchange(ABC):
             raise InvalidOrder("price is required for limit orders")
         if price is not None and price <= 0:
             raise InvalidOrder("price must be positive")
-        base = {
-            "market_id": resolved_market_id,
-            "outcome_id": resolved_outcome_id,
+        # The resolved outcome id may be a catalog UUID OR a venue-native id
+        # (e.g. a Polymarket tokenId or an Opinion market hash). Catalog UUIDs
+        # are forwarded as ``outcome_id``; venue-native ids are forwarded as
+        # ``(venue, venue_outcome_id)`` so the backend resolver picks the
+        # right path. Either shape is accepted by the v0 trading API.
+        base: Dict[str, Any] = {
             "side": side,
             "order_type": order_type,
             "amount": amount,
@@ -728,6 +760,23 @@ class Exchange(ABC):
             "denom": normalized_denom,
             "user_address": resolve_wallet_address(self),
         }
+        if self._looks_like_catalog_uuid(resolved_outcome_id):
+            base["outcome_id"] = resolved_outcome_id
+            # market_id is optional in hosted mode: backend derives it from
+            # outcome_id (UUID) when omitted. Forward only when the caller
+            # supplied a non-empty UUID -- "absent" and "null" are not
+            # equivalent under some Pydantic configs on the backend.
+            if resolved_market_id and self._looks_like_catalog_uuid(
+                resolved_market_id
+            ):
+                base["market_id"] = resolved_market_id
+        else:
+            # Venue-native form: backend resolves the row from
+            # (source_exchange, pmxt_id). market_id from a venue client is
+            # itself venue-native and would fail backend UUID validation
+            # if forwarded -- suppress it.
+            base["venue"] = self.exchange_name
+            base["venue_outcome_id"] = resolved_outcome_id
         with_price = {**base, "price": price} if price is not None else base
         with_fee = {**with_price, "fee": fee} if fee is not None else with_price
         return (

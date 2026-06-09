@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.49.3] - 2026-06-09
+
+Backend-deploy patch for the venue-native outcome ID acceptance feature described in 2.49.2. Includes a follow-up SDK bug fix discovered during end-to-end verification on Polygon mainnet, plus the doc and test deltas that bring this release to a confirmed working state.
+
+### Fixed
+
+- **SDK (`sdks/python/pmxt/client.py`, `sdks/typescript/pmxt/client.ts`)**: When the caller supplies a venue-native outcome identifier (non-UUID string returned by `client.fetch_markets()` on a venue client), `_hosted_build_order_request` / `_hostedBuildOrderBody` now correctly **suppress `market_id` from the wire body** instead of forwarding the (also venue-native) value alongside `venue` + `venue_outcome_id`. Previous behavior caused the backend to reject the request with a UUID-validation error on `market_id` (`Input should be a valid UUID, invalid length: expected length 32 for simple format, found 6`). The catalog-UUID path is unchanged — `market_id` is still forwarded when both the supplied `outcome_id` and the supplied `market_id` are UUID-shaped.
+
+### Changed
+
+- **Docs (`docs/trading-quickstart.mdx`)**: Step 5 collapsed to the natural single-client chain — `client.fetch_markets({"query": "trump 2028"})[0]` → `client.create_order(outcome=market.yes, side="buy", amount=1.0, denom="usdc", order_type="market", slippage_pct=99.9)`. The previous Router round-trip + `<Warning>` against `pmxt.Polymarket().fetch_markets()` results is replaced by a `<Note>` clarifying that both UUID and venue-native ID forms are accepted by the trading API. Step 7 ("Verify the fill") renumbered to Step 6.
+- **Docs (`docs/concepts/catalog-uuid-vs-venue-id.mdx`)**: Rewritten (70 lines down from 91). The page no longer frames the two ID spaces as a footgun. New framing: hosted trading accepts either identifier; the catalog UUID matters specifically for cross-venue identity (matched clusters, portfolio analytics that span venues, stability across venue re-listings) and for self-hosted mode where the catalog isn't in the path. The `<Warning>` against `pmxt.Polymarket().fetch_markets()` results is removed.
+
+### Added
+
+- **SDK tests**: Python `tests/test_hosted_dispatch.py` and TypeScript `tests/hosted-dispatch.test.ts` gained `test_build_order_with_venue_native_id_sends_venue_pair` / `buildOrder with venue-native outcomeId sends (venue, venue_outcome_id)` cases asserting the new wire shape (`venue`, `venue_outcome_id` present; `outcome_id`, `market_id` absent). Existing test constants upgraded from `"market-uuid-1"` / `"outcome-uuid-1"` (which the new UUID detection regex would mis-classify as venue-native) to canonical 8-4-4-4-12 UUID strings so the backcompat-UUID test cases continue to assert the right behavior. Net: Python 26/26, TypeScript 18/18.
+
+### Verified
+
+- **End-to-end on Polygon mainnet**: Confirmed the full natural workflow `client.fetch_markets()[0]` → `client.create_order(outcome=market.yes)` → on-chain settlement → `fetch_positions` → `client.create_order(side="sell")` → on-chain settlement → position closed. Round-trip executed against PreFundedEscrow (`0x3ad326f78b1390b9a5dc5f00e7f62f8632de23e2`) on the Spain WC 2026 YES outcome: buy 1.000000 USDC → 6.25 shares (tx `0x16bcfa7e00c49325bd779b044f71a660899e9d0218b11656e2ca9646a208ba10`, block 88201299), sell 6.25 shares → 0.988781 USDC. Net round-trip −0.011 USDC (≈ 1.1%, expected CLOB spread).
+
+### Deploy prerequisite met
+
+- **`pmxt-trading` (`BuildOrderV0Req` accepts `(venue, venue_outcome_id)`)**: deployed in `pmxt-dev/pmxt-trading@9983e35`.
+
 ## [2.49.2] - 2026-06-09
 
 Per-method docs follow-up to 2.49.1 paired with a terminology cleanup. Every Group A method (`createOrder`, `buildOrder`, `submitOrder`, `cancelOrder`, `fetchBalance`, `fetchPositions`, `fetchOpenOrders`, `fetchMyTrades`, `fetchOrder`, `fetchClosedOrders`, `fetchAllOrders`) now has a synchronized `Hosted (recommended)` / `Self-hosted` tab toggle on its reference page, so customers see the hosted endpoint and the v2.49 SDK constructor shape by default and can flip to the local-service variant in place. Mintlify synchronizes tab selection across pages via shared label keys, so the choice persists as the user navigates the API Reference. In parallel, per the 2026-05-27 ADR "Avoid Sidecar Terminology" in the company brain, user-facing references to the local PMXT runtime now use **"local PMXT service"** (or **"local service"** when unambiguous) across the READMEs and `concepts/hosted-vs-self-hosted.mdx`. Internal implementation identifiers and historical changelog entries from earlier releases are intentionally left as-is.

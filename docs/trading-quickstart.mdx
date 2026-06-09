@@ -104,15 +104,18 @@ console.log(`Escrow USDC: ${balance.free}`);
 Approval and deposit are one-time setup. Subsequent trades just spend from escrow until you withdraw. See [Escrow Lifecycle](/guides/escrow-lifecycle) for the full deposit / withdraw flow.
 </Note>
 
-## 5. Place your first market order
+## 5. Find a market and place your first order
 
-Let's buy 5 USDC of the YES outcome on **"Will the Knicks win the 2026 NBA Championship?"**. These UUIDs come straight from the live hosted catalog.
+`client.fetch_markets` queries the venue's live catalog and returns markets you can trade directly. Pass any returned outcome straight to `create_order` — no UUID lookup required.
 
 <CodeGroup>
 ```python Python
+markets = client.fetch_markets({"query": "knicks 2026 nba champion"})
+market = markets[0]
+yes = next(o for o in market.outcomes if o.label.lower() == "yes")
+
 order = client.create_order(
-    market_id="2eeb03dc-404b-41d5-bc57-6aeb37927ae6",
-    outcome_id="a114f052-1fd1-4bcd-b9cf-de019db81b67",
+    outcome=yes,
     side="buy",
     order_type="market",
     amount=5.0,
@@ -123,9 +126,12 @@ print(f"Order {order.id}: {order.status}")
 ```
 
 ```typescript TypeScript
+const markets = await client.fetchMarkets({ query: "knicks 2026 nba champion" });
+const market = markets[0];
+const yes = market.outcomes.find((o) => o.label.toLowerCase() === "yes")!;
+
 const order = await client.createOrder({
-  marketId: "2eeb03dc-404b-41d5-bc57-6aeb37927ae6",
-  outcomeId: "a114f052-1fd1-4bcd-b9cf-de019db81b67",
+  outcome: yes,
   side: "buy",
   orderType: "market",
   amount: 5,
@@ -141,6 +147,10 @@ console.log(`Order ${order.id}: ${order.status}`);
 echo "Use an SDK for create_order."
 ```
 </CodeGroup>
+
+<Note>
+The hosted trading API accepts either the venue-native identifier (returned by `client.fetch_markets`) or a catalog UUID (returned by [Router](/router/overview)) — whichever you have. The SDK picks the right wire field automatically. See [Catalog UUID vs Venue ID](/concepts/catalog-uuid-vs-venue-id) when cross-venue identity matters.
+</Note>
 
 <Warning>
 **Polymarket has a 5-share minimum per order.** At ~$0.78/share, a 5 USDC buy is ~6.4 shares — fine. But $2 at the same price is only 2.5 shares and will be rejected with `OrderSizeTooSmall`. Size up or switch to a cheaper outcome.

@@ -30,8 +30,11 @@ from pmxt.models import BuiltOrder
 
 PMXT_API_KEY = "test_pmxt_key_xxx"
 WALLET_ADDRESS = "0x000000000000000000000000000000000000aBc1"
-MARKET_ID = "market-uuid-1"
-OUTCOME_ID = "outcome-uuid-1"
+MARKET_ID = "11111111-1111-4111-8111-111111111111"
+OUTCOME_ID = "22222222-2222-4222-8222-222222222222"
+VENUE_NATIVE_OUTCOME_ID = (
+    "0xc704f74e2f9dfae70f770cb253ffadde10768eeab41233098bf5ac67995a94b5"
+)
 
 
 # --------------------------------------------------------------------------- #
@@ -598,6 +601,93 @@ class TestHostedWriteDispatch:
 
         # Never even built — local check fires first.
         assert captured == []
+
+    def test_build_order_without_market_id_omits_key(self, monkeypatch):
+        """outcome_id alone is accepted; the wire body must NOT include market_id."""
+        captured = _install_hosted_transport(
+            monkeypatch, _json_response(_build_response_payload()),
+        )
+        _install_signing_bypass(monkeypatch)
+        api = _make_polymarket()
+
+        built = api.build_order(
+            outcome_id=OUTCOME_ID,
+            side="buy",
+            order_type="market",
+            amount=1.0,
+        )
+
+        assert len(captured) == 1
+        body = _request_body(captured[0])
+        # outcome_id present, market_id absent (not null, not empty string).
+        assert body["outcome_id"] == OUTCOME_ID
+        assert "market_id" not in body
+        assert isinstance(built, BuiltOrder)
+
+    def test_create_order_without_market_id_omits_key(self, monkeypatch):
+        routes = {
+            "/v0/trade/build-order": _build_response_payload(),
+            "/v0/trade/submit-order": _submit_response_payload(),
+        }
+        captured = _install_hosted_transport(
+            monkeypatch, _multi_response_handler(routes)
+        )
+        _install_signing_bypass(monkeypatch)
+        api = _make_polymarket(with_signer=True)
+
+        order = api.create_order(
+            outcome_id=OUTCOME_ID,
+            side="buy",
+            order_type="market",
+            amount=1.0,
+        )
+
+        assert len(captured) == 2
+        build_body = _request_body(captured[0])
+        assert build_body["outcome_id"] == OUTCOME_ID
+        assert "market_id" not in build_body
+        assert order.id == "submitted-order-1"
+
+    def test_build_order_with_market_id_still_sends_it(self, monkeypatch):
+        """Backcompat: callers that pass both ids continue to wire both."""
+        captured = _install_hosted_transport(
+            monkeypatch, _json_response(_build_response_payload()),
+        )
+        _install_signing_bypass(monkeypatch)
+        api = _make_polymarket()
+
+        api.build_order(
+            market_id=MARKET_ID,
+            outcome_id=OUTCOME_ID,
+            side="buy",
+            order_type="market",
+            amount=1.0,
+        )
+
+        body = _request_body(captured[0])
+        assert body["market_id"] == MARKET_ID
+        assert body["outcome_id"] == OUTCOME_ID
+
+    def test_build_order_with_venue_native_id_sends_venue_pair(self, monkeypatch):
+        """Non-UUID outcome ids dispatch as (venue, venue_outcome_id)."""
+        captured = _install_hosted_transport(
+            monkeypatch, _json_response(_build_response_payload()),
+        )
+        _install_signing_bypass(monkeypatch)
+        api = _make_polymarket()
+
+        api.build_order(
+            outcome_id=VENUE_NATIVE_OUTCOME_ID,
+            side="buy",
+            order_type="market",
+            amount=1.0,
+        )
+
+        body = _request_body(captured[0])
+        assert body["venue"] == "polymarket"
+        assert body["venue_outcome_id"] == VENUE_NATIVE_OUTCOME_ID
+        assert "outcome_id" not in body
+        assert "market_id" not in body
 
     def test_cancel_order_routes_build_then_cancel(self, monkeypatch):
         routes = {

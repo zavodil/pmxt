@@ -223,8 +223,8 @@ describe("hosted write dispatch", () => {
     const spy = installFetchSpy(() => jsonResponse(buildResponsePayload("buy")));
     const api = makePolymarket({ withSigner: true });
     await api.buildOrder({
-      marketId: "market-uuid-1",
-      outcomeId: "outcome-uuid-1",
+      marketId: "11111111-1111-4111-8111-111111111111",
+      outcomeId: "22222222-2222-4222-8222-222222222222",
       side: "buy",
       type: "market",
       amount: 5,
@@ -251,8 +251,8 @@ describe("hosted write dispatch", () => {
     });
     const api = makePolymarket({ withSigner: true });
     await api.createOrder({
-      marketId: "market-uuid-1",
-      outcomeId: "outcome-uuid-1",
+      marketId: "11111111-1111-4111-8111-111111111111",
+      outcomeId: "22222222-2222-4222-8222-222222222222",
       side: "buy",
       type: "market",
       amount: 5,
@@ -264,6 +264,91 @@ describe("hosted write dispatch", () => {
     expect(reqs[1].url).toContain("/v0/trade/submit-order");
     expect(reqs[0].init?.method).toBe("POST");
     expect(reqs[1].init?.method).toBe("POST");
+  });
+
+  it("buildOrder without marketId omits market_id from the wire body", async () => {
+    const spy = installFetchSpy(() => jsonResponse(buildResponsePayload("buy")));
+    const api = makePolymarket({ withSigner: true });
+    await api.buildOrder({
+      outcomeId: "22222222-2222-4222-8222-222222222222",
+      side: "buy",
+      type: "market",
+      amount: 5,
+      denom: "usdc",
+    } as any);
+    const reqs = captured(spy);
+    expect(reqs).toHaveLength(1);
+    const body = JSON.parse((reqs[0].init?.body as string) ?? "{}");
+    expect(body.outcome_id).toBe("22222222-2222-4222-8222-222222222222");
+    // Critical: the key must be absent (not null, not empty string) so the
+    // backend can fall back to deriving market_id from outcome_id.
+    expect("market_id" in body).toBe(false);
+  });
+
+  it("createOrder without marketId omits market_id from the build body", async () => {
+    let call = 0;
+    const spy = installFetchSpy(() => {
+      call += 1;
+      if (call === 1) return jsonResponse(buildResponsePayload("buy"));
+      return jsonResponse({
+        id: "order-1",
+        status: "filled",
+        filled: 5,
+        remaining: 0,
+        side: "buy",
+      });
+    });
+    const api = makePolymarket({ withSigner: true });
+    await api.createOrder({
+      outcomeId: "22222222-2222-4222-8222-222222222222",
+      side: "buy",
+      type: "market",
+      amount: 5,
+      denom: "usdc",
+    } as any);
+    const reqs = captured(spy);
+    expect(reqs).toHaveLength(2);
+    const buildBody = JSON.parse((reqs[0].init?.body as string) ?? "{}");
+    expect(buildBody.outcome_id).toBe("22222222-2222-4222-8222-222222222222");
+    expect("market_id" in buildBody).toBe(false);
+  });
+
+  it("buildOrder with both ids still sends market_id (backcompat)", async () => {
+    const spy = installFetchSpy(() => jsonResponse(buildResponsePayload("buy")));
+    const api = makePolymarket({ withSigner: true });
+    await api.buildOrder({
+      marketId: "11111111-1111-4111-8111-111111111111",
+      outcomeId: "22222222-2222-4222-8222-222222222222",
+      side: "buy",
+      type: "market",
+      amount: 5,
+      denom: "usdc",
+    } as any);
+    const reqs = captured(spy);
+    const body = JSON.parse((reqs[0].init?.body as string) ?? "{}");
+    expect(body.market_id).toBe("11111111-1111-4111-8111-111111111111");
+    expect(body.outcome_id).toBe("22222222-2222-4222-8222-222222222222");
+  });
+
+  it("buildOrder with venue-native outcomeId sends (venue, venue_outcome_id)", async () => {
+    const spy = installFetchSpy(() => jsonResponse(buildResponsePayload("buy")));
+    const api = makePolymarket({ withSigner: true });
+    await api.buildOrder({
+      outcomeId:
+        "0xc704f74e2f9dfae70f770cb253ffadde10768eeab41233098bf5ac67995a94b5",
+      side: "buy",
+      type: "market",
+      amount: 5,
+      denom: "usdc",
+    } as any);
+    const reqs = captured(spy);
+    const body = JSON.parse((reqs[0].init?.body as string) ?? "{}");
+    expect(body.venue).toBe("polymarket");
+    expect(body.venue_outcome_id).toBe(
+      "0xc704f74e2f9dfae70f770cb253ffadde10768eeab41233098bf5ac67995a94b5",
+    );
+    expect("outcome_id" in body).toBe(false);
+    expect("market_id" in body).toBe(false);
   });
 
   it("cancelOrder → POST cancel/build then POST cancel", async () => {

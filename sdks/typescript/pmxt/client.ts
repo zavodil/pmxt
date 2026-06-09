@@ -300,6 +300,17 @@ export abstract class Exchange {
         "opinion",
     ]);
 
+    // Match a canonical 8-4-4-4-12 UUID string. The hosted catalog emits
+    // UUIDs in this exact shape, so a regex is both faster and stricter
+    // than `crypto.randomUUID()`-style parsing.
+    private static readonly _UUID_RE =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+    /** True iff `value` parses as a canonical catalog UUID string. */
+    protected static _isCatalogUuid(value: string): boolean {
+        return Exchange._UUID_RE.test(value);
+    }
+
     // Public so structural interfaces like `HostedClientLike`
     // (./hosted-routing) can read the venue name and hosted credentials
     // without violating protected-access on this base class.
@@ -2434,8 +2445,8 @@ export abstract class Exchange {
     private _hostedBuildOrderBody(
         params: CreateOrderParams & { outcome?: MarketOutcome },
     ): Record<string, unknown> {
-        let marketId = params.marketId;
-        let outcomeId = params.outcomeId;
+        let marketId: string | undefined = params.marketId;
+        let outcomeId: string | undefined = params.outcomeId;
 
         if (params.outcome) {
             if (marketId !== undefined || outcomeId !== undefined) {
@@ -2444,13 +2455,21 @@ export abstract class Exchange {
                 );
             }
             const outcome: MarketOutcome = params.outcome;
-            if (!outcome.marketId) {
+            if (!outcome.outcomeId) {
                 throw new InvalidOrder(
-                    "outcome.marketId is not set; ensure the outcome comes from a fetched market",
+                    "outcome.outcomeId is not set; ensure the outcome comes from a fetched market",
                 );
             }
-            marketId = outcome.marketId;
+            // marketId is optional in hosted mode -- backend derives it from
+            // outcomeId (catalog UUID). Forward it when present for backcompat.
+            marketId = outcome.marketId || undefined;
             outcomeId = outcome.outcomeId;
+        }
+
+        if (!outcomeId) {
+            throw new InvalidOrder(
+                "outcomeId is required (or pass an 'outcome' from a fetched market)",
+            );
         }
 
         const side = String(params.side);
@@ -2493,15 +2512,36 @@ export abstract class Exchange {
         // to6dec throws InvalidOrder for sub-micro precision.
         const amount6dec = to6dec(params.amount as number).toString();
 
+        // The supplied outcomeId may be a catalog UUID OR a venue-native id
+        // (e.g. a Polymarket tokenId or an Opinion market hash). Catalog
+        // UUIDs are forwarded as `outcome_id`; venue-native ids are
+        // forwarded as `(venue, venue_outcome_id)` so the backend resolver
+        // picks the right path. Either shape is accepted by the v0 trading
+        // API.
         const body: Record<string, unknown> = {
-            market_id: marketId,
-            outcome_id: outcomeId,
             side,
             order_type: orderType,
             denom: resolvedDenom,
             amount: params.amount,
             amount_6dec: amount6dec,
         };
+        if (Exchange._isCatalogUuid(outcomeId)) {
+            body["outcome_id"] = outcomeId;
+            // market_id is optional in hosted mode: backend derives it
+            // from outcome_id (UUID) when omitted. Forward only when the
+            // caller supplied a non-empty UUID -- "absent" and "null" are
+            // not equivalent under some Pydantic configs on the backend.
+            if (marketId && Exchange._isCatalogUuid(marketId)) {
+                body["market_id"] = marketId;
+            }
+        } else {
+            // Venue-native form: backend resolves the row from
+            // (source_exchange, pmxt_id). marketId from a venue client is
+            // itself venue-native and would fail backend UUID validation
+            // if forwarded -- suppress it.
+            body["venue"] = this.exchangeName;
+            body["venue_outcome_id"] = outcomeId;
+        }
 
         if (params.price !== undefined) body["price"] = params.price;
         const extra = params as unknown as Record<string, unknown>;
