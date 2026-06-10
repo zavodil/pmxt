@@ -1135,6 +1135,9 @@ export abstract class Exchange {
             return this._hostedSubmitOrder(built);
         }
         await this.initPromise;
+        if (this.isHosted) {
+            throw new PmxtError("submitOrder is not available in hosted mode. Use createOrder instead.");
+        }
         try {
             const args: any[] = [];
             args.push(built);
