@@ -47,6 +47,7 @@
   "dependencies": {
     "@limitless-exchange/sdk": "^1.0.5",
     "@opinion-labs/opinion-clob-sdk": "^0.6.0",
+    "@polymarket/builder-relayer-client": "^0.0.10",
     "@polymarket/clob-client-v2": "^1.0.5",
     "@prob/clob": "0.5.0",
     "@solana/web3.js": "^1.98.4",
@@ -55,11 +56,11 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "ethers": "^5.8.0",
-    "viem": "^2.0.0",
     "express": "^5.2.1",
     "isows": "^1.0.6",
     "msgpackr": "^2.0.1",
     "polymarket-us": "0.1.1",
+    "viem": "^2.0.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {

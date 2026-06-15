@@ -15,12 +15,23 @@ import { GeminiTitanExchange } from "../exchanges/gemini-titan";
 import { SuiBetsExchange } from "../exchanges/suibets";
 import { MockExchange } from "../exchanges/mock";
 import { Router } from "../router";
+// >>> outlayer-integration (keep additive; re-apply on upstream merge)
+import { isOutlayerEnabled, createOutlayerExchange } from "../integrations/outlayer";
+// <<< outlayer-integration
 
 export function createExchange(
   name: string,
   credentials?: ExchangeCredentials,
   bearerToken?: string,
 ): unknown {
+  // >>> outlayer-integration (keep additive; re-apply on upstream merge)
+  // When the request carries an OutLayer identity (or OUTLAYER_ENABLED is set),
+  // build the OutLayer-backed exchange: same venue logic, but the EIP-712 signer
+  // is a viem custom account driven by OutLayer's evm_sign (no raw key here).
+  if (isOutlayerEnabled(credentials)) {
+    return createOutlayerExchange(name, credentials);
+  }
+  // <<< outlayer-integration
   switch (name) {
     case "polymarket":
       return new PolymarketExchange({
