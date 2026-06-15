@@ -4,6 +4,8 @@
 **What you are building:** a multi-tenant service where each user/agent gets an isolated, OutLayer-custodied
 wallet that trades on Polymarket V2 (Polygon), funded/withdrawn in **native USDC**, **fully gasless**.
 **Custody model:** OutLayer holds keys and *signs*; the Polymarket builder relayer + 1Click *pay gas*.
+**Service shape:** keep THIS layer thin, additive, and auth-free (so it keeps tracking upstream `pmxt`); build
+end-user auth/identity/business logic as a SEPARATE service — see [BACKEND_ARCHITECTURE.md](BACKEND_ARCHITECTURE.md).
 Every step below was executed live with real money on 2026-06-15 (record: [PHASE2_LIVE_TRADE.md](PHASE2_LIVE_TRADE.md)).
 
 ---
@@ -23,6 +25,8 @@ Every step below was executed live with real money on 2026-06-15 (record: [PHASE
 - **R9** The OutLayer NEAR private key is server-side only. The user supplies only `userId`; you sign for them.
 - **R10** Do not implement the on-chain USDC↔USDC.e swap. That is a backup path only
   ([BACKUP_USDCE_SWAP_PATH.md](BACKUP_USDCE_SWAP_PATH.md)); the bridge services handle conversion internally.
+- **R11** **Minimum deposit is $2.** Anything below $2 sent to `bridgeIn` is *silently not credited*
+  (no error, funds stranded). Enforce the `≥ $2` floor in code before any deposit (§7).
 
 ---
 
@@ -73,7 +77,7 @@ npm deps (in `core`): `@polymarket/clob-client-v2`, `@polymarket/builder-relayer
 
 ---
 
-## 3. LIFECYCLE (the flow as a list — replaces the diagram)
+## 3. LIFECYCLE (the flow as a list)
 
 Per user, in order. Steps marked **[once]** run a single time per user; **[each]** run per operation.
 
@@ -256,12 +260,38 @@ Production-clean: withdraw straight to the 1Click bridge (no EOA hop, no EIP-300
 Per-user row (all cacheable, all derivable from `userId`):
 
 - `userId` (PK) — derivation root; `seed = sha256("predict:user:"+userId)` (do not store the seed/key).
-- `eoa`, `depositWallet`, `bridgeIn` — cache to avoid re-derivation.
-- `clobApiKey`, `clobSecret`, `clobPassphrase` — derived once (§8 `initAuth`); cache.
+- `eoa`, `depositWallet`, `bridgeIn` — cache to avoid re-derivation (re-derivable any time; §5).
+- `clobApiKey`, `clobSecret`, `clobPassphrase` — **cache only, not authoritative.** Re-derivable on demand:
+  `getApiCredentials()` calls `deriveApiKey()` first (deterministic from the OutLayer signer) and only falls
+  back to `createApiKey()` if none exists (`core/src/exchanges/polymarket/auth.ts`). Losing them loses nothing.
 - `setupDone` (bool) — §6 completed.
 - Reverse index `depositWallet → userId` — to attribute incoming deposits.
 
 App-level singletons: OutLayer NEAR key, builder HMAC creds + builder code. NEVER per-user.
+
+### 12a. CREDENTIAL PERSISTENCE & BACKUP (READ — funds depend on this)
+
+This backend stores NO funds. They live in the OutLayer-custodied `depositWallet` on-chain, and access is
+*reconstructed* every time from two inputs: the **custody root** (app-level) and the **`userId`** (per-user).
+Lose either and the matching funds are **permanently inaccessible** — no recovery, no "reveal again".
+Everything else in the schema is a cache that re-derives for free.
+
+| credential | created once? | lose it ⇒ lose funds? | where to store |
+|---|---|---|---|
+| `OUTLAYER_NEAR_PRIVATE_KEY` + `OUTLAYER_ACCOUNT_ID` (Model A custody root) | no — your existing NEAR key | **YES — ALL users' wallets, forever** | secrets manager + offline backup; never in DB or repo |
+| `OUTLAYER_API_KEY` `wk_…` (Model B custody root) | yes — shown once by OutLayer | **YES — that single wallet, forever** | secrets manager + offline backup |
+| `userId` (per user) | — | **YES — that user's wallet, forever** | durable DB, backed up ("the only thing you persist", §1) |
+| `clobApiKey` / `clobSecret` / `clobPassphrase` | derived | no — re-derivable (`deriveApiKey`) | DB cache, or don't store |
+| `eoa`, `depositWallet`, `bridgeIn`, `setupDone` | derived | no — re-derivable (§5/§6) | DB cache, or don't store |
+| Polymarket builder `key`/`secret`/`passphrase` + `BUILDER_CODE` | yes — revealed once at creation (§2) | no — only sponsors gas / attributes fees; re-create if lost | secrets manager |
+
+Rules:
+- **Back up the custody root the moment you create/obtain it.** The Model B `wk_` key is shown exactly once;
+  the Model A NEAR full-access key must be exported to an offline vault. This is the one true
+  "save it now or lose money" item — NOT the per-user clobCreds.
+- **Persist every `userId` durably before taking any funds for that user.** No `userId` ⇒ no `seed` ⇒ no wallet.
+- Builder creds are also revealed once (save at creation), but losing them costs *operations*, not custody.
+- Cache fields (clobCreds, addresses, `setupDone`) are convenience only; safe to drop and re-derive.
 
 ---
 
@@ -317,6 +347,8 @@ App-level singletons: OutLayer NEAR key, builder HMAC creds + builder code. NEVE
 - `core/src/server/outlayer-routes.ts` — additive HTTP router (extend for your backend endpoints).
 - Scripts (`core/scripts/`, run from `core/`): `outlayer-livecheck.ts` (signing seam, zero funds),
   `outlayer-fund-setup.ts`, `outlayer-fund-withdraw.ts`, `outlayer-deposit-wallet-deploy.ts`.
-- Companion docs: [PHASE2_LIVE_TRADE.md](PHASE2_LIVE_TRADE.md) (live run + addresses),
+- Companion docs: [BACKEND_ARCHITECTURE.md](BACKEND_ARCHITECTURE.md) (two-layer service design + fork hygiene),
+  [PHASE2_LIVE_TRADE.md](PHASE2_LIVE_TRADE.md) (live run + addresses),
   [OUTLAYER_INTEGRATION_PLAN.md](OUTLAYER_INTEGRATION_PLAN.md), [PHASE0_FINDINGS.md](PHASE0_FINDINGS.md),
-  [BACKUP_USDCE_SWAP_PATH.md](BACKUP_USDCE_SWAP_PATH.md) (fallback only).
+  [BACKUP_USDCE_SWAP_PATH.md](BACKUP_USDCE_SWAP_PATH.md) (fallback only),
+  [SYNCING_UPSTREAM.md](SYNCING_UPSTREAM.md) (how to pull upstream updates).
