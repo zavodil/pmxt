@@ -15,6 +15,10 @@
  * GET query string.
  */
 import { Router, Request, Response, NextFunction } from 'express';
+import { createPublicClient, createWalletClient, http, encodeFunctionData, maxUint256 } from 'viem';
+import { polygon } from 'viem/chains';
+import { RelayClient } from '@polymarket/builder-relayer-client';
+import { BuilderConfig } from '@polymarket/builder-signing-sdk';
 import { ExchangeCredentials } from '../BaseExchange';
 import {
     resolveIdentity,
@@ -22,11 +26,43 @@ import {
     buildFundingAdapter,
     PolymarketOutlayerAuth,
     OutlayerClient,
+    toSignerAccount,
+    POLYMARKET_V2_CONTRACTS,
 } from '../integrations/outlayer';
 
 function getCredentials(req: Request): ExchangeCredentials | undefined {
     const body = (req.body ?? {}) as Record<string, unknown>;
     return body.credentials as ExchangeCredentials | undefined;
+}
+
+const RPC_URL = (): string => process.env.POLYGON_RPC_URL || 'https://polygon-bor-rpc.publicnode.com';
+const RELAYER_URL = (): string => process.env.POLYMARKET_RELAYER_URL || 'https://relayer-v2.polymarket.com';
+
+const ERC20_ABI = [
+    { type: 'function', name: 'approve', stateMutability: 'nonpayable', inputs: [{ type: 'address' }, { type: 'uint256' }], outputs: [{ type: 'bool' }] },
+    { type: 'function', name: 'balanceOf', stateMutability: 'view', inputs: [{ type: 'address' }], outputs: [{ type: 'uint256' }] },
+] as const;
+const ERC1155_ABI = [
+    { type: 'function', name: 'setApprovalForAll', stateMutability: 'nonpayable', inputs: [{ type: 'address' }, { type: 'bool' }], outputs: [] },
+] as const;
+
+function builderConfig(): BuilderConfig {
+    return new BuilderConfig({
+        localBuilderCreds: {
+            key: process.env.POLYMARKET_BUILDER_API_KEY || '',
+            secret: process.env.POLYMARKET_BUILDER_SECRET || '',
+            passphrase: process.env.POLYMARKET_BUILDER_PASSPHRASE || '',
+        },
+    });
+}
+
+/** A RelayClient bound to the identity's OutLayer-signed viem wallet. */
+async function relayClientFor(credentials: ExchangeCredentials | undefined, withBuilder: boolean): Promise<RelayClient> {
+    const identity = resolveIdentity(credentials);
+    const signer = buildSigner(identity);
+    const account = await toSignerAccount(signer);
+    const walletClient = createWalletClient({ account, chain: polygon, transport: http(RPC_URL()) });
+    return new RelayClient(RELAYER_URL(), 137, walletClient, withBuilder ? builderConfig() : undefined);
 }
 
 export function createOutlayerRouter(): Router {
@@ -132,6 +168,93 @@ export function createOutlayerRouter(): Router {
             }
             const adapter = buildFundingAdapter(getCredentials(req));
             res.json({ success: true, data: await adapter.status(requestId) });
+        } catch (error) {
+            next(error);
+        }
+    });
+
+    // POST /outlayer/deposit-address  { credentials } → { depositWallet, bridgeIn, minUsd }
+    // The user's sigType-3 deposit-wallet + the Polymarket native-USDC bridge-in to fund it.
+    router.post('/deposit-address', async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const rc = await relayClientFor(getCredentials(req), false);
+            const depositWallet = await rc.deriveDepositWalletAddress();
+            let bridgeIn: unknown = null;
+            try {
+                const r = await fetch('https://bridge.polymarket.com/deposit', {
+                    method: 'POST',
+                    headers: { 'content-type': 'application/json', 'X-Builder-Code': process.env.POLYMARKET_BUILDER_CODE || '' },
+                    body: JSON.stringify({ address: depositWallet }),
+                });
+                const j = (await r.json()) as { address?: unknown };
+                bridgeIn = j?.address ?? null;
+            } catch {
+                /* bridge-in is best-effort */
+            }
+            res.json({ success: true, data: { depositWallet, bridgeIn, minUsd: 2 } });
+        } catch (error) {
+            next(error);
+        }
+    });
+
+    // POST /outlayer/balance  { credentials } → { depositWallet, pusd, pusdRaw, deployed }
+    router.post('/balance', async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const rc = await relayClientFor(getCredentials(req), false);
+            const depositWallet = await rc.deriveDepositWalletAddress();
+            const pc = createPublicClient({ chain: polygon, transport: http(RPC_URL()) });
+            const [raw, code] = await Promise.all([
+                pc.readContract({
+                    address: POLYMARKET_V2_CONTRACTS.pUsd as `0x${string}`,
+                    abi: ERC20_ABI,
+                    functionName: 'balanceOf',
+                    args: [depositWallet as `0x${string}`],
+                }),
+                pc.getBytecode({ address: depositWallet as `0x${string}` }),
+            ]);
+            const pusdRaw = raw as bigint;
+            res.json({
+                success: true,
+                data: {
+                    depositWallet,
+                    pusd: Number(pusdRaw) / 1e6,
+                    pusdRaw: pusdRaw.toString(),
+                    deployed: Boolean(code && code !== '0x'),
+                },
+            });
+        } catch (error) {
+            next(error);
+        }
+    });
+
+    // POST /outlayer/setup  { credentials } → deploy deposit-wallet (if needed) + token approvals.
+    // One-time per user, gasless via the builder relayer. Idempotent.
+    router.post('/setup', async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const rc = await relayClientFor(getCredentials(req), true);
+            const depositWallet = await rc.deriveDepositWalletAddress();
+            const pc = createPublicClient({ chain: polygon, transport: http(RPC_URL()) });
+            const code = await pc.getBytecode({ address: depositWallet as `0x${string}` });
+            const wasDeployed = Boolean(code && code !== '0x');
+            if (!wasDeployed) await rc.deployDepositWallet();
+
+            const C = POLYMARKET_V2_CONTRACTS;
+            const approve = (spender: string) =>
+                encodeFunctionData({ abi: ERC20_ABI, functionName: 'approve', args: [spender as `0x${string}`, maxUint256] });
+            const setAll = (op: string) =>
+                encodeFunctionData({ abi: ERC1155_ABI, functionName: 'setApprovalForAll', args: [op as `0x${string}`, true] });
+            const calls = [
+                { target: C.pUsd, value: '0', data: approve(C.ctfExchangeV2) },
+                { target: C.pUsd, value: '0', data: approve(C.negRiskCtfExchangeV2) },
+                { target: C.pUsd, value: '0', data: approve(C.negRiskAdapter) },
+                { target: C.conditionalTokens, value: '0', data: setAll(C.ctfExchangeV2) },
+                { target: C.conditionalTokens, value: '0', data: setAll(C.negRiskCtfExchangeV2) },
+                { target: C.conditionalTokens, value: '0', data: setAll(C.negRiskAdapter) },
+            ];
+            const deadline = String(Math.floor(Date.now() / 1000) + 3600);
+            await rc.executeDepositWalletBatch(calls, depositWallet, deadline);
+
+            res.json({ success: true, data: { depositWallet, deployed: true, approvalsSet: true, wasAlreadyDeployed: wasDeployed } });
         } catch (error) {
             next(error);
         }

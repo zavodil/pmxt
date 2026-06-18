@@ -1,0 +1,40 @@
+# Catalog stack: Postgres+pgvector + the backend API.
+#   docker compose up -d --build
+# The API reaches the pmxt sidecar and the local-claude LLM proxy on the HOST
+# via host.docker.internal (both run outside this compose).
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: catalog
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: catalog
+    ports:
+      - "5432:5432"
+    volumes:
+      - catalogdb:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U catalog"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      # container-appropriate overrides (the .env values are for bare-metal/host)
+      PORT: 8080
+      DATABASE_URL: postgres://catalog:${POSTGRES_PASSWORD}@db:5432/catalog
+      PMXT_BASE_URL: http://host.docker.internal:3847
+      AI_BASE_URL: http://host.docker.internal:8317/v1
+    ports:
+      - "8080:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  catalogdb: {}

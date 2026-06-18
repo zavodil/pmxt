@@ -1,0 +1,240 @@
+:root {
+  --bg: #0f1115;
+  --panel: #171a21;
+  --panel2: #1e222b;
+  --border: #2a2f3a;
+  --text: #e6e8ec;
+  --muted: #9aa3b2;
+  --accent: #4c8bf5;
+  --green: #2ec07a;
+  --red: #e5564b;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.app { display: flex; flex-direction: column; height: 100vh; }
+
+.header {
+  display: flex; align-items: center; gap: 16px;
+  padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--panel);
+}
+.header h1 { font-size: 15px; margin: 0; font-weight: 600; }
+.header .spacer { flex: 1; }
+.header input.name {
+  background: var(--panel2); border: 1px solid var(--border); color: var(--text);
+  border-radius: 6px; padding: 5px 8px; width: 120px;
+}
+.dial { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+.dial b { color: var(--text); min-width: 120px; }
+.composer .dial { margin-top: 10px; }
+
+.main { flex: 1; display: flex; min-height: 0; }
+.chatCol { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.sidebar {
+  width: 340px; border-left: 1px solid var(--border); background: var(--panel);
+  overflow-y: auto; padding: 12px;
+}
+.sidebar h2 { font-size: 12px; text-transform: uppercase; color: var(--muted); margin: 4px 4px 10px; letter-spacing: .04em; }
+
+.messages { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.msg { max-width: 760px; }
+.msg.user { align-self: flex-end; background: var(--accent); color: #fff; padding: 9px 13px; border-radius: 12px 12px 2px 12px; white-space: pre-wrap; }
+.msg.assistant { align-self: flex-start; background: var(--panel2); padding: 11px 14px; border-radius: 12px 12px 12px 2px; border: 1px solid var(--border); }
+.steps { align-self: flex-start; color: var(--muted); font-size: 12px; font-style: italic; }
+
+.composer { border-top: 1px solid var(--border); padding: 12px; background: var(--panel); }
+.selBanner {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 6px 10px;
+  background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; font-size: 12px;
+}
+.selBanner .x { cursor: pointer; color: var(--muted); }
+.composer .row { display: flex; gap: 8px; }
+.composer textarea {
+  flex: 1; resize: none; background: var(--panel2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px; padding: 9px 11px; font: inherit; min-height: 44px;
+}
+.composer button, .card button, .betCard button {
+  background: var(--accent); color: #fff; border: 0; border-radius: 8px; padding: 0 16px; cursor: pointer; font-weight: 600;
+}
+.composer button:disabled { opacity: .5; cursor: default; }
+
+.card {
+  background: var(--panel2); border: 1px solid var(--border); border-radius: 10px;
+  padding: 10px 12px; margin-bottom: 10px; cursor: pointer;
+}
+.card.selected { border-color: var(--accent); }
+.card .title { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.card .meta { display: flex; gap: 10px; font-size: 11px; color: var(--muted); flex-wrap: wrap; }
+.card .why { font-size: 11px; color: var(--muted); margin-top: 6px; }
+.pill { background: #243; color: var(--green); border-radius: 999px; padding: 1px 8px; font-size: 11px; }
+.src { border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; font-size: 10px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); }
+.src.polymarket { color: #6ea8fe; border-color: #2b3a5a; }
+.src.limitless { color: #c08bff; border-color: #3a2b5a; }
+
+.betCard { background: var(--panel2); border: 1px solid var(--green); border-radius: 10px; padding: 12px; }
+.betCard .row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.betCard input { width: 90px; background: var(--panel); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 6px 8px; }
+.quote { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.empty { color: var(--muted); font-size: 13px; padding: 8px; }
+
+/* ChatGPT-style centered first screen */
+.hero { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.heroBox { width: 100%; max-width: 640px; text-align: center; }
+.heroTitle { font-size: 26px; margin: 0 0 6px; font-weight: 650; }
+.heroSub { color: var(--muted); margin: 0 0 22px; }
+.heroInput { display: flex; gap: 8px; }
+.heroInput textarea {
+  flex: 1; resize: none; min-height: 54px; background: var(--panel2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; font: inherit;
+}
+.heroInput button { background: var(--accent); color: #fff; border: 0; border-radius: 12px; padding: 0 20px; font-weight: 600; cursor: pointer; }
+.heroInput button:disabled { opacity: .5; cursor: default; }
+.heroDial { display: flex; justify-content: center; margin-top: 14px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 22px; }
+.chip {
+  background: var(--panel2); border: 1px solid var(--border); color: var(--text);
+  border-radius: 999px; padding: 9px 15px; font-size: 13px; cursor: pointer;
+}
+.chip:hover { border-color: var(--accent); }
+.chip:disabled { opacity: .5; cursor: default; }
+
+/* header ghost button */
+.header .ghost {
+  background: transparent; color: var(--text); border: 1px solid var(--border);
+  border-radius: 8px; padding: 5px 12px; cursor: pointer; font: inherit;
+}
+.header .ghost:hover { border-color: var(--accent); }
+.header .wallet { display: inline-flex; align-items: center; gap: 8px; background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; font-size: 13px; font-family: ui-monospace, monospace; }
+.header .wallet .x { cursor: pointer; color: var(--muted); }
+
+/* selected-market bet bar — "attached" above the composer */
+.betbar { background: var(--panel2); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; }
+.betbarHead { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.betbarHead .clip { opacity: .7; }
+.betbarHead .bt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; }
+.betbarHead a { color: var(--accent); text-decoration: none; }
+.betbarHead .x { cursor: pointer; color: var(--muted); }
+
+.loading { display: flex; align-items: center; gap: 8px; color: var(--muted); padding: 14px 4px; font-size: 13px; }
+.spinner { width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* meta chips */
+.metaChips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.mchip { background: var(--panel); border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px; font-size: 11px; color: var(--muted); }
+
+/* outcome buttons: big % only, label as a caption beneath */
+.odds { display: flex; gap: 10px; margin-top: 12px; }
+.oc { flex: 1 1 110px; max-width: 260px; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.oddsBtn {
+  width: 100%; background: var(--panel); border: 1px solid var(--border); color: var(--text);
+  border-radius: 12px; padding: 20px 16px; font-size: 24px; font-weight: 800; line-height: 1;
+  cursor: pointer; transition: border-color .12s, background .12s;
+}
+.oddsBtn:hover { border-color: var(--accent); }
+.oddsBtn.on { border-color: var(--accent); background: #1b2740; box-shadow: inset 0 0 0 1px var(--accent); }
+.oc .ocL { font-size: 12px; color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.oc .ocL.on { color: var(--text); }
+
+.winline { margin-top: 10px; font-size: 13px; color: var(--text); }
+.winline .muted { color: var(--muted); }
+
+/* "place a bet" divider */
+.formDiv { display: flex; align-items: center; gap: 8px; margin: 14px 0 2px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+.formDiv::before, .formDiv::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* attached-market chip — sits right above the textarea, accent-bordered so it reads as "attached" */
+.attachChip { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 7px 10px; background: #16203a; border: 1px solid var(--accent); border-radius: 8px; font-size: 12px; color: var(--text); }
+.attachChip .atxt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.attachChip .atrm { background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 3px 9px; cursor: pointer; font-size: 11px; }
+.attachChip .atrm:hover { border-color: var(--red); color: var(--red); }
+
+/* cohesive bet form: amount + chips, then a full-width Proceed */
+.betForm { margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
+.amtRow { display: flex; align-items: stretch; gap: 8px; }
+.amt { display: flex; align-items: center; gap: 4px; background: var(--panel); border: 1px solid var(--border); border-radius: 9px; padding: 0 10px; }
+.amt span { color: var(--muted); }
+.amt input { width: 56px; background: transparent; border: 0; color: var(--text); font: inherit; font-size: 15px; }
+.amtChips { display: flex; gap: 6px; }
+.amtChips button { background: var(--panel); border: 1px solid var(--border); color: var(--text); border-radius: 9px; padding: 0 13px; cursor: pointer; font-size: 13px; }
+.amtChips button.on { border-color: var(--accent); color: var(--accent); }
+.proceed { flex: 1; background: var(--green); color: #06281a; border: 0; border-radius: 9px; padding: 0 16px; min-height: 38px; font-weight: 700; font-size: 14px; cursor: pointer; }
+.proceed:disabled { opacity: .5; cursor: default; }
+.hint { font-size: 12px; color: var(--muted); }
+.formDiv .info { background: transparent; border: 0; color: var(--muted); cursor: pointer; font-size: 13px; padding: 0; }
+.formDiv .info:hover { color: var(--accent); }
+
+/* price chart */
+.chartWrap { margin-top: 12px; }
+.chartTitle { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.chartTitle .enlarge { cursor: pointer; color: var(--accent); }
+.chart { width: 100%; height: auto; display: block; background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; }
+
+/* two-column layout on desktop: chart | outcomes+bet */
+.betGrid { display: flex; gap: 14px; align-items: flex-start; margin-top: 12px; }
+.betGrid .betCol { flex: 1 1 0; min-width: 0; }
+.betGrid .chartWrap, .betGrid .odds { margin-top: 0; }
+@media (max-width: 760px) { .betGrid { flex-direction: column; } }
+.cgrid { stroke: var(--border); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.cax { fill: var(--muted); font-size: 10px; }
+.caxc { font-size: 10px; font-weight: 700; }
+.chartModal { width: 820px; }
+
+/* my bets modal */
+.modalBg { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: flex-start; justify-content: center; padding-top: 70px; z-index: 50; }
+.modal { width: 560px; max-width: calc(100vw - 32px); max-height: 75vh; overflow-y: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+.modalHead { display: flex; align-items: center; margin-bottom: 12px; }
+.modalHead .x { cursor: pointer; color: var(--muted); }
+.betRowItem { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--border); }
+.betRowItem .bi { flex: 1; min-width: 0; }
+.betRowItem .biTitle { font-weight: 600; }
+.modal .ghost { background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 5px 12px; cursor: pointer; }
+.st { text-transform: uppercase; font-size: 10px; letter-spacing: .04em; }
+.st.placed { color: var(--green); }
+.st.cancelled { color: var(--red); }
+.st.draft, .st.confirmed { color: var(--muted); }
+.st.placed { color: var(--green); }
+.st.failed { color: var(--red); }
+
+/* wallet modal */
+.wrow { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--border); }
+.wrow .wlabel { color: var(--muted); font-size: 12px; min-width: 110px; }
+.wdep { padding: 10px 0; border-top: 1px solid var(--border); }
+.wdep .wlabel { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+.waddr { display: block; background: var(--panel2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font-family: ui-monospace, monospace; font-size: 12px; word-break: break-all; }
+.waddr.small { font-size: 11px; color: var(--muted); }
+
+/* markdown in assistant messages */
+.md > :first-child { margin-top: 0; }
+.md > :last-child { margin-bottom: 0; }
+.md p { margin: 6px 0; }
+.md ul, .md ol { margin: 6px 0; padding-left: 20px; }
+.md li { margin: 2px 0; }
+.md a { color: var(--accent); }
+.md code { background: #11141a; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+.md pre { background: #11141a; padding: 10px; border-radius: 8px; overflow-x: auto; }
+.md h1, .md h2, .md h3 { font-size: 14px; margin: 10px 0 4px; }
+.md table { border-collapse: collapse; margin: 6px 0; }
+.md th, .md td { border: 1px solid var(--border); padding: 4px 8px; font-size: 12px; }
+
+/* selected-market detail panel */
+.detail { border-bottom: 1px solid var(--border); background: var(--panel); padding: 12px 16px; }
+.detailHead { display: flex; align-items: center; gap: 8px; }
+.detailHead b { font-size: 14px; }
+.detailHead a { color: var(--accent); text-decoration: none; }
+.detailHead .x { cursor: pointer; color: var(--muted); }
+.detailMeta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--muted); margin-top: 6px; }
+.detailMeta .tag { background: var(--panel2); border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; }
+.detailOutcomes { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 8px; font-size: 13px; }
+.detailOutcomes .oc b { color: var(--text); }
+.sparkWrap { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.spark { background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; }
+.desc { margin-top: 8px; font-size: 12px; color: var(--muted); }
+.desc summary { cursor: pointer; }
+.desc > div { margin-top: 6px; white-space: pre-wrap; max-height: 160px; overflow-y: auto; }
