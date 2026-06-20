@@ -22,6 +22,7 @@ const EnvZ = z.object({
   EMBEDDINGS_PROVIDER: z.enum(['none', 'voyage', 'openai']).default('none'),
   EMBED_MODEL: z.string().default('voyage-3-lite'),
   EMBED_DIM: z.coerce.number().default(1024),
+  EMBED_BASE_URL: z.string().default('https://api.openai.com/v1'), // OpenAI-compatible; swap for OpenRouter / local Ollama
   VOYAGE_API_KEY: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
 

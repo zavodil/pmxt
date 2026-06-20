@@ -27,7 +27,11 @@ export async function commentOnMarkets(prompt: string, markets: SidebarMarket[],
   const sys =
     'You are a prediction-market copilot. Matching markets are ALREADY shown in the user\'s sidebar — do NOT list them all. ' +
     'In 2-4 short sentences: highlight 1-3 standouts by title, note the source (Polymarket/Limitless) when useful, and invite ' +
-    `them to click one to discuss or bet. Reply in the user's language. ${tone}`;
+    'them to click one to discuss or bet. ' +
+    'IMPORTANT: if the markets are only loosely or tangentially related to what the user asked (a different topic that merely ' +
+    'shares a keyword), say so plainly — tell them there are no markets directly about their topic and that these are just the ' +
+    'closest. Never invent a thesis to make an unrelated market sound relevant. ' +
+    `Reply in the user's language. ${tone}`;
   const user = `User query: ${prompt}\n\nMarkets shown (JSON): ${JSON.stringify(list).slice(0, 2500)}`;
   return chat([
     { role: 'system', content: sys },

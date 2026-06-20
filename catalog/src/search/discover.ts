@@ -96,6 +96,7 @@ async function semanticTopK(prompt: string, venues: string[], k: number): Promis
   const { rows } = await pool.query<{ id: number }>(
     `SELECT id FROM markets
      WHERE status='active' AND venue = ANY($1) AND embedding IS NOT NULL
+       AND (resolution_date IS NULL OR resolution_date > now())
      ORDER BY embedding <=> $2::vector LIMIT $3`,
     [venues, qvec, k],
   );
@@ -131,7 +132,11 @@ async function keywordTopK(prompt: string, venues: string[], k: number): Promise
       `SELECT id FROM markets
        WHERE status='active' AND venue = ANY($1)
          AND search_tsv @@ to_tsquery('english', $2)
-       ORDER BY ts_rank(search_tsv, to_tsquery('english', $2)) DESC LIMIT $3`,
+         AND (coalesce(volume_24h,0) > 0 OR coalesce(liquidity,0) > 0)
+         AND (resolution_date IS NULL OR resolution_date > now())
+       ORDER BY ts_rank(search_tsv, to_tsquery('english', $2))
+                * ln(coalesce(volume_24h,0) + coalesce(liquidity,0) + 2) DESC
+       LIMIT $3`,
       [venues, query, k],
     );
     return rows.map((r) => r.id);

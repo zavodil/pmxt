@@ -40,13 +40,18 @@ async function voyage(input: string[], inputType: 'document' | 'query'): Promise
 
 async function openai(input: string[]): Promise<number[][]> {
   if (!config.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not set');
-  const res = await fetch('https://api.openai.com/v1/embeddings', {
+  // text-embedding-3-* accept `dimensions` to match our pgvector column width
+  // (3-large is 3072 native → reduced to EMBED_DIM, e.g. 1024). Base URL is
+  // configurable so the same path works for OpenAI, OpenRouter, or a local model.
+  const body: Record<string, unknown> = { model: config.EMBED_MODEL, input };
+  if (config.EMBED_DIM) body.dimensions = config.EMBED_DIM;
+  const res = await fetch(`${config.EMBED_BASE_URL}/embeddings`, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
       authorization: `Bearer ${config.OPENAI_API_KEY}`,
     },
-    body: JSON.stringify({ model: config.EMBED_MODEL, input }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`openai ${res.status}: ${(await res.text()).slice(0, 300)}`);
   const json = (await res.json()) as { data: { embedding: number[] }[] };

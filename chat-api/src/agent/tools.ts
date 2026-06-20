@@ -43,6 +43,8 @@ export async function executeTool(
       return discoverTool(args, ctx, emit);
     case 'search_markets':
       return searchTool(args, ctx, emit);
+    case 'present_markets':
+      return presentTool(args, ctx, emit);
     case 'get_quote':
       return quoteTool(args, ctx, emit);
     case 'propose_bet':
@@ -69,18 +71,26 @@ function toSidebar(m: catalog.DiscoverMatch | catalog.CatalogMarket): SidebarMar
 }
 
 async function persistMarkets(conversationId: string, markets: SidebarMarket[], source: string) {
+  if (!markets.length) return;
+  const values: string[] = [];
+  const params: unknown[] = [];
   for (const m of markets) {
-    await query(
-      `INSERT INTO conversation_markets (conversation_id, venue, market_id, source)
-       VALUES ($1,$2,$3,$4) ON CONFLICT (conversation_id, venue, market_id) DO NOTHING`,
-      [conversationId, m.venue, m.marketId, source],
-    );
+    const i = params.length;
+    values.push(`($${i + 1},$${i + 2},$${i + 3},$${i + 4})`);
+    params.push(conversationId, m.venue, m.marketId, source);
   }
+  await query(
+    `INSERT INTO conversation_markets (conversation_id, venue, market_id, source)
+     VALUES ${values.join(',')} ON CONFLICT (conversation_id, venue, market_id) DO NOTHING`,
+    params,
+  );
 }
 
-// compact view for the model (keep tokens low)
+// compact view for the model (keep tokens low). venue is included so get_quote /
+// propose_bet target the right source — markets span Polymarket + Limitless.
 function compact(markets: SidebarMarket[]) {
   return markets.map((m) => ({
+    venue: m.venue,
     marketId: m.marketId,
     title: m.title,
     outcomes: m.outcomes,
@@ -118,6 +128,33 @@ async function searchTool(args: Args, ctx: ToolCtx, emit: Emit) {
   emit({ type: 'sidebar', markets: sidebar });
   await persistMarkets(ctx.conversationId, sidebar, 'search');
   return { count: sidebar.length, markets: compact(sidebar) };
+}
+
+// Replace the sidebar with EXACTLY the markets the agent chose (by id, from prior
+// results) — so the visible results match its answer after a filter/exclusion.
+async function presentTool(args: Args, ctx: ToolCtx, emit: Emit) {
+  const list = Array.isArray(args.marketIds)
+    ? args.marketIds
+    : Array.isArray(args.markets)
+      ? args.markets
+      : [];
+  const ids = list
+    .map((r) => (typeof r === 'string' ? r : String((r as { marketId?: string; id?: string })?.marketId ?? (r as { id?: string })?.id ?? '')))
+    .filter(Boolean);
+  if (!ids.length) return { error: 'marketIds (a list of market ids from prior results) is required' };
+  // Resolve each id's venue from what was already shown in THIS conversation,
+  // then re-fetch and emit a curated sidebar.
+  const rows = await query<{ venue: string; market_id: string }>(
+    `SELECT DISTINCT venue, market_id FROM conversation_markets
+     WHERE conversation_id=$1 AND market_id = ANY($2)`,
+    [ctx.conversationId, ids],
+  );
+  const fetched = await Promise.all(rows.map((r) => catalog.getMarket(r.venue, r.market_id).catch(() => null)));
+  const sidebar = fetched.filter((m): m is catalog.CatalogMarket => !!m).map(toSidebar);
+  emit({ type: 'sidebar', markets: sidebar });
+  // Re-persist so the recent-markets context reflects the curated set as current.
+  await persistMarkets(ctx.conversationId, sidebar, 'present');
+  return { count: sidebar.length, shown: sidebar.map((m) => m.title) };
 }
 
 async function quoteTool(args: Args, ctx: ToolCtx, emit: Emit) {

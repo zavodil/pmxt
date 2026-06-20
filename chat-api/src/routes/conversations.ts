@@ -21,6 +21,32 @@ export async function conversationsRoutes(app: FastifyInstance): Promise<void> {
     return rows[0];
   });
 
+  // List this user's conversations for the history panel (title = first user
+  // message, preview = last assistant reply), most-recently-active first.
+  app.get('/v1/conversations', async (req) => {
+    const rows = await query<{
+      id: string;
+      dial: number;
+      created_at: string;
+      title: string | null;
+      preview: string | null;
+      last_at: string | null;
+    }>(
+      `SELECT c.id, c.dial, c.created_at,
+         (SELECT content FROM messages m WHERE m.conversation_id=c.id AND m.role='user'      ORDER BY m.id ASC  LIMIT 1) AS title,
+         (SELECT content FROM messages m WHERE m.conversation_id=c.id AND m.role='assistant' ORDER BY m.id DESC LIMIT 1) AS preview,
+         (SELECT created_at FROM messages m WHERE m.conversation_id=c.id ORDER BY m.id DESC LIMIT 1) AS last_at
+       FROM conversations c
+       WHERE c.user_id=$1
+       ORDER BY coalesce(
+         (SELECT created_at FROM messages m WHERE m.conversation_id=c.id ORDER BY m.id DESC LIMIT 1), c.created_at
+       ) DESC
+       LIMIT 50`,
+      [userId(req)],
+    );
+    return { conversations: rows.filter((r) => r.title) };
+  });
+
   app.get('/v1/conversations/:id', async (req, reply) => {
     const { id } = req.params as { id: string };
     const conv = await query<{ id: string; dial: number }>(

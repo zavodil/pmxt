@@ -26,14 +26,22 @@ export async function searchMarkets(p: SearchParams): Promise<MarketRow[]> {
   };
 
   const where: string[] = [`status = ${bind(status)}`, `venue = ANY(${bind(venues)})`];
+  // Active markets past their resolution date are stale — don't surface them.
+  if (status === 'active') where.push(`(resolution_date IS NULL OR resolution_date > now())`);
   if (p.category) where.push(`category = ${bind(p.category)}`);
   if (p.tags && p.tags.length) where.push(`tags && ${bind(p.tags)}`);
 
   let order = `volume_24h DESC NULLS LAST`;
   if (p.q) {
+    // Bind the query ONCE; the same $N placeholder is reused in WHERE and ORDER BY.
+    // Don't call bind(p.q) a second time — it would push a duplicate, unused param.
     const qp = bind(p.q);
     where.push(`search_tsv @@ websearch_to_tsquery('english', ${qp})`);
-    order = `ts_rank(search_tsv, websearch_to_tsquery('english', ${qp})) DESC`;
+    // Drop dead markets and blend volume into relevance, so a strong-but-dead
+    // keyword match (e.g. a $0-volume market that merely shares a word) can't
+    // outrank a live one.
+    where.push(`(coalesce(volume_24h,0) > 0 OR coalesce(liquidity,0) > 0)`);
+    order = `ts_rank(search_tsv, websearch_to_tsquery('english', ${qp})) * ln(coalesce(volume_24h,0) + coalesce(liquidity,0) + 2) DESC`;
   }
 
   const sql = `SELECT * FROM markets WHERE ${where.join(' AND ')} ORDER BY ${order} LIMIT ${bind(

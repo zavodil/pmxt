@@ -16,7 +16,9 @@ export async function chat(messages: ChatMessage[], temperature = config.AGENT_T
     body: JSON.stringify({
       model: config.AI_MODEL,
       temperature,
-      max_tokens: 2048,
+      // Headroom for a full markdown reply embedded in the JSON `say` field —
+      // 2048 truncated long answers, producing unparseable JSON shown raw.
+      max_tokens: 4096,
       messages,
     }),
   });

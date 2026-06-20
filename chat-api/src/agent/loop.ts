@@ -12,6 +12,9 @@ export interface RunTurnOpts {
   userText: string;
   venue: string;
   emit: Emit;
+  /** Pre-formatted note about markets already shown this conversation, so the
+   *  agent can resolve "the second one" / "hide those" without re-searching. */
+  recentMarkets?: string;
 }
 
 interface Action {
@@ -26,6 +29,7 @@ export async function runAgentTurn(opts: RunTurnOpts): Promise<string> {
 
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt(dial) },
+    ...(opts.recentMarkets ? [{ role: 'system' as const, content: opts.recentMarkets }] : []),
     ...history,
     { role: 'user', content: userText },
   ];
@@ -44,9 +48,7 @@ export async function runAgentTurn(opts: RunTurnOpts): Promise<string> {
     // No action / explicit final → reply to the user.
     if (!obj || !obj.action || obj.action === 'final') {
       const say =
-        obj && typeof obj.say === 'string' && obj.say.trim()
-          ? obj.say
-          : stripJsonBlocks(content) || content;
+        obj && typeof obj.say === 'string' && obj.say.trim() ? obj.say : salvageSay(content);
       emit({ type: 'message', text: say });
       return say;
     }
@@ -63,11 +65,42 @@ export async function runAgentTurn(opts: RunTurnOpts): Promise<string> {
     messages.push({ role: 'assistant', content });
     messages.push({
       role: 'user',
-      content: `TOOL_RESULT(${obj.action}): ${JSON.stringify(result).slice(0, 4000)}`,
+      content: `TOOL_RESULT(${obj.action}): ${JSON.stringify(result).slice(0, 16000)}`,
     });
   }
 
-  const fallback = "Let me narrow it down — which market or topic are you interested in?";
-  emit({ type: 'message', text: fallback });
-  return fallback;
+  // Steps exhausted — force a final answer from what we've gathered rather than
+  // discarding it with a generic redirect.
+  try {
+    messages.push({
+      role: 'user',
+      content:
+        'Stop calling tools. Using everything above, give your final answer to the user now as plain markdown — no JSON, no tool calls.',
+    });
+    const say = salvageSay(await chat(messages));
+    emit({ type: 'message', text: say });
+    return say;
+  } catch {
+    const fallback = 'Let me narrow it down — which market or topic are you interested in?';
+    emit({ type: 'message', text: fallback });
+    return fallback;
+  }
+}
+
+// Never surface raw/broken JSON to the user. Pull a human reply out of model
+// output that failed the JSON protocol (e.g. truncated), else a safe prompt.
+function salvageSay(content: string): string {
+  const m = content.match(/"say"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+  if (m) {
+    try {
+      return JSON.parse(`"${m[1]}"`);
+    } catch {
+      return m[1]!;
+    }
+  }
+  const stripped = stripJsonBlocks(content).trim();
+  if (!stripped || stripped.startsWith('{') || stripped.startsWith('[')) {
+    return 'I hit a snag forming that reply — could you rephrase or narrow it down?';
+  }
+  return stripped;
 }

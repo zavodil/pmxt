@@ -7,13 +7,14 @@ const EnvZ = z.object({
 
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   CATALOG_BASE_URL: z.string().default('http://localhost:8080'),
+  CATALOG_API_KEY: z.string().optional(),
   PMXT_BASE_URL: z.string().default('http://localhost:3847'),
   PMXT_ACCESS_TOKEN: z.string().optional(),
   DEFAULT_VENUE: z.string().default('polymarket'),
 
   AI_BASE_URL: z.string().min(1, 'AI_BASE_URL is required'),
   AI_API_KEY: z.string().optional(),
-  AI_MODEL: z.string().default('claude-sonnet-4-5-20250929'),
+  AI_MODEL: z.string().default('claude-sonnet-4-6'),
   AGENT_MAX_STEPS: z.coerce.number().default(6),
   AGENT_TEMPERATURE: z.coerce.number().default(0.3),
 
