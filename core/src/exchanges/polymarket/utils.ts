@@ -180,8 +180,12 @@ export async function paginateParallel(url: string, params: any, http: any, maxR
     }
 
     // 2. Determine how many more pages to fetch
-    // Gamma rejects offsets above 10,000, so cap enumerable results at ~10,100.
-    const MAX_OFFSET = 10000;
+    // Gamma rejects offsets above its enumeration ceiling with HTTP 422. That
+    // ceiling was 10,000 historically but was tightened to ~2,000 (observed
+    // 2026-06: offset 2000 -> 200, offset 2500 -> 422). We cap at the current
+    // ceiling AND treat a per-page 422 as "enumerated as far as Gamma allows"
+    // so a future shift never nukes the whole batch again.
+    const MAX_OFFSET = 2000;
     const targetLimit = Math.min(params.limit || maxResults, MAX_OFFSET + PAGE_SIZE);
     const numPages = Math.ceil(targetLimit / PAGE_SIZE);
 
@@ -192,12 +196,19 @@ export async function paginateParallel(url: string, params: any, http: any, maxR
         offsets.push(offset);
     }
 
-    // 3. Fetch remaining pages in parallel
+    // 3. Fetch remaining pages in parallel. A deep page that 422s just means we
+    //    hit Gamma's offset ceiling — return [] for it instead of rejecting the
+    //    entire Promise.all (which would fail the whole fetchMarkets call).
     const remainingPages = await Promise.all(offsets.map(async (offset) => {
-        const res = await http.get(url, {
-            params: { ...params, limit: PAGE_SIZE, offset }
-        });
-        return res.data;
+        try {
+            const res = await http.get(url, {
+                params: { ...params, limit: PAGE_SIZE, offset }
+            });
+            return res.data;
+        } catch (err: any) {
+            if (err?.response?.status === 422) return [];
+            throw err;
+        }
     }));
 
     return [firstPage, ...remainingPages].flat();
@@ -234,10 +245,17 @@ export async function paginateSearchParallel(url: string, params: any, maxResult
     }
 
     const remainingPages = await Promise.all(pageNumbers.map(async (pageNum) => {
-        const res = await http.get(url, {
-            params: { ...params, page: pageNum }
-        });
-        return res.data?.events;
+        try {
+            const res = await http.get(url, {
+                params: { ...params, page: pageNum }
+            });
+            return res.data?.events;
+        } catch (err: any) {
+            // A deep page can 422 once Gamma's pagination ceiling is reached;
+            // treat it as the end of enumeration rather than failing the batch.
+            if (err?.response?.status === 422) return [];
+            throw err;
+        }
     }));
 
     return [firstPageEvents, ...remainingPages].flat();

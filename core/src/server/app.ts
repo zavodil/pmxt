@@ -7,6 +7,9 @@ import { createWebSocketHandler, CreateWebSocketHandlerOptions } from "./ws-hand
 import { createExchange } from "./exchange-factory";
 import { createFeedRouter } from "./feed-routes";
 import { createSqlRouter } from "./sql-route";
+// >>> outlayer-integration (keep additive; re-apply on upstream merge)
+import { createOutlayerRouter } from "./outlayer-routes";
+// <<< outlayer-integration
 import { ExchangeCredentials, PredictionMarketExchange } from "../BaseExchange";
 import { Router } from "../router";
 import { BaseError, ValidationError } from "../errors";
@@ -364,6 +367,11 @@ export function createApp(options: CreateAppOptions = {}): Express {
   // Mount before /api/:exchange/:method so "feeds" is not interpreted as
   // an exchange name by the generic dispatcher.
   app.use("/api/feeds", createFeedRouter());
+  // >>> outlayer-integration (keep additive; re-apply on upstream merge)
+  // OutLayer custody/funding surface (address derivation, API-key onboarding,
+  // intents<->Polygon funding). Behind the same access-token middleware above.
+  app.use("/outlayer", createOutlayerRouter());
+  // <<< outlayer-integration
 
   // Shared dispatch used by both GET and POST handlers below. Given the
   // method name, the positional args, and optional credentials, it

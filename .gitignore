@@ -79,6 +79,10 @@ web_modules/
 .env.production.local
 .env.local
 
+# OutLayer integration secrets (wallet keys — never commit)
+.secrets/
+**/.secrets/
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache

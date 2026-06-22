@@ -247,15 +247,15 @@ export class LimitlessClient {
         if (!id || !Number.isFinite(id)) {
             throw new Error(`Could not resolve Limitless profile ID for ${addr}`);
         }
+        const rankFee = profile?.rank?.feeRateBps;
+        if (rankFee == null) {
+            console.warn(`[limitless] profile ${id} has no rank.feeRateBps; defaulting to 100 bps`);
+        }
         this.cachedProfile = {
             id,
-            feeRateBps: profile?.rank?.feeRateBps ?? 100,
+            feeRateBps: rankFee ?? 100,
         };
         return this.cachedProfile;
-    }
-
-    private async resolveProfileId(): Promise<number> {
-        return (await this.resolveProfile()).id;
     }
 
     /**
@@ -267,7 +267,12 @@ export class LimitlessClient {
         side: typeof Side.BUY | typeof Side.SELL,
         orderType: OrderType,
     ) {
-        const profileId = params.onBehalfOf ?? await this.resolveProfileId();
+        const profile = await this.resolveProfile();
+        const profileId = params.onBehalfOf ?? profile.id;
+        // Match the non-delegated path: use the account's resolved fee tier
+        // instead of a hardcoded 100 bps (the resolved value defaults to 100
+        // with a warning if Limitless omits rank.feeRateBps).
+        const feeRateBps = profile.feeRateBps ?? 100;
         const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
         const USDC_DECIMALS = 6;
 
@@ -287,7 +292,7 @@ export class LimitlessClient {
                 takerAmount: side === Side.BUY ? takerAmount : makerAmount,
                 expiration: '0',
                 nonce: 0,
-                feeRateBps: 100,
+                feeRateBps,
                 side: side === Side.BUY ? 0 : 1,
                 signatureType: 0,
                 price,
