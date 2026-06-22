@@ -15,6 +15,10 @@ const EnvZ = z.object({
   AI_BASE_URL: z.string().min(1, 'AI_BASE_URL is required'),
   AI_API_KEY: z.string().optional(),
   AI_MODEL: z.string().default('claude-sonnet-4-6'),
+  // Web-enabled model for the `web_research` tool. The local-claude proxy turns
+  // on Anthropic's native WebSearch/WebFetch for model ids ending in `-search`
+  // (same scheme ai-intents uses). Override per environment if needed.
+  AI_SEARCH_MODEL: z.string().default('claude-opus-4-5-search'),
   AGENT_MAX_STEPS: z.coerce.number().default(6),
   AGENT_TEMPERATURE: z.coerce.number().default(0.3),
 

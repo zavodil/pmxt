@@ -5,8 +5,13 @@ export interface ChatMessage {
   content: string;
 }
 
-/** One OpenAI-compatible chat completion (local-claude proxy / OpenAI / any). */
-export async function chat(messages: ChatMessage[], temperature = config.AGENT_TEMPERATURE): Promise<string> {
+/** One OpenAI-compatible chat completion (local-claude proxy / OpenAI / any).
+ *  Pass `model` to target a different model (e.g. a `-search` variant for web). */
+export async function chat(
+  messages: ChatMessage[],
+  temperature = config.AGENT_TEMPERATURE,
+  model = config.AI_MODEL,
+): Promise<string> {
   const headers: Record<string, string> = { 'content-type': 'application/json' };
   if (config.AI_API_KEY) headers.authorization = `Bearer ${config.AI_API_KEY}`;
 
@@ -14,7 +19,7 @@ export async function chat(messages: ChatMessage[], temperature = config.AGENT_T
     method: 'POST',
     headers,
     body: JSON.stringify({
-      model: config.AI_MODEL,
+      model,
       temperature,
       // Headroom for a full markdown reply embedded in the JSON `say` field —
       // 2048 truncated long answers, producing unparseable JSON shown raw.
