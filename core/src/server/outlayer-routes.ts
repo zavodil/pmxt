@@ -104,18 +104,14 @@ export function createOutlayerRouter(): Router {
             const credentials = getCredentials(req) ?? {};
             const identity = resolveIdentity(credentials);
             const signer = buildSigner(identity);
-            // Resolve the user's sigType-3 deposit-wallet (CREATE2). For sigType 3,
-            // clob-client-v2 sets the order's `signer` field to this funder address,
-            // so the CLOB requires the L1 API key to be owned by it too (bug #65/#70).
-            // Derive the key with signatureType 3 + funderAddress=depositWallet so the
-            // key binds to the deposit-wallet — matching the proven §8 invocation in
-            // POLYMARKET_NATIVE_USDC_GUIDE.md (PolymarketOutlayerExchange + funder).
+            // The order's funder/maker is the user's CREATE2 deposit-wallet (where pUSD
+            // lives + which trades), resolved the same way as deposit-address/balance/
+            // setup — NOT the proxy-discovery address getEffectiveFunderAddress() returns.
+            // The L1 API key stays bound to the EOA / OutLayer signer
+            // (POLYMARKET_NATIVE_USDC_GUIDE.md §12a; the proven PHASE2 setup).
             const rc = await relayClientFor(credentials, false);
             const depositWallet = await rc.deriveDepositWalletAddress();
-            const auth = new PolymarketOutlayerAuth(
-                { ...credentials, signatureType: 3, funderAddress: depositWallet },
-                signer,
-            );
+            const auth = new PolymarketOutlayerAuth(credentials, signer);
             const [address, creds] = await Promise.all([
                 signer.address(),
                 auth.getApiCredentials(),

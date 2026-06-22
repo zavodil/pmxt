@@ -41,18 +41,13 @@ export async function deriveApiKey(userId: string): Promise<ClobCreds> {
   return { funderAddress: d.funderAddress, apiKey: d.apiKey, apiSecret: d.apiSecret, passphrase: d.passphrase };
 }
 
-export async function ensureClob(userId: string, forceRefresh = false): Promise<ClobCreds> {
-  let c = forceRefresh ? undefined : clobCache.get(userId);
+export async function ensureClob(userId: string): Promise<ClobCreds> {
+  let c = clobCache.get(userId);
   if (!c) {
     c = await deriveApiKey(userId);
     clobCache.set(userId, c);
   }
   return c;
-}
-
-/** Drop cached CLOB creds for a user (e.g. after a signer/API-key mismatch). */
-export function forgetClob(userId: string): void {
-  clobCache.delete(userId);
 }
 
 export interface DepositInfo {
@@ -84,7 +79,7 @@ export interface OrderInput {
   side: string;
   amount: number;
 }
-async function postCreateOrder(userId: string, clob: ClobCreds, order: OrderInput): Promise<{ ok: boolean; status: number; body: string; data: unknown }> {
+export async function placeOrder(userId: string, clob: ClobCreds, order: OrderInput): Promise<any> {
   const body = {
     credentials: creds(userId, {
       funderAddress: clob.funderAddress,
@@ -101,24 +96,8 @@ async function postCreateOrder(userId: string, clob: ClobCreds, order: OrderInpu
     body: JSON.stringify(body),
   });
   const j = (await r.json().catch(() => null)) as { success?: boolean; data?: unknown; error?: unknown } | null;
-  const ok = r.ok && !(j && j.success === false);
-  return { ok, status: r.status, body: JSON.stringify(j?.error ?? j).slice(0, 400), data: j?.data ?? j };
-}
-
-// CLOB error returned when the API-key owner != the order's signer. A stale
-// (wrong-identity) cached/persisted key triggers this; drop it and re-derive.
-const SIGNER_MISMATCH = /order signer address has to be the address of the API KEY/i;
-
-export async function placeOrder(userId: string, clob: ClobCreds, order: OrderInput): Promise<any> {
-  let res = await postCreateOrder(userId, clob, order);
-  if (!res.ok && SIGNER_MISMATCH.test(res.body)) {
-    // Stale/wrong-identity API key — forget it, re-derive (deposit-wallet-bound), retry once.
-    forgetClob(userId);
-    const fresh = await ensureClob(userId, true);
-    res = await postCreateOrder(userId, fresh, order);
+  if (!r.ok || (j && j.success === false)) {
+    throw new Error(`createOrder -> ${r.status} ${JSON.stringify(j?.error ?? j).slice(0, 400)}`);
   }
-  if (!res.ok) {
-    throw new Error(`createOrder -> ${res.status} ${res.body}`);
-  }
-  return res.data;
+  return j?.data ?? j;
 }
