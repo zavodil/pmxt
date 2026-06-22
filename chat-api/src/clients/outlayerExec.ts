@@ -27,6 +27,18 @@ async function post(path: string, body: unknown): Promise<any> {
   return j?.data ?? j;
 }
 
+async function get(path: string): Promise<any> {
+  const r = await fetch(`${config.PMXT_BASE_URL}${path}`, {
+    method: 'GET',
+    headers: pmxtHeaders(),
+  });
+  const j = (await r.json().catch(() => null)) as { success?: boolean; data?: unknown; error?: unknown } | null;
+  if (!r.ok || (j && j.success === false)) {
+    throw new Error(`pmxt ${path} -> ${r.status} ${JSON.stringify(j?.error ?? j).slice(0, 300)}`);
+  }
+  return j?.data ?? j;
+}
+
 export interface ClobCreds {
   funderAddress: string;
   apiKey: string;
@@ -133,4 +145,33 @@ export async function placeOrder(userId: string, clob: ClobCreds, order: OrderIn
     throw new Error(`createOrder -> ${r.status} ${JSON.stringify(j?.error ?? j).slice(0, 400)}`);
   }
   return j?.data ?? j;
+}
+
+// The signed-in user's open Polymarket positions. Public read keyed by the
+// deposit-wallet address — no OutLayer creds needed, just the pmxt access token.
+export interface Position {
+  marketId: string;
+  outcomeId: string;
+  outcomeLabel: string;
+  size: number;
+  entryPrice: number;
+  currentPrice: number;
+  unrealizedPnL: number;
+  realizedPnL: number;
+}
+export async function fetchPositions(userId: string): Promise<Position[]> {
+  const { depositWallet } = await balance(userId);
+  const data = await get(`/api/polymarket/fetchPositions?address=${encodeURIComponent(depositWallet)}`);
+  return (Array.isArray(data) ? data : []) as Position[];
+}
+
+// Exit a position before resolution: a market SELL CLOB order. `shares` is the
+// share count to sell (a market SELL `amount` is denominated in shares, not USDC).
+// Same gasless sigType-3 path as a buy — reuses ensureClob + placeOrder.
+export async function sellOrder(
+  userId: string,
+  { marketId, outcomeId, shares }: { marketId: string; outcomeId: string; shares: number },
+): Promise<any> {
+  const clob = await ensureClob(userId);
+  return placeOrder(userId, clob, { marketId, outcomeId, side: 'sell', amount: shares });
 }

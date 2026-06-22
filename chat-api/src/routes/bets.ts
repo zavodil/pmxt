@@ -65,6 +65,37 @@ export async function betsRoutes(app: FastifyInstance): Promise<void> {
     return { bets: rows };
   });
 
+  // The signed-in user's open Polymarket positions (public read off the deposit wallet).
+  app.get('/v1/positions', async (req, reply) => {
+    try {
+      const positions = await exec.fetchPositions(userId(req));
+      return { positions };
+    } catch (err) {
+      return reply.code(502).send({ error: (err as Error).message });
+    }
+  });
+
+  // Exit a position before resolution: a real market SELL. `shares` = share count
+  // to sell (a market SELL amount is denominated in shares, not USDC).
+  const SellBody = z.object({
+    marketId: z.string().min(1),
+    outcomeId: z.string().min(1),
+    shares: z.coerce.number().positive(),
+  });
+  app.post('/v1/bets/sell', async (req, reply) => {
+    const b = SellBody.safeParse(req.body);
+    if (!b.success) return reply.code(400).send({ error: b.error.flatten() });
+    const { marketId, outcomeId, shares } = b.data;
+    try {
+      const order = await exec.sellOrder(userId(req), { marketId, outcomeId, shares });
+      const orderRef =
+        order && typeof order === 'object' && 'id' in order ? String((order as { id: unknown }).id) : null;
+      return { status: 'placed', side: 'sell', marketId, outcomeId, shares, orderRef, order };
+    } catch (err) {
+      return reply.code(502).send({ status: 'failed', side: 'sell', error: (err as Error).message });
+    }
+  });
+
   // Direct place (UI "Proceed" — user already chose side + amount).
   const PlaceBody = z.object({
     venue: z.string().default('polymarket'),
