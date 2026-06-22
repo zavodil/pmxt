@@ -4,6 +4,7 @@ import { config } from '../config';
 import { query } from '../db/client';
 import { userId } from './conversations';
 import * as exec from '../clients/outlayerExec';
+import * as catalog from '../clients/catalog';
 
 interface BetRow {
   id: string;
@@ -65,11 +66,26 @@ export async function betsRoutes(app: FastifyInstance): Promise<void> {
     return { bets: rows };
   });
 
-  // The signed-in user's open Polymarket positions (public read off the deposit wallet).
+  // The signed-in user's open Polymarket positions (public read off the deposit wallet),
+  // enriched with catalog market metadata (title/url/category/resolutionDate). The
+  // enrichment is best-effort and per-position: a failed/missing lookup just leaves the
+  // metadata fields undefined rather than failing the whole request.
   app.get('/v1/positions', async (req, reply) => {
     try {
       const positions = await exec.fetchPositions(userId(req));
-      return { positions };
+      const enriched = await Promise.all(
+        positions.map(async (p) => {
+          const market = await catalog.getMarket('polymarket', p.marketId).catch(() => null);
+          return {
+            ...p,
+            marketTitle: market?.title,
+            url: market?.url,
+            category: market?.category,
+            resolutionDate: market?.resolutionDate,
+          };
+        }),
+      );
+      return { positions: enriched };
     } catch (err) {
       return reply.code(502).send({ error: (err as Error).message });
     }
