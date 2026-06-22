@@ -4,6 +4,7 @@ import { config } from '../config';
 import { query } from '../db/client';
 import { userId } from './conversations';
 import * as exec from '../clients/outlayerExec';
+import * as catalog from '../clients/catalog';
 
 interface BetRow {
   id: string;
@@ -63,6 +64,52 @@ export async function betsRoutes(app: FastifyInstance): Promise<void> {
       [userId(req)],
     );
     return { bets: rows };
+  });
+
+  // The signed-in user's open Polymarket positions (public read off the deposit wallet),
+  // enriched with catalog market metadata (title/url/category/resolutionDate). The
+  // enrichment is best-effort and per-position: a failed/missing lookup just leaves the
+  // metadata fields undefined rather than failing the whole request.
+  app.get('/v1/positions', async (req, reply) => {
+    try {
+      const positions = await exec.fetchPositions(userId(req));
+      const enriched = await Promise.all(
+        positions.map(async (p) => {
+          const market = await catalog.getMarket('polymarket', p.marketId).catch(() => null);
+          return {
+            ...p,
+            marketTitle: market?.title,
+            url: market?.url,
+            category: market?.category,
+            resolutionDate: market?.resolutionDate,
+          };
+        }),
+      );
+      return { positions: enriched };
+    } catch (err) {
+      return reply.code(502).send({ error: (err as Error).message });
+    }
+  });
+
+  // Exit a position before resolution: a real market SELL. `shares` = share count
+  // to sell (a market SELL amount is denominated in shares, not USDC).
+  const SellBody = z.object({
+    marketId: z.string().min(1),
+    outcomeId: z.string().min(1),
+    shares: z.coerce.number().positive(),
+  });
+  app.post('/v1/bets/sell', async (req, reply) => {
+    const b = SellBody.safeParse(req.body);
+    if (!b.success) return reply.code(400).send({ error: b.error.flatten() });
+    const { marketId, outcomeId, shares } = b.data;
+    try {
+      const order = await exec.sellOrder(userId(req), { marketId, outcomeId, shares });
+      const orderRef =
+        order && typeof order === 'object' && 'id' in order ? String((order as { id: unknown }).id) : null;
+      return { status: 'placed', side: 'sell', marketId, outcomeId, shares, orderRef, order };
+    } catch (err) {
+      return reply.code(502).send({ status: 'failed', side: 'sell', error: (err as Error).message });
+    }
   });
 
   // Direct place (UI "Proceed" — user already chose side + amount).

@@ -1,11 +1,15 @@
 import * as catalog from '../clients/catalog';
 import { query } from '../db/client';
+import { config } from '../config';
+import { chat } from '../clients/llm';
 import type { Emit, SidebarMarket } from './types';
 
 export interface ToolCtx {
   conversationId: string;
   userId: string;
   venue: string;
+  /** Tools this user's plan (tier) may call — others are refused. */
+  allowedTools: string[];
 }
 
 type Args = Record<string, unknown>;
@@ -38,6 +42,10 @@ export async function executeTool(
   ctx: ToolCtx,
   emit: Emit,
 ): Promise<unknown> {
+  // Tier gate: never run a tool the user's plan doesn't include.
+  if (!ctx.allowedTools.includes(action)) {
+    return { error: `the "${action}" tool isn't available on your current plan` };
+  }
   switch (action) {
     case 'discover_markets':
       return discoverTool(args, ctx, emit);
@@ -49,6 +57,8 @@ export async function executeTool(
       return quoteTool(args, ctx, emit);
     case 'propose_bet':
       return proposeBetTool(args, ctx, emit);
+    case 'web_research':
+      return webResearchTool(args);
     default:
       return { error: `unknown tool: ${action}` };
   }
@@ -204,4 +214,32 @@ async function proposeBetTool(args: Args, ctx: ToolCtx, emit: Emit) {
   };
   emit({ type: 'bet', betIntent });
   return betIntent;
+}
+
+// Live web lookup via the search-enabled model (native WebSearch/WebFetch on the
+// proxy, ai-intents style): a one-shot research call returning prose findings the
+// agent can cite. For "what's the current value now" / latest-news questions that
+// market data alone can't answer.
+async function webResearchTool(args: Args): Promise<unknown> {
+  const q = String(args.query ?? '').trim();
+  if (!q) return { error: 'query is required' };
+  if (!config.AI_SEARCH_MODEL) return { error: 'web research is not configured' };
+  const messages = [
+    {
+      role: 'system' as const,
+      content:
+        'You are a web research assistant with live web tools (WebSearch + WebFetch). ' +
+        'Search the web for the LATEST relevant information for the query, then report findings ' +
+        'as concise PLAIN PROSE: the key facts, any current values/numbers, and the sources with ' +
+        'their dates. Prefix any current figure with "as of <date>". Do NOT output JSON and do ' +
+        'NOT make a recommendation — only report what the live web currently shows.',
+    },
+    { role: 'user' as const, content: q },
+  ];
+  try {
+    const findings = (await chat(messages, 0.2, config.AI_SEARCH_MODEL)).trim();
+    return { query: q, findings: findings ? findings.slice(0, 8000) : '(no web findings returned)' };
+  } catch (err) {
+    return { error: `web research failed: ${(err as Error).message}` };
+  }
 }

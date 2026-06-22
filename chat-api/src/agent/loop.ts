@@ -2,6 +2,7 @@ import { config } from '../config';
 import { chat, extractJson, stripJsonBlocks, type ChatMessage } from '../clients/llm';
 import { systemPrompt } from './prompt';
 import { executeTool } from './tools';
+import { tierFor, toolsForTier, lockedToolsForTier, TOOL_CAPABILITY } from './tiers';
 import type { Emit } from './types';
 
 export interface RunTurnOpts {
@@ -26,9 +27,14 @@ interface Action {
 /** ReAct loop: the model emits one JSON action per turn; we execute tools and feed results back. */
 export async function runAgentTurn(opts: RunTurnOpts): Promise<string> {
   const { conversationId, userId, dial, history, userText, venue, emit } = opts;
+  const tier = tierFor(userId);
+  const allowedTools = toolsForTier(tier);
+  const lockedCaps = lockedToolsForTier(tier)
+    .map((t) => TOOL_CAPABILITY[t])
+    .filter((c): c is string => Boolean(c));
 
   const messages: ChatMessage[] = [
-    { role: 'system', content: systemPrompt(dial) },
+    { role: 'system', content: systemPrompt(dial, allowedTools, tier, lockedCaps) },
     ...(opts.recentMarkets ? [{ role: 'system' as const, content: opts.recentMarkets }] : []),
     ...history,
     { role: 'user', content: userText },
@@ -57,7 +63,7 @@ export async function runAgentTurn(opts: RunTurnOpts): Promise<string> {
 
     let result: unknown;
     try {
-      result = await executeTool(obj.action, obj.args ?? {}, { conversationId, userId, venue }, emit);
+      result = await executeTool(obj.action, obj.args ?? {}, { conversationId, userId, venue, allowedTools }, emit);
     } catch (err) {
       result = { error: (err as Error).message };
     }

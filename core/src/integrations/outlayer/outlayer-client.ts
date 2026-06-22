@@ -202,9 +202,11 @@ export class OutlayerClient {
         return this.post('/wallet/v1/deposit-intent', auth, req);
     }
 
-    /** `POST /wallet/v1/intents/withdraw` — bridge intents balance to a chain/address. */
+    /** `POST /wallet/v1/intents/withdraw` — bridge intents balance to a chain/address.
+     *  Cross-chain withdraws (e.g. → Polygon) quote+submit via 1Click and can take
+     *  well over the default 60s to RESPOND (the funds still move), so allow longer. */
     async withdraw(auth: BearerAuth, req: WithdrawRequest): Promise<WithdrawResponse> {
-        return this.post('/wallet/v1/intents/withdraw', auth, req);
+        return this.post('/wallet/v1/intents/withdraw', auth, req, { timeoutMs: 150_000 });
     }
 
     /** `POST /wallet/v1/intents/withdraw/dry-run` — fee/feasibility preview; moves nothing. */
@@ -231,10 +233,11 @@ export class OutlayerClient {
         }
     }
 
-    private async post<T>(path: string, auth: BearerAuth, body: unknown): Promise<T> {
+    private async post<T>(path: string, auth: BearerAuth, body: unknown, opts?: { timeoutMs?: number }): Promise<T> {
         try {
             const { data } = await this.http.post<T>(path, body, {
                 headers: { Authorization: auth.header() },
+                ...(opts?.timeoutMs ? { timeout: opts.timeoutMs } : {}),
             });
             return data;
         } catch (e) {

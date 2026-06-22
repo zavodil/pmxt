@@ -20,10 +20,13 @@ import { polygon } from 'viem/chains';
 import { RelayClient } from '@polymarket/builder-relayer-client';
 import { BuilderConfig } from '@polymarket/builder-signing-sdk';
 import { ExchangeCredentials } from '../BaseExchange';
+import { logger } from '../utils/logger';
 import {
     resolveIdentity,
     buildSigner,
     buildFundingAdapter,
+    buildFundLinkAuth,
+    appendWalletBackup,
     PolymarketOutlayerAuth,
     OutlayerClient,
     toSignerAccount,
@@ -104,17 +107,23 @@ export function createOutlayerRouter(): Router {
             const credentials = getCredentials(req) ?? {};
             const identity = resolveIdentity(credentials);
             const signer = buildSigner(identity);
+            // The order's funder/maker is the user's CREATE2 deposit-wallet (where pUSD
+            // lives + which trades), resolved the same way as deposit-address/balance/
+            // setup — NOT the proxy-discovery address getEffectiveFunderAddress() returns.
+            // The L1 API key stays bound to the EOA / OutLayer signer
+            // (POLYMARKET_NATIVE_USDC_GUIDE.md §12a; the proven PHASE2 setup).
+            const rc = await relayClientFor(credentials, false);
+            const depositWallet = await rc.deriveDepositWalletAddress();
             const auth = new PolymarketOutlayerAuth(credentials, signer);
-            const [address, creds, funderAddress] = await Promise.all([
+            const [address, creds] = await Promise.all([
                 signer.address(),
                 auth.getApiCredentials(),
-                auth.getEffectiveFunderAddress(),
             ]);
             res.json({
                 success: true,
                 data: {
                     address,
-                    funderAddress,
+                    funderAddress: depositWallet,
                     apiKey: creds.key,
                     apiSecret: creds.secret,
                     passphrase: creds.passphrase,
@@ -131,6 +140,73 @@ export function createOutlayerRouter(): Router {
         try {
             const adapter = buildFundingAdapter(getCredentials(req));
             res.json({ success: true, data: await adapter.tokens() });
+        } catch (error) {
+            next(error);
+        }
+    });
+
+    // POST /outlayer/deposit-target  { credentials } → { account, token }
+    // STEP 1 funding target for the IN-APP NEAR deposit: the user's OutLayer custody
+    // NEAR account (the `msg` that intents.near credits) + the native NEAR USDC token
+    // contract. The frontend signs `ft_transfer_call` to intents.near itself — no
+    // redirect/fund-link. No EVM/signer derivation; works for chain=near (the EVM
+    // signer path throws a viem error on near).
+    router.post('/deposit-target', async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const credentials = getCredentials(req);
+
+            const { client, auth } = buildFundLinkAuth(credentials);
+
+            // The custody NEAR account for `to`. The client method is typed EvmChain;
+            // the underlying GET just forwards `chain=near` and returns the near account.
+            const addr = await client.address(auth, 'near' as never);
+            const account = addr.address;
+            if (!account) {
+                throw new Error('OutLayer /wallet/v1/address?chain=near returned no account');
+            }
+
+            // Resolve native USDC on NEAR from the token catalog (exact defuse asset
+            // id for chain `near`/`defuse`), else fall back to the known contract.
+            const KNOWN_NEAR_USDC = '17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1';
+            let token = KNOWN_NEAR_USDC;
+            let tokenSource: 'catalog' | 'fallback' = 'fallback';
+            try {
+                const onNear = (chains: string[] | undefined): boolean =>
+                    (chains ?? []).some((c) => {
+                        const v = c.toLowerCase();
+                        return v === 'near' || v === 'defuse' || v.includes('near');
+                    });
+                const stripNep141 = (id: string): string => (id.startsWith('nep141:') ? id.slice('nep141:'.length) : id);
+                const list = (await client.tokens(auth)).tokens ?? [];
+                const usdcNear = list.find(
+                    (t) => t.symbol?.toUpperCase() === 'USDC' && onNear(t.chains),
+                );
+                if (usdcNear?.defuse_asset_id) {
+                    token = stripNep141(usdcNear.defuse_asset_id);
+                    tokenSource = 'catalog';
+                }
+            } catch (e) {
+                logger.warn(`[outlayer] deposit-target token catalog lookup failed, using fallback USDC: ${(e as Error).message}`);
+            }
+            logger.info(`[outlayer] deposit-target NEAR USDC token resolved via ${tokenSource}: ${token}`);
+
+            appendWalletBackup(credentials, 'near', account);
+            res.json({ success: true, data: { account, token } });
+        } catch (error) {
+            next(error);
+        }
+    });
+
+    // POST /outlayer/intents-balance  { credentials } → { usdc, raw, token }
+    // The user's OutLayer NEAR-intents USDC balance — where an in-app deposit
+    // lands, BEFORE it's moved (fund-trading) to the Polymarket pUSD wallet.
+    router.post('/intents-balance', async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { client, auth } = buildFundLinkAuth(getCredentials(req));
+            const token = 'nep141:17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1';
+            const bal = await client.balance(auth, token, 'intents');
+            const raw = bal.balance ?? '0';
+            res.json({ success: true, data: { usdc: Number(raw) / 1e6, raw, token } });
         } catch (error) {
             next(error);
         }
@@ -179,6 +255,7 @@ export function createOutlayerRouter(): Router {
         try {
             const rc = await relayClientFor(getCredentials(req), false);
             const depositWallet = await rc.deriveDepositWalletAddress();
+            appendWalletBackup(getCredentials(req), 'polygon', depositWallet);
             let bridgeIn: unknown = null;
             try {
                 const r = await fetch('https://bridge.polymarket.com/deposit', {
@@ -192,6 +269,97 @@ export function createOutlayerRouter(): Router {
                 /* bridge-in is best-effort */
             }
             res.json({ success: true, data: { depositWallet, bridgeIn, minUsd: 2 } });
+        } catch (error) {
+            next(error);
+        }
+    });
+
+    // POST /outlayer/fund-trading  { credentials, amountMinimal, dryRun? }
+    //   → { bridgeIn, amount, token, dryRun, result }
+    // STEP 2 of the funding money-path (POLYMARKET_NATIVE_USDC_GUIDE.md §7): move the
+    // user's OutLayer intents USDC to the Polymarket bridge-in address; Polymarket's
+    // bridge service then swaps+wraps it into pUSD in the deposit-wallet (Step 3, no
+    // code on our side). The bridge-in is resolved exactly like /deposit-address
+    // (deposit-wallet → POST bridge.polymarket.com/deposit with X-Builder-Code).
+    router.post('/fund-trading', async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const credentials = getCredentials(req);
+            const amountMinimal = String((req.body?.amountMinimal as unknown) ?? '');
+            const dryRun = Boolean(req.body?.dryRun);
+            // R4: API amounts are integer strings in the token's smallest unit (USDC = 6 dp).
+            if (!/^\d+$/.test(amountMinimal) || amountMinimal === '0' || /^0+$/.test(amountMinimal)) {
+                res.status(400).json({ success: false, error: 'fund-trading requires { amountMinimal } as a non-zero string of digits (USDC 6-dp minimal units)' });
+                return;
+            }
+
+            // Resolve bridgeIn — same logic as /deposit-address (Step 1).
+            const rc = await relayClientFor(credentials, false);
+            const depositWallet = await rc.deriveDepositWalletAddress();
+            const r = await fetch('https://bridge.polymarket.com/deposit', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json', 'X-Builder-Code': process.env.POLYMARKET_BUILDER_CODE || '' },
+                body: JSON.stringify({ address: depositWallet }),
+            });
+            const j = (await r.json()) as { address?: { evm?: string } };
+            const bridgeIn = j?.address?.evm;
+            if (!bridgeIn) {
+                throw new Error('Polymarket bridge.polymarket.com/deposit returned no address.evm (bridgeIn)');
+            }
+
+            // OutLayer auth — same path as /deposit-target (seed-based, no EVM derivation).
+            const { client, auth } = buildFundLinkAuth(credentials);
+
+            // The withdraw token is the NEAR/defuse USDC defuse asset id, in `nep141:`
+            // form (the guide's Step-2 body shape). Resolve from the catalog; fall back
+            // to the known constant.
+            const FALLBACK_TOKEN = 'nep141:17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1';
+            let token = FALLBACK_TOKEN;
+            let tokenSource: 'catalog' | 'fallback' = 'fallback';
+            try {
+                const onNear = (chains: string[] | undefined): boolean =>
+                    (chains ?? []).some((c) => {
+                        const v = c.toLowerCase();
+                        return v === 'near' || v === 'defuse' || v.includes('near');
+                    });
+                const withNep141 = (id: string): string => (id.startsWith('nep141:') ? id : `nep141:${id}`);
+                const list = (await client.tokens(auth)).tokens ?? [];
+                const usdcNear = list.find((t) => t.symbol?.toUpperCase() === 'USDC' && onNear(t.chains));
+                if (usdcNear?.defuse_asset_id) {
+                    token = withNep141(usdcNear.defuse_asset_id);
+                    tokenSource = 'catalog';
+                }
+            } catch (e) {
+                logger.warn(`[outlayer] fund-trading token catalog lookup failed, using fallback USDC: ${(e as Error).message}`);
+            }
+            logger.info(`[outlayer] fund-trading NEAR USDC withdraw token resolved via ${tokenSource}: ${token}`);
+
+            const withdrawReq = { chain: 'polygon', to: bridgeIn, amount: amountMinimal, token };
+            if (dryRun) {
+                const result = await client.withdrawDryRun(auth, withdrawReq);
+                res.json({ success: true, data: { bridgeIn, amount: amountMinimal, token, dryRun: true, result } });
+                return;
+            }
+            try {
+                const result = await client.withdraw(auth, withdrawReq);
+                res.json({ success: true, data: { bridgeIn, amount: amountMinimal, token, dryRun: false, status: 'submitted', result } });
+            } catch (e) {
+                // A cross-chain withdraw often takes longer to RESPOND than the HTTP
+                // timeout, yet OutLayer still PROCESSES it (the USDC leaves the intents
+                // balance and settles as pUSD in ~1 min). Treat a timeout as
+                // "processing", not a failure, so the user isn't wrongly told it failed.
+                if (/timeout|ECONNABORTED|exceeded/i.test((e as Error).message)) {
+                    logger.warn(`[outlayer] fund-trading withdraw timed out — treating as processing (funds likely bridging): ${(e as Error).message}`);
+                    res.json({
+                        success: true,
+                        data: {
+                            bridgeIn, amount: amountMinimal, token, dryRun: false, status: 'processing',
+                            note: 'Submitted — your USDC is bridging to the trading wallet; it may take ~1 min to arrive as pUSD. Refresh to check.',
+                        },
+                    });
+                    return;
+                }
+                throw e;
+            }
         } catch (error) {
             next(error);
         }

@@ -21,6 +21,7 @@ export { OutlayerSigner, withEip712Domain } from './outlayer-signer';
 export { toSignerAccount } from './viem-account';
 export { PolymarketOutlayerAuth } from './polymarket-outlayer-auth';
 export { PolymarketOutlayerExchange } from './polymarket-outlayer-exchange';
+export { appendWalletBackup } from './wallet-backup';
 export { GenericBroadcaster } from './broadcaster';
 export { FundingAdapter } from './funding-adapter';
 export {
@@ -36,4 +37,5 @@ export {
     resolveIdentity,
     buildSigner,
     buildFundingAdapter,
+    buildFundLinkAuth,
 } from './factory';

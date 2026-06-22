@@ -27,6 +27,18 @@ async function post(path: string, body: unknown): Promise<any> {
   return j?.data ?? j;
 }
 
+async function get(path: string): Promise<any> {
+  const r = await fetch(`${config.PMXT_BASE_URL}${path}`, {
+    method: 'GET',
+    headers: pmxtHeaders(),
+  });
+  const j = (await r.json().catch(() => null)) as { success?: boolean; data?: unknown; error?: unknown } | null;
+  if (!r.ok || (j && j.success === false)) {
+    throw new Error(`pmxt ${path} -> ${r.status} ${JSON.stringify(j?.error ?? j).slice(0, 300)}`);
+  }
+  return j?.data ?? j;
+}
+
 export interface ClobCreds {
   funderAddress: string;
   apiKey: string;
@@ -73,6 +85,39 @@ export async function setup(userId: string): Promise<unknown> {
   return post('/outlayer/setup', { credentials: creds(userId) });
 }
 
+// The user's OutLayer NEAR-intents USDC balance: where an in-app NEAR deposit
+// lands *before* it's moved (STEP 2 / fund-trading) into the pUSD trading wallet.
+// This is the value that proves a NEAR deposit arrived.
+export interface IntentsBalanceInfo {
+  usdc: number;
+  raw: string;
+  token: string;
+}
+export async function intentsBalance(userId: string): Promise<IntentsBalanceInfo> {
+  const d = await post('/outlayer/intents-balance', { credentials: creds(userId) });
+  return { usdc: d.usdc, raw: d.raw, token: d.token };
+}
+
+// STEP 2 of the funding money-path: move the user's OutLayer intents USDC to the
+// Polymarket bridge-in address; Polymarket swaps+wraps it into pUSD in the deposit
+// wallet. `amountMinimal` is USDC in 6-dp minimal units (integer string). dryRun
+// previews fee/feasibility without moving funds.
+export async function fundTrading(userId: string, amountMinimal: string, dryRun = false): Promise<any> {
+  return post('/outlayer/fund-trading', { credentials: creds(userId), amountMinimal, dryRun });
+}
+
+// STEP 1 funding target for the in-app NEAR deposit: the user's OutLayer custody
+// NEAR account (credited by intents.near) + the native NEAR USDC token contract.
+// The frontend signs `ft_transfer_call` to intents.near itself — no redirect.
+export interface DepositTargetInfo {
+  account: string;
+  token: string;
+}
+export async function depositTarget(userId: string): Promise<DepositTargetInfo> {
+  const d = await post('/outlayer/deposit-target', { credentials: creds(userId) });
+  return { account: d.account, token: d.token };
+}
+
 export interface OrderInput {
   marketId: string;
   outcomeId: string;
@@ -100,4 +145,33 @@ export async function placeOrder(userId: string, clob: ClobCreds, order: OrderIn
     throw new Error(`createOrder -> ${r.status} ${JSON.stringify(j?.error ?? j).slice(0, 400)}`);
   }
   return j?.data ?? j;
+}
+
+// The signed-in user's open Polymarket positions. Public read keyed by the
+// deposit-wallet address — no OutLayer creds needed, just the pmxt access token.
+export interface Position {
+  marketId: string;
+  outcomeId: string;
+  outcomeLabel: string;
+  size: number;
+  entryPrice: number;
+  currentPrice: number;
+  unrealizedPnL: number;
+  realizedPnL: number;
+}
+export async function fetchPositions(userId: string): Promise<Position[]> {
+  const { depositWallet } = await balance(userId);
+  const data = await get(`/api/polymarket/fetchPositions?address=${encodeURIComponent(depositWallet)}`);
+  return (Array.isArray(data) ? data : []) as Position[];
+}
+
+// Exit a position before resolution: a market SELL CLOB order. `shares` is the
+// share count to sell (a market SELL `amount` is denominated in shares, not USDC).
+// Same gasless sigType-3 path as a buy — reuses ensureClob + placeOrder.
+export async function sellOrder(
+  userId: string,
+  { marketId, outcomeId, shares }: { marketId: string; outcomeId: string; shares: number },
+): Promise<any> {
+  const clob = await ensureClob(userId);
+  return placeOrder(userId, clob, { marketId, outcomeId, side: 'sell', amount: shares });
 }
