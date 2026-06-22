@@ -144,16 +144,15 @@ export function createOutlayerRouter(): Router {
         }
     });
 
-    // POST /outlayer/fund-link  { credentials, amount? } → { account, token, fundUrl }
-    // STEP 1 funding: a user-facing OutLayer dashboard link that sends USDC from the
-    // user's OWN NEAR wallet into their OutLayer custody account's INTENTS balance
-    // (dest=intents). No EVM/signer derivation; works for chain=near (the EVM signer
-    // path throws a viem error on near). Does NOT bridge intents → pUSD (follow-up).
-    router.post('/fund-link', async (req: Request, res: Response, next: NextFunction) => {
+    // POST /outlayer/deposit-target  { credentials } → { account, token }
+    // STEP 1 funding target for the IN-APP NEAR deposit: the user's OutLayer custody
+    // NEAR account (the `msg` that intents.near credits) + the native NEAR USDC token
+    // contract. The frontend signs `ft_transfer_call` to intents.near itself — no
+    // redirect/fund-link. No EVM/signer derivation; works for chain=near (the EVM
+    // signer path throws a viem error on near).
+    router.post('/deposit-target', async (req: Request, res: Response, next: NextFunction) => {
         try {
             const credentials = getCredentials(req);
-            const rawAmount = req.body?.amount;
-            const amount = rawAmount != null && String(rawAmount).trim() ? String(rawAmount).trim() : undefined;
 
             const { client, auth } = buildFundLinkAuth(credentials);
 
@@ -186,15 +185,11 @@ export function createOutlayerRouter(): Router {
                     tokenSource = 'catalog';
                 }
             } catch (e) {
-                logger.warn(`[outlayer] fund-link token catalog lookup failed, using fallback USDC: ${(e as Error).message}`);
+                logger.warn(`[outlayer] deposit-target token catalog lookup failed, using fallback USDC: ${(e as Error).message}`);
             }
-            logger.info(`[outlayer] fund-link NEAR USDC token resolved via ${tokenSource}: ${token}`);
+            logger.info(`[outlayer] deposit-target NEAR USDC token resolved via ${tokenSource}: ${token}`);
 
-            const params = new URLSearchParams({ to: account, token, dest: 'intents' });
-            if (amount) params.set('amount', amount);
-            const fundUrl = `https://outlayer.fastnear.com/wallet/fund?${params.toString()}`;
-
-            res.json({ success: true, data: { account, token, fundUrl } });
+            res.json({ success: true, data: { account, token } });
         } catch (error) {
             next(error);
         }

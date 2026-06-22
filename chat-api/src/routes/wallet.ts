@@ -30,13 +30,12 @@ export async function walletRoutes(app: FastifyInstance): Promise<void> {
     }
   });
 
-  // STEP 1 funding link: opens OutLayer to send USDC from the user's own NEAR
-  // wallet into their OutLayer custody intents balance (dest=intents). `?amount=`
-  // is optional (OutLayer's fund page wants one to one-click).
-  app.get('/v1/wallet/fund-link', async (req, reply) => {
+  // STEP 1 deposit target for the in-app NEAR deposit: the OutLayer custody NEAR
+  // account (credited by intents.near) + the native NEAR USDC token contract. The
+  // frontend signs `ft_transfer_call` to intents.near itself — no redirect.
+  app.get('/v1/wallet/deposit-target', async (req, reply) => {
     try {
-      const amount = (req.query as { amount?: string } | undefined)?.amount;
-      return await exec.fundLink(userId(req), amount);
+      return await exec.depositTarget(userId(req));
     } catch (err) {
       return reply.code(502).send({ error: (err as Error).message });
     }

@@ -73,16 +73,16 @@ export async function setup(userId: string): Promise<unknown> {
   return post('/outlayer/setup', { credentials: creds(userId) });
 }
 
-// STEP 1 funding: a user-facing OutLayer link that sends USDC from the user's own
-// NEAR wallet into their OutLayer custody account's intents balance (dest=intents).
-export interface FundLinkInfo {
+// STEP 1 funding target for the in-app NEAR deposit: the user's OutLayer custody
+// NEAR account (credited by intents.near) + the native NEAR USDC token contract.
+// The frontend signs `ft_transfer_call` to intents.near itself — no redirect.
+export interface DepositTargetInfo {
   account: string;
   token: string;
-  fundUrl: string;
 }
-export async function fundLink(userId: string, amount?: string | number): Promise<FundLinkInfo> {
-  const d = await post('/outlayer/fund-link', { credentials: creds(userId), amount });
-  return { account: d.account, token: d.token, fundUrl: d.fundUrl };
+export async function depositTarget(userId: string): Promise<DepositTargetInfo> {
+  const d = await post('/outlayer/deposit-target', { credentials: creds(userId) });
+  return { account: d.account, token: d.token };
 }
 
 export interface OrderInput {
