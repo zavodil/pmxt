@@ -40,4 +40,16 @@ export async function walletRoutes(app: FastifyInstance): Promise<void> {
       return reply.code(502).send({ error: (err as Error).message });
     }
   });
+
+  // STEP 2: move the user's OutLayer intents USDC to the Polymarket bridge-in
+  // address (which swaps+wraps it into pUSD in the deposit-wallet). Body:
+  // { amountMinimal: string (USDC 6-dp minimal units), dryRun?: boolean }.
+  app.post('/v1/wallet/fund-trading', async (req, reply) => {
+    try {
+      const body = (req.body ?? {}) as { amountMinimal?: string; dryRun?: boolean };
+      return await exec.fundTrading(userId(req), String(body.amountMinimal ?? ''), Boolean(body.dryRun));
+    } catch (err) {
+      return reply.code(502).send({ error: (err as Error).message });
+    }
+  });
 }

@@ -73,6 +73,14 @@ export async function setup(userId: string): Promise<unknown> {
   return post('/outlayer/setup', { credentials: creds(userId) });
 }
 
+// STEP 2 of the funding money-path: move the user's OutLayer intents USDC to the
+// Polymarket bridge-in address; Polymarket swaps+wraps it into pUSD in the deposit
+// wallet. `amountMinimal` is USDC in 6-dp minimal units (integer string). dryRun
+// previews fee/feasibility without moving funds.
+export async function fundTrading(userId: string, amountMinimal: string, dryRun = false): Promise<any> {
+  return post('/outlayer/fund-trading', { credentials: creds(userId), amountMinimal, dryRun });
+}
+
 // STEP 1 funding target for the in-app NEAR deposit: the user's OutLayer custody
 // NEAR account (credited by intents.near) + the native NEAR USDC token contract.
 // The frontend signs `ft_transfer_call` to intents.near itself — no redirect.

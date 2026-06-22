@@ -256,6 +256,76 @@ export function createOutlayerRouter(): Router {
         }
     });
 
+    // POST /outlayer/fund-trading  { credentials, amountMinimal, dryRun? }
+    //   → { bridgeIn, amount, token, dryRun, result }
+    // STEP 2 of the funding money-path (POLYMARKET_NATIVE_USDC_GUIDE.md §7): move the
+    // user's OutLayer intents USDC to the Polymarket bridge-in address; Polymarket's
+    // bridge service then swaps+wraps it into pUSD in the deposit-wallet (Step 3, no
+    // code on our side). The bridge-in is resolved exactly like /deposit-address
+    // (deposit-wallet → POST bridge.polymarket.com/deposit with X-Builder-Code).
+    router.post('/fund-trading', async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const credentials = getCredentials(req);
+            const amountMinimal = String((req.body?.amountMinimal as unknown) ?? '');
+            const dryRun = Boolean(req.body?.dryRun);
+            // R4: API amounts are integer strings in the token's smallest unit (USDC = 6 dp).
+            if (!/^\d+$/.test(amountMinimal) || amountMinimal === '0' || /^0+$/.test(amountMinimal)) {
+                res.status(400).json({ success: false, error: 'fund-trading requires { amountMinimal } as a non-zero string of digits (USDC 6-dp minimal units)' });
+                return;
+            }
+
+            // Resolve bridgeIn — same logic as /deposit-address (Step 1).
+            const rc = await relayClientFor(credentials, false);
+            const depositWallet = await rc.deriveDepositWalletAddress();
+            const r = await fetch('https://bridge.polymarket.com/deposit', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json', 'X-Builder-Code': process.env.POLYMARKET_BUILDER_CODE || '' },
+                body: JSON.stringify({ address: depositWallet }),
+            });
+            const j = (await r.json()) as { address?: { evm?: string } };
+            const bridgeIn = j?.address?.evm;
+            if (!bridgeIn) {
+                throw new Error('Polymarket bridge.polymarket.com/deposit returned no address.evm (bridgeIn)');
+            }
+
+            // OutLayer auth — same path as /deposit-target (seed-based, no EVM derivation).
+            const { client, auth } = buildFundLinkAuth(credentials);
+
+            // The withdraw token is the NEAR/defuse USDC defuse asset id, in `nep141:`
+            // form (the guide's Step-2 body shape). Resolve from the catalog; fall back
+            // to the known constant.
+            const FALLBACK_TOKEN = 'nep141:17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1';
+            let token = FALLBACK_TOKEN;
+            let tokenSource: 'catalog' | 'fallback' = 'fallback';
+            try {
+                const onNear = (chains: string[] | undefined): boolean =>
+                    (chains ?? []).some((c) => {
+                        const v = c.toLowerCase();
+                        return v === 'near' || v === 'defuse' || v.includes('near');
+                    });
+                const withNep141 = (id: string): string => (id.startsWith('nep141:') ? id : `nep141:${id}`);
+                const list = (await client.tokens(auth)).tokens ?? [];
+                const usdcNear = list.find((t) => t.symbol?.toUpperCase() === 'USDC' && onNear(t.chains));
+                if (usdcNear?.defuse_asset_id) {
+                    token = withNep141(usdcNear.defuse_asset_id);
+                    tokenSource = 'catalog';
+                }
+            } catch (e) {
+                logger.warn(`[outlayer] fund-trading token catalog lookup failed, using fallback USDC: ${(e as Error).message}`);
+            }
+            logger.info(`[outlayer] fund-trading NEAR USDC withdraw token resolved via ${tokenSource}: ${token}`);
+
+            const withdrawReq = { chain: 'polygon', to: bridgeIn, amount: amountMinimal, token };
+            const result = dryRun
+                ? await client.withdrawDryRun(auth, withdrawReq)
+                : await client.withdraw(auth, withdrawReq);
+
+            res.json({ success: true, data: { bridgeIn, amount: amountMinimal, token, dryRun, result } });
+        } catch (error) {
+            next(error);
+        }
+    });
+
     // POST /outlayer/balance  { credentials } → { depositWallet, pusd, pusdRaw, deployed }
     router.post('/balance', async (req: Request, res: Response, next: NextFunction) => {
         try {
