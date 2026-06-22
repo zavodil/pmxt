@@ -36,4 +36,5 @@ export {
     resolveIdentity,
     buildSigner,
     buildFundingAdapter,
+    buildFundLinkAuth,
 } from './factory';

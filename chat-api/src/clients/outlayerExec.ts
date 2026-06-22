@@ -73,6 +73,18 @@ export async function setup(userId: string): Promise<unknown> {
   return post('/outlayer/setup', { credentials: creds(userId) });
 }
 
+// STEP 1 funding: a user-facing OutLayer link that sends USDC from the user's own
+// NEAR wallet into their OutLayer custody account's intents balance (dest=intents).
+export interface FundLinkInfo {
+  account: string;
+  token: string;
+  fundUrl: string;
+}
+export async function fundLink(userId: string, amount?: string | number): Promise<FundLinkInfo> {
+  const d = await post('/outlayer/fund-link', { credentials: creds(userId), amount });
+  return { account: d.account, token: d.token, fundUrl: d.fundUrl };
+}
+
 export interface OrderInput {
   marketId: string;
   outcomeId: string;

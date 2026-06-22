@@ -179,6 +179,17 @@ export function buildFundingAdapter(credentials?: ExchangeCredentials): FundingA
 }
 
 /**
+ * Resolve the shared {@link OutlayerClient} + per-user {@link BearerAuth} for the
+ * NEAR fund-link route — STEP 1 funding (USDC from the user's NEAR wallet into
+ * their OutLayer custody intents balance). Same seed-based auth the signing/
+ * funding paths use; no signer/EVM derivation, so it works for `chain=near`.
+ */
+export function buildFundLinkAuth(credentials?: ExchangeCredentials): { client: OutlayerClient; auth: BearerAuth } {
+    const identity = resolveIdentity(credentials);
+    return { client: getClient(), auth: buildBearerAuth(identity) };
+}
+
+/**
  * Build (or fetch from cache) the OutLayer-backed exchange for a venue.
  * Called by the single guarded hook in `exchange-factory.ts`.
  */

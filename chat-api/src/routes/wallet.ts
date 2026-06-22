@@ -29,4 +29,16 @@ export async function walletRoutes(app: FastifyInstance): Promise<void> {
       return reply.code(502).send({ error: (err as Error).message });
     }
   });
+
+  // STEP 1 funding link: opens OutLayer to send USDC from the user's own NEAR
+  // wallet into their OutLayer custody intents balance (dest=intents). `?amount=`
+  // is optional (OutLayer's fund page wants one to one-click).
+  app.get('/v1/wallet/fund-link', async (req, reply) => {
+    try {
+      const amount = (req.query as { amount?: string } | undefined)?.amount;
+      return await exec.fundLink(userId(req), amount);
+    } catch (err) {
+      return reply.code(502).send({ error: (err as Error).message });
+    }
+  });
 }
