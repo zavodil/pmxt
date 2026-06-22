@@ -334,11 +334,32 @@ export function createOutlayerRouter(): Router {
             logger.info(`[outlayer] fund-trading NEAR USDC withdraw token resolved via ${tokenSource}: ${token}`);
 
             const withdrawReq = { chain: 'polygon', to: bridgeIn, amount: amountMinimal, token };
-            const result = dryRun
-                ? await client.withdrawDryRun(auth, withdrawReq)
-                : await client.withdraw(auth, withdrawReq);
-
-            res.json({ success: true, data: { bridgeIn, amount: amountMinimal, token, dryRun, result } });
+            if (dryRun) {
+                const result = await client.withdrawDryRun(auth, withdrawReq);
+                res.json({ success: true, data: { bridgeIn, amount: amountMinimal, token, dryRun: true, result } });
+                return;
+            }
+            try {
+                const result = await client.withdraw(auth, withdrawReq);
+                res.json({ success: true, data: { bridgeIn, amount: amountMinimal, token, dryRun: false, status: 'submitted', result } });
+            } catch (e) {
+                // A cross-chain withdraw often takes longer to RESPOND than the HTTP
+                // timeout, yet OutLayer still PROCESSES it (the USDC leaves the intents
+                // balance and settles as pUSD in ~1 min). Treat a timeout as
+                // "processing", not a failure, so the user isn't wrongly told it failed.
+                if (/timeout|ECONNABORTED|exceeded/i.test((e as Error).message)) {
+                    logger.warn(`[outlayer] fund-trading withdraw timed out — treating as processing (funds likely bridging): ${(e as Error).message}`);
+                    res.json({
+                        success: true,
+                        data: {
+                            bridgeIn, amount: amountMinimal, token, dryRun: false, status: 'processing',
+                            note: 'Submitted — your USDC is bridging to the trading wallet; it may take ~1 min to arrive as pUSD. Refresh to check.',
+                        },
+                    });
+                    return;
+                }
+                throw e;
+            }
         } catch (error) {
             next(error);
         }
