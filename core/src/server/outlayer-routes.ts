@@ -197,6 +197,21 @@ export function createOutlayerRouter(): Router {
         }
     });
 
+    // POST /outlayer/intents-balance  { credentials } → { usdc, raw, token }
+    // The user's OutLayer NEAR-intents USDC balance — where an in-app deposit
+    // lands, BEFORE it's moved (fund-trading) to the Polymarket pUSD wallet.
+    router.post('/intents-balance', async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { client, auth } = buildFundLinkAuth(getCredentials(req));
+            const token = 'nep141:17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1';
+            const bal = await client.balance(auth, token, 'intents');
+            const raw = bal.balance ?? '0';
+            res.json({ success: true, data: { usdc: Number(raw) / 1e6, raw, token } });
+        } catch (error) {
+            next(error);
+        }
+    });
+
     // POST /outlayer/fund-polygon  { credentials, to, amount, token, dryRun? }
     // Bridge USDC from NEAR intents onto the Polygon EOA (gasless on NEAR side).
     router.post('/fund-polygon', async (req: Request, res: Response, next: NextFunction) => {

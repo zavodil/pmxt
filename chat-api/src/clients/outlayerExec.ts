@@ -73,6 +73,19 @@ export async function setup(userId: string): Promise<unknown> {
   return post('/outlayer/setup', { credentials: creds(userId) });
 }
 
+// The user's OutLayer NEAR-intents USDC balance: where an in-app NEAR deposit
+// lands *before* it's moved (STEP 2 / fund-trading) into the pUSD trading wallet.
+// This is the value that proves a NEAR deposit arrived.
+export interface IntentsBalanceInfo {
+  usdc: number;
+  raw: string;
+  token: string;
+}
+export async function intentsBalance(userId: string): Promise<IntentsBalanceInfo> {
+  const d = await post('/outlayer/intents-balance', { credentials: creds(userId) });
+  return { usdc: d.usdc, raw: d.raw, token: d.token };
+}
+
 // STEP 2 of the funding money-path: move the user's OutLayer intents USDC to the
 // Polymarket bridge-in address; Polymarket swaps+wraps it into pUSD in the deposit
 // wallet. `amountMinimal` is USDC in 6-dp minimal units (integer string). dryRun
