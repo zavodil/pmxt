@@ -1,5 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { pool } from '../db/client';
+import { resolveUserId } from '../auth';
+import { tierFor, toolsForTier } from '../agent/tiers';
 import { conversationsRoutes } from './conversations';
 import { messagesRoutes } from './messages';
 import { betsRoutes } from './bets';
@@ -15,6 +17,13 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
     } catch {
       return reply.code(503).send({ ok: false });
     }
+  });
+
+  // Who am I + what plan/tools I have — the UI shows the tier; the agent enforces it.
+  app.get('/v1/me', async (req) => {
+    const userId = await resolveUserId(req);
+    const tier = tierFor(userId);
+    return { userId, tier, tools: toolsForTier(tier) };
   });
   await app.register(authRoutes);
   await app.register(conversationsRoutes);

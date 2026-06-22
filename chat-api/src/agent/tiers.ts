@@ -23,3 +23,19 @@ export function tierFor(_userId: string): Tier {
 export function toolsForTier(tier: Tier): string[] {
   return TIER_TOOLS[tier] ?? [];
 }
+
+/** Human-readable capability names — used to tell the user what an upgrade unlocks. */
+export const TOOL_CAPABILITY: Record<string, string> = {
+  discover_markets: 'market discovery',
+  search_markets: 'keyword market search',
+  present_markets: 'curating the results list',
+  get_quote: 'live odds / quotes',
+  propose_bet: 'drafting a bet',
+  web_research: 'live web search (current prices, news, real-world facts)',
+};
+
+/** Tools a higher tier has that this tier can't use (premium is the superset). */
+export function lockedToolsForTier(tier: Tier): string[] {
+  const have = new Set(toolsForTier(tier));
+  return TIER_TOOLS.premium.filter((t) => !have.has(t));
+}

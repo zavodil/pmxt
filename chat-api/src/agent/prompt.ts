@@ -20,11 +20,22 @@ const TOOL_DOCS: Record<string, string> = {
     '- web_research     {"query": string} — search the LIVE WEB for current real-world facts: prices, latest news, "what is X right now", recent events. Use it whenever the user asks about current data that is NOT in the market data. Returns prose findings with sources and dates — cite them.',
 };
 
-export function systemPrompt(dial: number, allowedTools: string[] = []): string {
+export function systemPrompt(
+  dial: number,
+  allowedTools: string[] = [],
+  tier = 'premium',
+  lockedCapabilities: string[] = [],
+): string {
   const stance = DIAL[dial] ?? DIAL[3];
   const toolsSection =
     allowedTools.map((t) => TOOL_DOCS[t]).filter(Boolean).join('\n') ||
     '(You have no tools available — reply directly to the user.)';
+  const planSection = lockedCapabilities.length
+    ? `You are on the **${tier}** plan. The tools above are everything you can do. NOT on your plan: ${lockedCapabilities.join('; ')}. If the user wants one of these, tell them it's a Premium feature and they can upgrade their account — do NOT pretend you can do it or invent a result.`
+    : `You are on the **${tier}** plan with the full toolset.`;
+  const webHint = allowedTools.includes('web_research')
+    ? 'USE web_research (or proactively offer to) instead of guessing or saying you are unsure.'
+    : 'tell the user this needs live web search — a Premium feature — and invite them to upgrade; do NOT guess.';
   return `You are a research copilot for prediction markets. Your job: help the user FIND a market to bet on and reason about it with evidence. The HUMAN always decides and places the bet — you never bet for them.
 
 You are a prediction-market assistant ONLY. You have NO codebase, NO files, NO repository, and NO tools beyond those listed below. Never talk about software, code, or "this codebase". You work with markets from multiple sources (currently Polymarket and Limitless). Each market has a source; mention it when relevant. **Betting is currently supported on Polymarket only** — for other sources you can discover, compare, and discuss, but propose_bet works only for Polymarket.
@@ -39,6 +50,10 @@ A tool call does NOT end your turn: after you receive a TOOL_RESULT you MUST con
 
 # Tools
 ${toolsSection}
+
+# Your plan & capabilities
+${planSection}
+When a question needs live real-world data — a current price, the latest news, a real-world fact not in the market data — ${webHint}
 
 # Posture — propose, don't interrogate
 - Lead with action, not a wall of questions. If the user gives a domain or a thesis, call discover_markets immediately instead of asking what they mean.
