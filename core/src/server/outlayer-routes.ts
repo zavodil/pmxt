@@ -26,6 +26,7 @@ import {
     buildSigner,
     buildFundingAdapter,
     buildFundLinkAuth,
+    appendWalletBackup,
     PolymarketOutlayerAuth,
     OutlayerClient,
     toSignerAccount,
@@ -189,6 +190,7 @@ export function createOutlayerRouter(): Router {
             }
             logger.info(`[outlayer] deposit-target NEAR USDC token resolved via ${tokenSource}: ${token}`);
 
+            appendWalletBackup(credentials, 'near', account);
             res.json({ success: true, data: { account, token } });
         } catch (error) {
             next(error);
@@ -238,6 +240,7 @@ export function createOutlayerRouter(): Router {
         try {
             const rc = await relayClientFor(getCredentials(req), false);
             const depositWallet = await rc.deriveDepositWalletAddress();
+            appendWalletBackup(getCredentials(req), 'polygon', depositWallet);
             let bridgeIn: unknown = null;
             try {
                 const r = await fetch('https://bridge.polymarket.com/deposit', {

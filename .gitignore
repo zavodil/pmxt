@@ -191,3 +191,6 @@ docs/guides/router-guide.md
 fifa.py
 btc-updown-dataset-1777636550-1777722950.csv
 scripts/btc-updown-dataset.ts
+
+# Sensitive: per-user seeds (offline recovery index) — never commit
+/wallet-backups/
